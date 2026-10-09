@@ -1,46 +1,36 @@
-# Python
-__pycache__/
-*.py[cod]
-.venv/
-*.egg-info/
-build/
-dist/
-.pytest_cache/
-.mypy_cache/
-.ruff_cache/
-.coverage
-htmlcov/
-
-# Node
-node_modules/
-.next/
-out/
-
-# Secrets and local settings
-.env
-*.pem
-secrets/
-
-# Data and models (tracked with DVC, never in Git)
+# Data
+data/datasets/*
 data/raw/*
 data/processed/*
 data/features/*
 data/images/*
-data/datasets/*
-data/documents/generated/*
-data/scenarios/generated/*
+*.parquet
+
+# Model weights and checkpoints
 models/*
-reports/*
-experiments/*
+checkpoints/
+*.pt
+*.pth
+*.h5
+*.ckpt
+*.onnx
+*.safetensors
+*.pkl
+
+# Experiment tracking and logs
+wandb/
 mlruns/
-!**/.gitkeep
+runs/
+logs/
+lightning_logs/
 
-# Built assets (rebuilt by the asset pipeline)
-apps/twin/public/assets/*
-!apps/twin/public/assets/.gitkeep
+# Secrets
+.env
+*.key
 
-# OS and editors
+# Jupyter and OS
+.ipynb_checkpoints/
 .DS_Store
-Thumbs.db
-.idea/
-*.swp
+
+# Keep placeholder files
+!.gitkeep
