@@ -1,0 +1,11 @@
+# Which proposed actions are allowed, need approval, or are blocked.
+tools:
+  read: {risk: low, approval: never}
+  assign_order: {risk: medium, approval: when_priority_urgent}
+  reroute_robot: {risk: medium, approval: always}
+  pause_robot: {risk: high, approval: always}
+  resume_robot: {risk: medium, approval: always}
+limits:
+  max_robots_paused_at_once: 2
+  max_actions_per_task: 5
+  block_in_zones: [worker_walkway]

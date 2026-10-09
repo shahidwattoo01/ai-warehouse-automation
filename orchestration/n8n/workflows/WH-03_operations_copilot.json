@@ -1,0 +1,986 @@
+{
+  "name": "WH-03 Operations Copilot (NLP + RAG + Actions)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "warehouse/copilot",
+        "authentication": "headerAuth",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "b26d2c8b-9d32-56fa-9188-58076ab00571",
+      "name": "Copilot Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        680
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "warehouse-api-key",
+          "name": "Warehouse API Key"
+        }
+      },
+      "webhookId": "3c053604-2b00-5ce3-af87-ee94847079c8",
+      "color": "#2E9E5B"
+    },
+    {
+      "parameters": {
+        "jsCode": "const CONFIG = { api_base: 'http://host.docker.internal:8000', n8n_base: 'http://localhost:5678' };\nconst b = $input.first().json.body ?? {};\nconst message = String(b.message || '').replace(/[\\u0000-\\u001f\\u007f]/g, ' ').trim();\nconst errors = [];\nif (!message) errors.push('message is required');\nif (message.length > 1000) errors.push('message too long (max 1000 characters)');\nif (/(ignore|disregard)\\s+(all\\s+)?(previous|prior|above)\\s+instructions|reveal.*(system prompt|api key)/i.test(message))\n  errors.push('message rejected by input guardrail');\nreturn [{ json: { ...CONFIG, valid: errors.length === 0, errors, message,\n  operator_id: b.operator_id || 'anonymous', session_id: b.session_id || `sess_${$execution.id}` } }];"
+      },
+      "id": "ec36e205-5571-53ec-99c7-e21afdf01c35",
+      "name": "Config & Validate",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        270,
+        680
+      ],
+      "color": "#7F8C8D"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "de0cd555-7279-5e7c-bec9-37dc8c1b59b4",
+              "leftValue": "={{ $json.valid }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "id": "8dc6ec02-bd5c-5157-a11e-6c88ab503eec",
+      "name": "Input Valid?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        540,
+        680
+      ],
+      "color": "#E67E22"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ status: 'rejected', errors: $json.errors }) }}",
+        "options": {
+          "responseCode": 400
+        }
+      },
+      "id": "a645b6e7-d875-5f48-ba44-db2ddb6cac5b",
+      "name": "Respond 400 Invalid Input",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        810,
+        765
+      ],
+      "color": "#2980B9"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Config & Validate').first().json.api_base }}/copilot/rate-limit",
+        "options": {
+          "timeout": 30000
+        },
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "contentType": "json",
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ operator_id: $('Config & Validate').first().json.operator_id }) }}"
+      },
+      "id": "62d6b4ce-296b-5c44-9ec1-2538e301420d",
+      "name": "Rate Limit Check",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        810,
+        595
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "warehouse-api-key",
+          "name": "Warehouse API Key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "2ad165c6-0ab8-5ad4-bb52-d46fec80d1f0",
+              "leftValue": "={{ $json.allowed === true }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "id": "acc3329b-1c9e-5bc9-9710-da967fbcb2fc",
+      "name": "Within Rate Limit?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1080,
+        595
+      ],
+      "color": "#E67E22"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ status: 'rate_limited', retry_after: $json.retry_after ?? 30 }) }}",
+        "options": {
+          "responseCode": 429
+        }
+      },
+      "id": "fdddbf88-c89c-54ab-8bd0-296cbcc1acf1",
+      "name": "Respond 429 Too Many Requests",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        1350,
+        680
+      ],
+      "color": "#2980B9"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Config & Validate').first().json.api_base }}/nlp/parse",
+        "options": {
+          "timeout": 30000
+        },
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "contentType": "json",
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ message: $('Config & Validate').first().json.message, session_id: $('Config & Validate').first().json.session_id, operator_id: $('Config & Validate').first().json.operator_id }) }}"
+      },
+      "id": "4a98cd80-e7d6-5253-8756-2418a8a65ace",
+      "name": "NLP Intent & Entity Extraction",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1350,
+        510
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "warehouse-api-key",
+          "name": "Warehouse API Key"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 1500,
+      "notes": "Text to intent + entities",
+      "notesInFlow": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "e382d87f-8fba-5e90-a895-c155de629bd8",
+              "leftValue": "={{ $json.confidence >= 0.6 }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "id": "97af0e20-f290-5049-a44b-c612f7faaca0",
+      "name": "Confident Enough? (>= 0.6)",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1620,
+        510
+      ],
+      "color": "#E67E22"
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{ json: { clarification: true,\n  answer: \"I'm not sure I understood that. Could you rephrase? For example: 'Why is Robot 14 delayed?', 'Pause Robot 7', or 'What is the battery safety procedure?'\" } }];"
+      },
+      "id": "4d71d626-b695-5eda-9fa9-8a051406ab05",
+      "name": "Ask Clarification",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1890,
+        595
+      ],
+      "color": "#7F8C8D"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "33d1e398-9a2f-50d5-8f55-0503f7a0cbd0",
+                    "leftValue": "={{ $json.category }}",
+                    "rightValue": "monitoring",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "monitoring"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "445dfeb7-afeb-5f0c-a6c6-3e977db636a3",
+                    "leftValue": "={{ $json.category }}",
+                    "rightValue": "investigation",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "investigation"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "65622cfb-06a9-511d-ade8-275cc9567aa8",
+                    "leftValue": "={{ $json.category }}",
+                    "rightValue": "knowledge",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "knowledge"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "ca185b34-0087-512a-b5da-d7fb232eea59",
+                    "leftValue": "={{ $json.category }}",
+                    "rightValue": "planning",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "planning"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "75017af5-1ae6-59e1-b6bb-099107f805e1",
+                    "leftValue": "={{ $json.category }}",
+                    "rightValue": "action",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "action"
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra",
+          "renameFallbackOutput": "unknown"
+        }
+      },
+      "id": "4be2012c-0181-59b1-8a98-f809b76065e6",
+      "name": "Route By Category",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        1890,
+        425
+      ],
+      "color": "#E67E22",
+      "notes": "Sends the question to the right handler",
+      "notesInFlow": true
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Config & Validate').first().json.api_base }}/copilot/monitor",
+        "options": {
+          "timeout": 30000
+        },
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "contentType": "json",
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ intent: $json.intent, entities: $json.entities, message: $('Config & Validate').first().json.message, session_id: $('Config & Validate').first().json.session_id, operator_id: $('Config & Validate').first().json.operator_id }) }}"
+      },
+      "id": "0a41423f-3901-5074-bc8a-deda3affb188",
+      "name": "Query Warehouse Data",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2160,
+        0
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "warehouse-api-key",
+          "name": "Warehouse API Key"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 1500
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Config & Validate').first().json.api_base }}/copilot/investigate",
+        "options": {
+          "timeout": 60000
+        },
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "contentType": "json",
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ intent: $json.intent, entities: $json.entities, message: $('Config & Validate').first().json.message, session_id: $('Config & Validate').first().json.session_id, operator_id: $('Config & Validate').first().json.operator_id }) }}"
+      },
+      "id": "ef95ebd4-a9a5-5627-9e58-96c651320ac1",
+      "name": "Investigate (ML + Events)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2160,
+        170
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "warehouse-api-key",
+          "name": "Warehouse API Key"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 1500
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Config & Validate').first().json.api_base }}/rag/query",
+        "options": {
+          "timeout": 30000
+        },
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "contentType": "json",
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ query: $('Config & Validate').first().json.message, top_k: 5 }) }}"
+      },
+      "id": "313ff74d-a17d-5375-a84b-b519b139b349",
+      "name": "RAG Retrieve (SOPs)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2160,
+        340
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "warehouse-api-key",
+          "name": "Warehouse API Key"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 1500
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Config & Validate').first().json.api_base }}/rag/answer",
+        "options": {
+          "timeout": 60000
+        },
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "contentType": "json",
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ query: $('Config & Validate').first().json.message, chunks: $json.chunks }) }}"
+      },
+      "id": "2813c05d-a9d7-5efb-b1ac-4c6515905742",
+      "name": "Generate Grounded Answer",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2430,
+        340
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "warehouse-api-key",
+          "name": "Warehouse API Key"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 1500
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Config & Validate').first().json.api_base }}/optimization/what-if",
+        "options": {
+          "timeout": 60000
+        },
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "contentType": "json",
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ intent: $json.intent, entities: $json.entities, message: $('Config & Validate').first().json.message, session_id: $('Config & Validate').first().json.session_id, operator_id: $('Config & Validate').first().json.operator_id }) }}"
+      },
+      "id": "30593817-cb88-528a-a9f9-2c3d1027794f",
+      "name": "What-If Optimization",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2160,
+        510
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "warehouse-api-key",
+          "name": "Warehouse API Key"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 1500
+    },
+    {
+      "parameters": {
+        "jsCode": "const cfg = $('Config & Validate').first().json;\nconst nlp = $input.first().json;\nreturn [{ json: { source: 'copilot', task: cfg.message, intent: nlp.intent, entities: nlp.entities,\n  requested_by: cfg.operator_id, session_id: cfg.session_id } }];"
+      },
+      "id": "ab84022d-14f0-5e9c-b9b1-685d11e76f80",
+      "name": "Build Action Task",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2160,
+        680
+      ],
+      "color": "#7F8C8D",
+      "notes": "Actions never run here: they go to WH-02",
+      "notesInFlow": true
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:5678/webhook/warehouse/agent-task",
+        "options": {
+          "timeout": 15000
+        },
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "contentType": "json",
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}"
+      },
+      "id": "f55f55ab-0a1e-5b1c-a63d-51c8de45956f",
+      "name": "Dispatch To Agent Supervisor (WH-02)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2430,
+        680
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "warehouse-api-key",
+          "name": "Warehouse API Key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{ json: { answer: \"I can help with monitoring, investigations, SOP questions, planning and controlled actions. Try: 'How many robots are active?' or 'Prioritize all urgent orders.'\" } }];"
+      },
+      "id": "ab8a95a0-6c85-5383-a817-ae1706b6f763",
+      "name": "Unknown Intent",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2160,
+        850
+      ],
+      "color": "#7F8C8D"
+    },
+    {
+      "parameters": {
+        "jsCode": "const j = $input.first().json;\nconst nlp = $('NLP Intent & Entity Extraction').first().json || {};\nlet answer = j.answer || j.summary || j.reply;\nif (j.task_id && !answer) answer = `Task ${j.task_id} started. Actions that change the warehouse are checked against policy and may need your approval.`;\nreturn [{ json: { answer: answer || 'No answer available.', sources: j.sources || [], data: j.data || null,\n  task_id: j.task_id || null, clarification: !!j.clarification, intent: nlp.intent || null,\n  category: nlp.category || null, entities: nlp.entities || {}, confidence: nlp.confidence ?? null } }];"
+      },
+      "id": "7a41727e-006b-5d4e-95d8-f5b09c8e7d44",
+      "name": "Compose Reply",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2700,
+        449
+      ],
+      "color": "#7F8C8D"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Config & Validate').first().json.api_base }}/copilot/log",
+        "options": {
+          "timeout": 8000
+        },
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "contentType": "json",
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ session_id: $('Config & Validate').first().json.session_id, operator_id: $('Config & Validate').first().json.operator_id, message: $('Config & Validate').first().json.message, reply: $json }) }}"
+      },
+      "id": "7864e848-22f4-5a02-bcfe-fe3455d4faaf",
+      "name": "Log Conversation",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2970,
+        449
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "warehouse-api-key",
+          "name": "Warehouse API Key"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($('Compose Reply').first().json) }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "id": "266a56e1-1338-5ae1-9894-8aaec0e1e264",
+      "name": "Respond To Operator",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        3240,
+        449
+      ],
+      "color": "#2980B9"
+    },
+    {
+      "parameters": {
+        "content": "## WH-03 Operations Copilot\n`POST /webhook/warehouse/copilot` `{message, operator_id, session_id}`\n\nGuardrails -> rate limit -> NLP (intent + entities) -> route:\nmonitoring / investigation / knowledge (RAG with citations) / planning (what-if) / action.\n\nRead-only questions answer synchronously. **Actions are never executed here**: they become an agent task in WH-02 (policy gate + approval + verification).",
+        "height": 230,
+        "width": 700,
+        "color": 4
+      },
+      "id": "51cb10a1-02cd-560e-bfae-0ea2a31dcbe1",
+      "name": "Note 22",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        0,
+        -370
+      ]
+    }
+  ],
+  "connections": {
+    "Copilot Webhook": {
+      "main": [
+        [
+          {
+            "node": "Config & Validate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Config & Validate": {
+      "main": [
+        [
+          {
+            "node": "Input Valid?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Input Valid?": {
+      "main": [
+        [
+          {
+            "node": "Rate Limit Check",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond 400 Invalid Input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Rate Limit Check": {
+      "main": [
+        [
+          {
+            "node": "Within Rate Limit?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Within Rate Limit?": {
+      "main": [
+        [
+          {
+            "node": "NLP Intent & Entity Extraction",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond 429 Too Many Requests",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "NLP Intent & Entity Extraction": {
+      "main": [
+        [
+          {
+            "node": "Confident Enough? (>= 0.6)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Confident Enough? (>= 0.6)": {
+      "main": [
+        [
+          {
+            "node": "Route By Category",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Ask Clarification",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route By Category": {
+      "main": [
+        [
+          {
+            "node": "Query Warehouse Data",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Investigate (ML + Events)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "RAG Retrieve (SOPs)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "What-If Optimization",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Build Action Task",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Unknown Intent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "RAG Retrieve (SOPs)": {
+      "main": [
+        [
+          {
+            "node": "Generate Grounded Answer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Action Task": {
+      "main": [
+        [
+          {
+            "node": "Dispatch To Agent Supervisor (WH-02)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ask Clarification": {
+      "main": [
+        [
+          {
+            "node": "Compose Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Query Warehouse Data": {
+      "main": [
+        [
+          {
+            "node": "Compose Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Investigate (ML + Events)": {
+      "main": [
+        [
+          {
+            "node": "Compose Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Grounded Answer": {
+      "main": [
+        [
+          {
+            "node": "Compose Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "What-If Optimization": {
+      "main": [
+        [
+          {
+            "node": "Compose Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Dispatch To Agent Supervisor (WH-02)": {
+      "main": [
+        [
+          {
+            "node": "Compose Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Unknown Intent": {
+      "main": [
+        [
+          {
+            "node": "Compose Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Compose Reply": {
+      "main": [
+        [
+          {
+            "node": "Log Conversation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log Conversation": {
+      "main": [
+        [
+          {
+            "node": "Respond To Operator",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1",
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "none",
+    "saveManualExecutions": true,
+    "executionTimeout": 120,
+    "timezone": "UTC"
+  },
+  "active": false,
+  "meta": {
+    "templateCredsSetupCompleted": false
+  },
+  "versionId": "cd834553-fa6d-5d70-8fe6-e29d0adb7836"
+}

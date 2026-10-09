@@ -1,0 +1,272 @@
+{
+  "name": "WH-06 Global Error Handler",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "7e539fc5-7342-5af7-815a-952d1d7f6ccf",
+      "name": "Error Trigger",
+      "type": "n8n-nodes-base.errorTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        85
+      ],
+      "color": "#C0392B"
+    },
+    {
+      "parameters": {
+        "jsCode": "const e = $input.first().json;\nconst ex = e.execution || {};\nconst wf = (e.workflow || {}).name || 'unknown';\nreturn [{ json: { api_base: 'http://host.docker.internal:8000', workflow: wf, execution_id: ex.id, failed_node: ex.lastNodeExecuted || 'unknown',\n  message: (ex.error || {}).message || 'unknown error', url: ex.url,\n  severity: /WH-0[12]/.test(wf) ? 'critical' : 'warning', timestamp: new Date().toISOString() } }];"
+      },
+      "id": "9c702ab6-d8f9-5846-b0a4-64ce287d1115",
+      "name": "Format Incident",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        270,
+        85
+      ],
+      "color": "#7F8C8D"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Format Incident').first().json.api_base }}/simulation/unlock",
+        "options": {
+          "timeout": 8000
+        },
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "contentType": "json",
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ force: true, reason: 'workflow_error', execution_id: $('Format Incident').first().json.execution_id }) }}"
+      },
+      "id": "8c9d961f-f554-578c-be8a-154abd7b91c8",
+      "name": "Force Release Sim Lock",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        540,
+        85
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "warehouse-api-key",
+          "name": "Warehouse API Key"
+        }
+      },
+      "onError": "continueRegularOutput",
+      "notes": "A crash must never freeze the warehouse",
+      "notesInFlow": true
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Format Incident').first().json.api_base }}/monitoring/incident",
+        "options": {
+          "timeout": 8000
+        },
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "contentType": "json",
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($('Format Incident').first().json) }}"
+      },
+      "id": "e22a0c0b-e029-5292-bc81-d54d76c40e7d",
+      "name": "Record Incident",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        810,
+        85
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "warehouse-api-key",
+          "name": "Warehouse API Key"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 1500,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "bdf629fc-0ca1-57be-818c-76732e05c6eb",
+              "leftValue": "={{ $('Format Incident').first().json.severity === 'critical' }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "id": "8c49550d-d99a-5d1e-9923-247090c0d0e2",
+      "name": "Critical?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1080,
+        85
+      ],
+      "color": "#E67E22"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Format Incident').first().json.api_base }}/monitoring/alert",
+        "options": {
+          "timeout": 30000
+        },
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "contentType": "json",
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ severity: 'critical', source: $('Format Incident').first().json.workflow, message: $('Format Incident').first().json.failed_node + ': ' + $('Format Incident').first().json.message, link: $('Format Incident').first().json.url }) }}"
+      },
+      "id": "e848aa02-930b-5da1-a1e3-b40e203740dc",
+      "name": "Page On-Call (Slack/Email via backend)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1350,
+        0
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "warehouse-api-key",
+          "name": "Warehouse API Key"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 1500
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{ json: { status: 'logged' } }];"
+      },
+      "id": "e6044f27-fc00-5291-ad0c-fc3ae2788c8e",
+      "name": "Non-Critical: Logged Only",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1350,
+        170
+      ],
+      "color": "#7F8C8D"
+    },
+    {
+      "parameters": {
+        "content": "## WH-06 Error Handler\nSet this as the **Error Workflow** in the settings of WH-01 .. WH-05 and WH-07.\nIt force-releases the simulation lock (so one crash cannot freeze the warehouse), records the incident, and alerts on-call for WH-01 / WH-02 failures.",
+        "height": 170,
+        "width": 640,
+        "color": 4
+      },
+      "id": "311182a7-e1f5-52cf-b58f-f370df13c4f9",
+      "name": "Note 7",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        0,
+        -310
+      ]
+    }
+  ],
+  "connections": {
+    "Error Trigger": {
+      "main": [
+        [
+          {
+            "node": "Format Incident",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Incident": {
+      "main": [
+        [
+          {
+            "node": "Force Release Sim Lock",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Force Release Sim Lock": {
+      "main": [
+        [
+          {
+            "node": "Record Incident",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Record Incident": {
+      "main": [
+        [
+          {
+            "node": "Critical?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Critical?": {
+      "main": [
+        [
+          {
+            "node": "Page On-Call (Slack/Email via backend)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Non-Critical: Logged Only",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1",
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "none",
+    "saveManualExecutions": true,
+    "executionTimeout": 60,
+    "timezone": "UTC"
+  },
+  "active": false,
+  "meta": {
+    "templateCredsSetupCompleted": false
+  },
+  "versionId": "6451b443-c30e-5db7-8dcf-2bf153b58b2f"
+}

@@ -1,0 +1,2 @@
+// Streamed state store
+export {};

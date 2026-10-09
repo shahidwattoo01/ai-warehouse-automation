@@ -1,0 +1,15 @@
+# Scenario: breakdown
+name: breakdown
+seed: 99
+layout: configs/layouts/standard_30x20.txt
+simulation: configs/simulation/default.yaml
+fleet:
+  robots: 10
+demand:
+  orders_per_hour_mean: 120
+  daily_peaks: [{hour: 10, multiplier: 2.0}, {hour: 15, multiplier: 2.0}]
+  priority_mix: {URGENT: 0.05, HIGH: 0.15, NORMAL: 0.70, LOW: 0.10}
+  deadline_minutes: {URGENT: 15, HIGH: 30, NORMAL: 60, LOW: 120}
+faults:
+  robot_breakdown_per_robot_tick: 0.02
+  obstacle_per_tick: 0.01

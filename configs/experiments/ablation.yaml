@@ -1,0 +1,8 @@
+name: warehouse-ablation
+modes: [random, heuristic, astar, ml, dynamic, agentic, rl]
+scenarios: [quiet, normal, peak, breakdown]
+seeds:
+  validation: [101, 102, 103, 104, 105]
+  test: [201, 202, 203, 204, 205, 206, 207, 208, 209, 210]
+metrics: [avg_completion_min, on_time_rate, throughput_per_hour, travel_cells_per_order,
+          rejected_moves_per_1000, utilization, battery_per_order, incident_recovery_min]

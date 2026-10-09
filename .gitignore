@@ -1,0 +1,46 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+*.egg-info/
+build/
+dist/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Node
+node_modules/
+.next/
+out/
+
+# Secrets and local settings
+.env
+*.pem
+secrets/
+
+# Data and models (tracked with DVC, never in Git)
+data/raw/*
+data/processed/*
+data/features/*
+data/images/*
+data/datasets/*
+data/documents/generated/*
+data/scenarios/generated/*
+models/*
+reports/*
+experiments/*
+mlruns/
+!**/.gitkeep
+
+# Built assets (rebuilt by the asset pipeline)
+apps/twin/public/assets/*
+!apps/twin/public/assets/.gitkeep
+
+# OS and editors
+.DS_Store
+Thumbs.db
+.idea/
+*.swp

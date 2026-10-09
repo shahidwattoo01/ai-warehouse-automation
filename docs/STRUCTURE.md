@@ -1,0 +1,534 @@
+# Repository structure
+
+Annotated tree, generated from the same descriptions as the file headers. Regenerate with `make tree`.
+
+Empty `__init__.py`, `.gitkeep` and `py.typed` files are hidden for readability.
+
+```text
+warehouse-ai-platform/
+├── .github/
+│   ├── workflows/
+│   │   ├── ci.yml                                  # CI: lint, types, tests, contracts, twin build
+│   │   └── nightly.yml                             # Nightly: soak, determinism, golden-set evaluations
+│   └── PULL_REQUEST_TEMPLATE.md                    # PR checklist
+├── .vscode/
+│   ├── extensions.json                             # Recommended VS Code extensions
+│   ├── launch.json                                 # Debug configurations: API, simulation, tests
+│   ├── settings.json                               # VS Code: interpreter, ruff, pytest, hidden noise
+│   └── tasks.json                                  # VS Code tasks wrapping the Makefile
+├── apps/
+│   └── twin/                                       # 3D digital twin and control center (Next.js, Three.js)
+│       ├── public/
+│       │   ├── assets/
+│       │   └── README.md                           # Optimized GLB assets are copied here by the asset build
+│       ├── src/
+│       │   ├── app/
+│       │   │   ├── analytics/
+│       │   │   │   └── page.tsx                    # AI analytics page
+│       │   │   ├── copilot/
+│       │   │   │   └── page.tsx                    # Copilot chat page
+│       │   │   ├── data/
+│       │   │   │   └── page.tsx                    # Dataset capture and export jobs page
+│       │   │   ├── experiments/
+│       │   │   │   └── page.tsx                    # Experiment comparison and side-by-side replay
+│       │   │   ├── fleet/
+│       │   │   │   └── page.tsx                    # Fleet panel page
+│       │   │   ├── orders/
+│       │   │   │   └── page.tsx                    # Orders panel page
+│       │   │   ├── twin/
+│       │   │   │   └── page.tsx                    # The 3D warehouse view
+│       │   │   ├── layout.tsx                      # Root layout
+│       │   │   └── page.tsx                        # Landing and run selection
+│       │   ├── components/
+│       │   │   ├── entities/
+│       │   │   │   ├── EntityManager.tsx           # ID to scene-object registry with pooling
+│       │   │   │   ├── Robot.tsx                   # Robot model with mast, fork, wheels, status light
+│       │   │   │   └── Worker.tsx                  # Rigged worker with animation clips
+│       │   │   ├── hud/
+│       │   │   │   ├── EventConsole.tsx            # Filterable event log
+│       │   │   │   ├── KpiStrip.tsx                # Live KPIs
+│       │   │   │   ├── Timeline.tsx                # Replay scrubber with event markers
+│       │   │   │   └── TopBar.tsx                  # Run controls and clock
+│       │   │   ├── overlays/
+│       │   │   │   ├── Detections.tsx              # Vision boxes and masks over camera views
+│       │   │   │   ├── HeatMap.tsx                 # Congestion heat map overlay
+│       │   │   │   └── PathLines.tsx               # Planned path overlay
+│       │   │   ├── panels/
+│       │   │   │   ├── ApprovalsQueue.tsx          # Pending agent approvals
+│       │   │   │   ├── CopilotDrawer.tsx           # Chat with parsed intent, tools and sources
+│       │   │   │   ├── FleetPanel.tsx              # Fleet list
+│       │   │   │   ├── Inspector.tsx               # Selected object details and allowed actions
+│       │   │   │   └── OrdersPanel.tsx             # Order list
+│       │   │   └── scene/
+│       │   │       ├── CameraRig.tsx               # Orbit, top-down, follow and CCTV presets
+│       │   │       ├── Chargers.tsx                # Charging bays
+│       │   │       ├── Conveyors.tsx               # Belts, cartons and diverters
+│       │   │       ├── Docks.tsx                   # Dock doors and staging
+│       │   │       ├── Floor.tsx                   # Floor with markings generated from zones
+│       │   │       ├── LayoutBuilder.tsx           # Builds static scene from the scene description
+│       │   │       ├── Lighting.tsx                # Image-based light, shadows, bloom
+│       │   │       ├── Racks.tsx                   # Instanced rack bays and totes
+│       │   │       ├── Stations.tsx                # Pick and pack stations
+│       │   │       └── WarehouseCanvas.tsx         # Renderer setup (color management, tone mapping, shadows)
+│       │   ├── lib/
+│       │   │   ├── api.ts                          # REST client with generated types
+│       │   │   ├── coords.ts                       # Cell to world coordinate conversion
+│       │   │   ├── interpolation.ts                # One-tick-behind interpolation and easing
+│       │   │   └── stream.ts                       # WebSocket client, frame buffer, reconnect
+│       │   ├── stores/
+│       │   │   ├── stateStore.ts                   # Streamed state store
+│       │   │   └── uiStore.ts                      # Selection, overlays and camera state
+│       │   └── types/
+│       │       └── generated.ts                    # Types generated from contracts (do not edit by hand)
+│       ├── tests/
+│       │   └── twin.spec.ts                        # Playwright end-to-end and visual regression tests
+│       ├── next.config.mjs                         # Next.js configuration
+│       ├── package.json                            # Twin application dependencies and scripts
+│       ├── playwright.config.ts                    # Browser test configuration
+│       ├── postcss.config.js                       # PostCSS configuration
+│       ├── README.md                               # The 3D digital twin and control center
+│       ├── tailwind.config.ts                      # Tailwind configuration
+│       └── tsconfig.json                           # Strict TypeScript configuration
+├── assets/                                         # 3D asset sources, specification and build scripts
+│   ├── exports/
+│   ├── scripts/
+│   │   ├── export_blender.py                       # Blender export script (GLB per asset)
+│   │   ├── optimize_gltf.sh                        # Compression and pruning with glTF Transform
+│   │   └── validate_gltf.sh                        # glTF Validator run
+│   ├── source/
+│   └── spec/
+│       ├── asset_register.csv                      # Every asset with author, source, license and checksum
+│       ├── asset_spec.yaml                         # Asset standards and per-asset budgets and named parts
+│       └── material_library.yaml                   # Shared PBR material definitions
+├── configs/                                        # All configuration as YAML: simulation, scenarios, layouts, experiments, datasets, policy
+│   ├── agents/
+│   ├── datasets/
+│   │   └── v0_1.yaml                               # Dataset recipe for release v0.1
+│   ├── experiments/
+│   │   └── ablation.yaml                           # The seven experiment modes over four scenarios
+│   ├── layouts/
+│   │   ├── README.md                               # Layout file format and legend
+│   │   └── standard_30x20.txt                      # Standard 30 by 20 layout (ASCII map)
+│   ├── models/
+│   ├── policy/
+│   │   └── gate_rules.yaml                         # Policy gate rules for agent actions
+│   ├── rag/
+│   ├── scenarios/
+│   │   ├── breakdown.yaml                          # Scenario: breakdown day
+│   │   ├── normal.yaml                             # Scenario: normal day
+│   │   ├── peak.yaml                               # Scenario: peak day
+│   │   └── quiet.yaml                              # Scenario: quiet day
+│   ├── simulation/
+│   │   └── default.yaml                            # Core simulation constants (single place for all numbers)
+│   └── vision/
+├── contracts/                                      # JSON Schemas and golden messages (interface between services)
+│   ├── golden/
+│   │   ├── scene.example.json                      # Golden example scene
+│   │   └── state_frame.example.json                # Golden example frame; CI fails if it stops validating
+│   ├── schemas/
+│   │   ├── scene.schema.json                       # JSON Schema of the scene description (v1.0)
+│   │   └── state_frame.schema.json                 # JSON Schema of the per-tick state frame (v1.0)
+│   └── README.md                                   # How contracts are generated, versioned and enforced
+├── data/                                           # Dataset workspace (large data tracked by DVC, not Git)
+│   ├── datasets/
+│   ├── documents/
+│   │   ├── generated/
+│   │   └── sources/
+│   │       ├── inventory_policy.md                 # Inventory policy (RAG source)
+│   │       ├── maintenance_guide.md                # Maintenance guide (RAG source)
+│   │       ├── robot_manual.md                     # Robot manual (RAG source)
+│   │       ├── safety_rules.md                     # Safety rules (RAG source)
+│   │       ├── sop_blocked_aisle.md                # SOP: blocked aisle
+│   │       ├── sop_conveyor_jam.md                 # SOP: conveyor jam
+│   │       ├── sop_late_pallet.md                  # SOP: late inbound pallet
+│   │       ├── sop_station_outage.md               # SOP: packing station outage
+│   │       └── warehouse_manual.md                 # Warehouse manual (RAG source)
+│   ├── features/
+│   ├── images/
+│   ├── nlp/
+│   │   └── templates.yaml                          # Utterance templates by intent
+│   ├── processed/
+│   ├── rag_eval/
+│   │   └── questions.jsonl                         # RAG evaluation questions with supporting passage IDs
+│   ├── raw/
+│   ├── scenarios/
+│   │   ├── generated/
+│   │   └── incidents/
+│   │       ├── battery_cascade.yaml                # Incident scenario for agent evaluation
+│   │       ├── conveyor_jam.yaml                   # Incident scenario for agent evaluation
+│   │       └── robot_blocking_aisle.yaml           # Incident scenario for agent evaluation
+│   └── README.md                                   # What lives here, what is tracked by DVC, how releases are made
+├── docker/                                         # Dockerfiles and Compose
+│   ├── docker-compose.yml                          # One command starts the platform
+│   ├── Dockerfile.api                              # API and streaming image
+│   ├── Dockerfile.capture                          # Headless capture image (Chromium and Playwright)
+│   ├── Dockerfile.sim                              # Simulation worker image
+│   └── Dockerfile.twin                             # Twin and control center image
+├── docs/                                           # Architecture, decisions, guides, runbook, cards
+│   ├── architecture/
+│   │   ├── data-flow.md                            # Streaming, event logging and dataset flow
+│   │   ├── overview.md                             # Architecture overview and layer responsibilities
+│   │   └── safety-design.md                        # Policy gate, approvals, verification and audit design
+│   ├── data_cards/
+│   │   └── TEMPLATE.md                             # Data card template
+│   ├── decisions/
+│   │   ├── ADR-0001-web-twin-primary-renderer.md   # Decision: web 3D twin first, Isaac Sim optional
+│   │   ├── ADR-0002-python-core-single-source-of-truth.md  # Decision: Python core is authoritative
+│   │   ├── ADR-0003-reservation-based-planning.md  # Decision: space-time reservations for conflict-free paths
+│   │   ├── ADR-0004-llm-never-writes-state.md      # Decision: agents propose, the backend executes
+│   │   └── TEMPLATE.md                             # ADR template
+│   ├── diagrams/
+│   ├── experiments/
+│   │   └── experiment-plan.md                      # The seven experiments, scenarios, seeds and statistics
+│   ├── guides/
+│   │   ├── adding-an-ai-layer.md                   # How a new layer plugs into the platform
+│   │   ├── getting-started.md                      # Setup in 15 minutes
+│   │   └── running-experiments.md                  # How to run and read the seven experiments
+│   ├── interfaces/
+│   │   ├── agents.md                               # Interface note: tools and agents
+│   │   ├── ml.md                                   # Interface note: ML and deep learning
+│   │   ├── nlp.md                                  # Interface note: NLP
+│   │   ├── rag.md                                  # Interface note: RAG
+│   │   ├── rl.md                                   # Interface note: reinforcement learning
+│   │   └── vision.md                               # Interface note: computer vision
+│   ├── model_cards/
+│   │   └── TEMPLATE.md                             # Model card template
+│   ├── presentation/
+│   │   └── netsol-outline.md                       # Presentation outline and prepared questions
+│   ├── runbook/
+│   │   └── operations.md                           # Start, stop, reset, common errors, restore the demo
+│   └── index.md                                    # Documentation home
+├── experiments/                                    # Run outputs (not in Git)
+├── models/                                         # Trained model artifacts (registry-managed, not in Git)
+├── notebooks/                                      # Exploration and calibration notebooks
+├── orchestration/                                  # n8n workflows and mock backend
+│   ├── n8n/
+│   │   ├── mock_backend/
+│   │   └── workflows/
+│   └── README.md                                   # n8n workflows: import, credentials, activation
+├── reports/                                        # Generated experiment tables and figures (not in Git)
+├── scripts/                                        # Command-line entry points
+│   ├── build_contracts.py                          # Export JSON Schemas and TypeScript types from the Pydantic models
+│   ├── capture_images.py                           # Headless capture of labeled images from the twin
+│   ├── check_contracts.py                          # Validate golden messages against schemas (CI gate)
+│   ├── generate_dataset.py                         # Build a dataset release from a recipe
+│   ├── make_tree.py                                # Regenerate docs/STRUCTURE.md
+│   ├── run_api.sh                                  # Start the API with reload
+│   ├── run_experiments.py                          # Run the seven experiments over scenarios and seeds
+│   ├── run_sim.py                                  # Run one simulation headless and print the KPI summary
+│   ├── setup_dev.sh                                # One-command developer setup (venv, dependencies, hooks)
+│   └── validate_assets.py                          # Enforce the asset specification (names, budgets, licenses)
+├── src/
+│   └── warehouse_ai/                               # The Python package
+│       ├── agents/
+│       │   ├── prompts/
+│       │   │   ├── fleet.md                        # Fleet agent instructions
+│       │   │   ├── knowledge.md                    # Knowledge agent instructions
+│       │   │   ├── navigation.md                   # Navigation agent instructions
+│       │   │   └── supervisor.md                   # Supervisor instructions
+│       │   ├── specialists/
+│       │   │   ├── fleet_agent.py                  # Fleet agent: status, assignments, pause, resume
+│       │   │   ├── inventory_agent.py              # Inventory agent: stock and put-away
+│       │   │   ├── knowledge_agent.py              # Knowledge agent: procedures with citations
+│       │   │   ├── maintenance_agent.py            # Maintenance agent: anomalies, charging, tickets
+│       │   │   ├── navigation_agent.py             # Navigation agent: routes and rerouting
+│       │   │   └── vision_agent.py                 # Vision agent: interprets camera observations
+│       │   ├── budgets.py                          # Step, token and time budgets per task
+│       │   ├── graph.py                            # LangGraph graph with hard step limit and interrupts
+│       │   ├── llm.py                              # Model access: hosted model plus local offline fallback
+│       │   ├── scenario_runner.py                  # Loads an incident, lets an agent act, scores the final state
+│       │   ├── state.py                            # Agent graph state (task, plan, messages, step count)
+│       │   ├── supervisor.py                       # Planner: breaks tasks into steps and delegates
+│       │   └── tracing.py                          # Tracing of model calls, tools, tokens and cost
+│       ├── api/
+│       │   ├── routers/
+│       │   │   ├── agents.py                       # /agents: tasks, results, supervisor
+│       │   │   ├── copilot.py                      # /copilot: parse, route, log
+│       │   │   ├── datasets.py                     # /datasets: capture and export jobs
+│       │   │   ├── evaluation.py                   # /evaluation and /experiments
+│       │   │   ├── inventory.py                    # /inventory: stock queries
+│       │   │   ├── monitoring.py                   # /monitoring and /health details
+│       │   │   ├── navigation.py                   # /navigation: routes, replanning, what-if
+│       │   │   ├── orders.py                       # /orders: queries and new-order intake
+│       │   │   ├── prediction.py                   # /prediction: forecast, eta, anomaly
+│       │   │   ├── rag.py                          # /rag: search, answer, ingestion status, evaluation
+│       │   │   ├── robots.py                       # /robots: queries and validated commands
+│       │   │   ├── simulation.py                   # /simulation: run control, state, step, replay, scene
+│       │   │   ├── tools.py                        # /tools: registry, policy check, execute, verify, approvals
+│       │   │   ├── training.py                     # /training and /models
+│       │   │   └── vision.py                       # /vision: detections, tracking, perceived obstacles
+│       │   ├── streaming/
+│       │   │   ├── frames.py                       # State frame builder (snapshot and delta, MessagePack)
+│       │   │   ├── hub.py                          # Fan-out to viewers with backpressure
+│       │   │   ├── replay.py                       # Replay: seek by snapshot plus deterministic re-simulation
+│       │   │   └── ws.py                           # WebSocket endpoint
+│       │   ├── deps.py                             # Dependency injection (settings, run manager, services)
+│       │   ├── errors.py                           # Exception handlers with the standard error format
+│       │   ├── main.py                             # FastAPI application entry point (health endpoint works today)
+│       │   ├── run_manager.py                      # Owns simulation workers and runs
+│       │   ├── scene_registry.py                   # Serves scene description and asset index with checksums
+│       │   └── security.py                         # API key and role checks for REST and WebSocket
+│       ├── common/
+│       │   ├── config.py                           # Typed settings: loads YAML configs and environment variables
+│       │   ├── errors.py                           # Shared exception types and the standard API error format
+│       │   ├── ids.py                              # Entity ID formats and parsers (R03, ORD-000123, TOTE-0142 ...)
+│       │   ├── logging.py                          # Structured logging setup (structlog), run_id and tick context
+│       │   ├── seeds.py                            # Seeded random streams: one master seed, independent streams
+│       │   ├── types.py                            # Shared type aliases (Cell, Tick, RunId ...)
+│       │   └── units.py                            # Tick, second and minute conversions; cell size in meters
+│       ├── copilot/
+│       │   ├── guardrails.py                       # Input and output guardrails
+│       │   ├── investigate.py                      # Evidence collection for "why" questions
+│       │   ├── router.py                           # Routes requests by category to the right component
+│       │   ├── session.py                          # Conversation state and memory limits
+│       │   └── whatif.py                           # Simulates a change on a copy of the state
+│       ├── data/
+│       │   ├── features/
+│       │   │   ├── anomaly_features.py             # Windowed robot features for anomaly detection
+│       │   │   ├── demand_features.py              # Feature table for demand prediction
+│       │   │   └── eta_features.py                 # Feature table for completion-time prediction
+│       │   ├── synthetic/
+│       │   │   ├── documents_gen.py                # Generates SOPs and manuals from the simulator configuration
+│       │   │   ├── recipes.py                      # Dataset recipe loader (YAML) and job planner
+│       │   │   └── scenarios_gen.py                # Generates incident scenarios for agent evaluation
+│       │   ├── catalog.py                          # Dataset release registry
+│       │   ├── contracts.py                        # Pydantic models for every table and message (source of the JSON Schemas)
+│       │   ├── datacards.py                        # Generates the data card for each release
+│       │   ├── export.py                           # Turns simulator runs into raw Parquet tables
+│       │   ├── processing.py                       # Raw to processed tables: joins, units, warm-up removal
+│       │   ├── splits.py                           # Splits by seed and scenario, time-based splits for forecasting
+│       │   └── validation.py                       # Data quality rules (completeness, validity, consistency, leakage)
+│       ├── dl/
+│       │   ├── models/
+│       │   │   ├── lstm.py                         # LSTM or GRU forecaster
+│       │   │   ├── mlp.py                          # MLP forecaster
+│       │   │   └── transformer.py                  # Small Transformer encoder forecaster
+│       │   ├── datasets.py                         # Sequence windows and scalers for forecasting
+│       │   ├── evaluate.py                         # Same metrics and test set as classical ML; multi-seed reporting
+│       │   ├── export.py                           # TorchScript or ONNX export for serving
+│       │   └── train.py                            # Reusable training loop (seeds, early stopping, MLflow logging)
+│       ├── evaluation/
+│       │   ├── experiments.py                      # Experiment runner over modes, scenarios and seeds
+│       │   ├── metrics.py                          # Warehouse KPI functions
+│       │   ├── modes.py                            # The seven experiment modes and their feature flags
+│       │   ├── reports.py                          # Automatic tables and figures
+│       │   └── stats.py                            # Confidence intervals and paired tests
+│       ├── ml/
+│       │   ├── anomaly/
+│       │   │   ├── predict.py                      # Anomaly scoring service logic
+│       │   │   └── train.py                        # Isolation Forest, DBSCAN and statistical detectors
+│       │   ├── demand/
+│       │   │   ├── predict.py                      # Demand prediction service logic
+│       │   │   └── train.py                        # Demand model training (linear, Random Forest, boosting)
+│       │   ├── eta/
+│       │   │   ├── predict.py                      # Completion-time prediction service logic
+│       │   │   └── train.py                        # Completion-time model training (incl. quantile model)
+│       │   ├── baselines.py                        # Naive and rule baselines every model must beat
+│       │   ├── explain.py                          # SHAP and feature-importance reports
+│       │   ├── model_card.py                       # Model card generator
+│       │   └── tuning.py                           # Optuna search with time-aware cross-validation
+│       ├── mlops/
+│       │   ├── drift.py                            # Drift reports (Evidently)
+│       │   ├── monitoring.py                       # Health and quality monitors
+│       │   ├── promotion.py                        # Champion versus challenger decision and record
+│       │   ├── registry.py                         # MLflow registry helpers
+│       │   └── retraining.py                       # Retraining jobs
+│       ├── nlp/
+│       │   ├── baselines.py                        # spaCy matcher and TF-IDF intent baselines
+│       │   ├── context.py                          # Session memory for follow-up commands
+│       │   ├── dataset_gen.py                      # Template-based utterance generator from real entity names
+│       │   ├── evaluate.py                         # Intent accuracy, entity F1, end-to-end tool-call accuracy
+│       │   ├── guards.py                           # Input guard and out-of-scope detection
+│       │   ├── model.py                            # Transformer encoder with intent and entity heads
+│       │   ├── normalize.py                        # Maps phrases to system IDs ("robot 7" to R07)
+│       │   ├── schema.py                           # Intent list, entity types and parsed-request model
+│       │   ├── service.py                          # Parsing service with confidence and clarification logic
+│       │   └── train.py                            # Fine-tuning script
+│       ├── optimization/
+│       │   ├── assignment/
+│       │   │   ├── cost_matrix.py                  # Robot-by-order cost matrix from predictions
+│       │   │   └── hungarian.py                    # Optimal assignment solver wrapper
+│       │   ├── routing/
+│       │   │   ├── astar.py                        # A* with admissible Manhattan heuristic
+│       │   │   ├── collision_check.py              # Final plan validation before execution
+│       │   │   ├── dijkstra.py                     # Dijkstra on the grid graph (correctness baseline)
+│       │   │   ├── heuristics.py                   # Heuristic and cost functions (congestion, one-way rules)
+│       │   │   ├── replanner.py                    # Replanning triggers (blocked, obstacle, failure, urgent order)
+│       │   │   └── reservation_planner.py          # Prioritized planning against the reservation table
+│       │   └── charging_scheduler.py               # Schedules charging using predicted quiet periods
+│       ├── rag/
+│       │   ├── ingestion/
+│       │   │   ├── chunking.py                     # Heading-aware chunking with overlap and metadata
+│       │   │   ├── clean.py                        # Header and footer cleaning
+│       │   │   ├── extract.py                      # PDF and Markdown text extraction with page numbers
+│       │   │   └── pipeline.py                     # Ingestion pipeline with hash-based change detection
+│       │   ├── answer.py                           # Answer generation with citations
+│       │   ├── embeddings.py                       # Embedding model wrapper
+│       │   ├── evaluate.py                         # Retrieval precision, recall, groundedness, citation accuracy
+│       │   ├── prompts.py                          # Grounded-answer prompt with citation and refusal rules
+│       │   ├── query_rewrite.py                    # Follow-up question rewriting
+│       │   ├── rerank.py                           # Cross-encoder reranker
+│       │   ├── retrieval.py                        # Hybrid dense and keyword retrieval
+│       │   ├── service.py                          # RAG service entry points
+│       │   └── vectorstore.py                      # Qdrant or pgvector adapter
+│       ├── rl/
+│       │   ├── curriculum.py                       # Curriculum stages and promotion thresholds
+│       │   ├── evaluate.py                         # Evaluation against A* on fixed seeds
+│       │   ├── gym_env.py                          # Gymnasium environment around the simulator
+│       │   ├── observation.py                      # Local-window and target encoding
+│       │   ├── policy_adapter.py                   # Plugs the learned policy into the decision interface
+│       │   ├── rewards.py                          # Configurable reward terms and shaping
+│       │   ├── shield.py                           # Safety shield: falls back to A* on unsafe moves
+│       │   └── train.py                            # PPO and DQN training scripts
+│       ├── simulation/
+│       │   ├── engine/
+│       │   │   ├── battery.py                      # Battery drain, charge and threshold rules
+│       │   │   ├── clock.py                        # Tick clock and simulated time
+│       │   │   ├── conflicts.py                    # Conflict resolution: same cell, swap, following, circular
+│       │   │   ├── deadlock.py                     # Wait-for graph, cycle detection and yielding rules
+│       │   │   ├── invariants.py                   # World invariants checked every tick in test mode
+│       │   │   ├── reservations.py                 # Space-time reservation table for collision-free planning
+│       │   │   ├── runner.py                       # Run controller: start, pause, step, reset with seed, speed
+│       │   │   └── tick.py                         # The fixed 12-step tick sequence
+│       │   ├── entities/
+│       │   │   ├── carton.py                       # Shipping carton lifecycle (building, sealed, on belt, shipped)
+│       │   │   ├── charger.py                      # Charging bays and charge rate
+│       │   │   ├── conveyor.py                     # Conveyor segments: FIFO cartons, belt speed, accumulation
+│       │   │   ├── diverter.py                     # Sorter diverters with routing tables and jam faults
+│       │   │   ├── dock.py                         # Dock doors, shipment windows, inbound pallets
+│       │   │   ├── inventory.py                    # Slot-level stock and reorder levels
+│       │   │   ├── obstacle.py                     # Temporary obstacles (dropped tote, spill, stopped robot)
+│       │   │   ├── order.py                        # Order and order lines with priority, deadline, stage timestamps
+│       │   │   ├── product.py                      # Product master data and popularity class (A, B, C)
+│       │   │   ├── rack.py                         # Rack bays, levels and slots, pick cells
+│       │   │   ├── robot.py                        # Robot record: position, heading, battery, mast, fork, status, path
+│       │   │   ├── state_machines.py               # Allowed status transitions; illegal transitions raise errors
+│       │   │   ├── station.py                      # Pick and pack stations: queue cells, buffers, service times
+│       │   │   ├── task.py                         # Robot work units: retrieve, return, put-away, charge, relocate
+│       │   │   ├── tote.py                         # Tote with exactly one location at all times
+│       │   │   └── worker.py                       # Pickers, packers and walkers with scripted behavior
+│       │   ├── generators/
+│       │   │   ├── demand.py                       # Seeded order arrivals with daily pattern, peaks and spikes
+│       │   │   ├── faults.py                       # Seeded breakdowns, jams, obstacles with hidden ground-truth labels
+│       │   │   ├── inbound.py                      # Inbound pallets and put-away demand
+│       │   │   ├── inventory_refill.py             # Stock depletion and replenishment
+│       │   │   └── scenario_loader.py              # Loads scenario files (layout, fleet, demand, faults, seed)
+│       │   ├── interface/
+│       │   │   ├── actions.py                      # Action types: assign, reroute, pause, resume, set station state
+│       │   │   ├── state_view.py                   # Read-only state snapshot exposed to AI layers
+│       │   │   └── validators.py                   # Validates every action; refuses illegal ones with a reason
+│       │   ├── policies/
+│       │   │   ├── base.py                         # The decision interface every policy implements
+│       │   │   ├── cost_policy.py                  # Cost-based assignment (distance, battery, priority, queue)
+│       │   │   ├── ml_policy.py                    # Prediction-assisted assignment using the ETA and demand models
+│       │   │   ├── nearest_policy.py               # Baseline: nearest idle robot
+│       │   │   └── random_policy.py                # Baseline: random assignment
+│       │   ├── recording/
+│       │   │   ├── event_store.py                  # Batched writes of events to PostgreSQL and Parquet
+│       │   │   ├── events.py                       # Event types and the event log
+│       │   │   ├── metrics.py                      # KPI collection every 10 ticks
+│       │   │   ├── run_summary.py                  # Final KPI table per run
+│       │   │   └── snapshots.py                    # State snapshots for replay and resume
+│       │   └── world/
+│       │       ├── cells.py                        # Cell type definitions (floor, aisle, rack, wall, station, charger, dock ...)
+│       │       ├── graph.py                        # Graph view of the grid used by Dijkstra and A*
+│       │       ├── grid.py                         # Grid map: walkability, neighbors, one-way aisle rules
+│       │       ├── layout_loader.py                # Reads and validates layout files from configs/layouts
+│       │       ├── scene_builder.py                # Builds the scene description sent once to the 3D twin
+│       │       └── zones.py                        # Named zones (storage, pick, pack, charging, docks, walkways)
+│       ├── tools/
+│       │   ├── approvals.py                        # Human approval requests and resume handling
+│       │   ├── audit.py                            # Immutable audit log of requests, decisions and results
+│       │   ├── executor.py                         # Controlled executor with idempotency keys
+│       │   ├── policy_gate.py                      # Allow, require approval or block, by rule
+│       │   ├── read_tools.py                       # Read-only tools (state, telemetry, predictions, RAG, cameras)
+│       │   ├── registry.py                         # Tool registry: schemas, descriptions, risk levels
+│       │   ├── rollback.py                         # Undo logic for failed verification
+│       │   ├── schemas.py                          # Typed inputs and outputs for every tool
+│       │   ├── verifier.py                         # Checks the real state after execution
+│       │   └── write_tools.py                      # State-changing tools (assign, reroute, pause, resume, tickets)
+│       └── vision/
+│           ├── capture/
+│           │   ├── camera_rig.py                   # Camera positions, intrinsics and presets
+│           │   ├── exporters.py                    # COCO and YOLO exporters
+│           │   └── label_passes.py                 # ID pass, depth pass, boxes and masks from simulator state
+│           ├── detector/
+│           │   ├── infer.py                        # Detector inference
+│           │   └── train.py                        # Detector fine-tuning
+│           ├── segmentation/
+│           │   └── train.py                        # Floor and obstacle segmentation training
+│           ├── tracking/
+│           │   └── tracker.py                      # Multi-object tracking across frames
+│           ├── classes.py                          # Class list and attribute definitions (labeling guide in code)
+│           ├── evaluate.py                         # mAP, per-class, size, occlusion and lighting breakdowns
+│           ├── events.py                           # Temporal smoothing and events (blocked path, worker in lane)
+│           ├── grid_mapping.py                     # Pixel to floor to grid-cell mapping (homography)
+│           └── service.py                          # Vision service: observations only, never actions
+├── tests/                                          # All automated tests
+│   ├── contract/
+│   │   ├── test_golden_messages.py                 # Golden messages validate against schemas
+│   │   └── test_schemas_valid.py                   # Schemas are valid and golden examples match them
+│   ├── data/
+│   │   ├── test_dataset_reproducible.py            # Same recipe and seed give identical files
+│   │   └── test_leakage.py                         # Splits share no seeds
+│   ├── determinism/
+│   │   └── test_same_seed_same_log.py              # Same seed gives byte-identical event log
+│   ├── e2e/
+│   │   └── README.md                               # Browser tests live in apps/twin/tests
+│   ├── integration/
+│   │   ├── test_copilot_flow.py                    # End-to-end Copilot conversations
+│   │   ├── test_replay_seek.py                     # Seek gives the same state as the original run
+│   │   └── test_stream_roundtrip.py                # Connect, receive scene and frames, send commands
+│   ├── performance/
+│   │   └── test_tick_rate.py                       # At least 100 ticks per second for 10 robots
+│   ├── property/
+│   │   ├── test_conflict_resolver_property.py      # Hypothesis: resolver never produces overlaps
+│   │   └── test_invariants_property.py             # Hypothesis: invariants hold for generated situations
+│   ├── scenarios/
+│   │   ├── maps/
+│   │   │   ├── crossing.yaml                       # Tiny map for the crossing test
+│   │   │   └── head_on.yaml                        # Tiny map for the head-on test
+│   │   ├── test_charger_contention.py              # Two robots, one charger
+│   │   ├── test_crossing.py                        # Four robots at a crossing
+│   │   ├── test_diverter_jam.py                    # Jam at a diverter recovers
+│   │   ├── test_head_on.py                         # Scripted head-on scenario
+│   │   └── test_station_queue.py                   # Queue at a packing station
+│   ├── unit/
+│   │   ├── agents/
+│   │   │   └── test_budgets.py                     # Step and time limits stop the agent
+│   │   ├── api/
+│   │   │   └── test_health.py                      # Health endpoint responds
+│   │   ├── common/
+│   │   │   ├── test_ids.py                         # Entity ID formats
+│   │   │   └── test_seeds.py                       # Same seed gives the same numbers; streams are independent
+│   │   ├── ml/
+│   │   │   └── test_baselines.py                   # Baselines behave as specified
+│   │   ├── nlp/
+│   │   │   └── test_normalize.py                   # Phrase to ID mapping
+│   │   ├── optimization/
+│   │   │   ├── test_astar_vs_dijkstra.py           # A* and Dijkstra give equal path cost
+│   │   │   └── test_reservation_planner.py         # Zero conflicts in plans
+│   │   ├── rag/
+│   │   │   └── test_chunking.py                    # Chunk sizes, overlap, metadata
+│   │   ├── simulation/
+│   │   │   ├── test_battery.py                     # Drain, charge and thresholds
+│   │   │   ├── test_conflicts.py                   # Same-cell, swap, following, circular rules
+│   │   │   ├── test_conveyor.py                    # FIFO order, stopping, accumulation
+│   │   │   └── test_state_machines.py              # Illegal transitions are refused
+│   │   ├── tools/
+│   │   │   ├── test_policy_gate.py                 # Allow, approve, block decisions
+│   │   │   └── test_validators.py                  # Illegal actions refused with a reason
+│   │   └── test_import_all.py                      # Smoke test: every module in the package imports
+│   └── conftest.py                                 # Shared fixtures
+├── .dockerignore                                   # Keep Docker build contexts small
+├── .editorconfig                                   # Editor consistency
+├── .env.example                                    # All environment settings with safe defaults
+├── .gitattributes                                  # Git LFS rules for 3D binary assets
+├── .gitignore                                      # Ignore rules (secrets, data, caches, builds)
+├── .pre-commit-config.yaml                         # Local checks before every commit
+├── CHANGELOG.md                                    # Release notes
+├── CONTRIBUTING.md                                 # Branching, commits, reviews, definition of done
+├── Makefile                                        # Developer commands: setup, lint, test, run, contracts, docker
+├── pyproject.toml                                  # Python package, dependencies by layer, ruff, mypy, pytest
+└── README.md                                       # Project overview, architecture, quick start, roadmap
+```

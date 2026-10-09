@@ -1,0 +1,52 @@
+{
+  "schema_version": "1.0",
+  "world": {
+    "width": 30,
+    "depth": 20,
+    "cell_size": 1.0
+  },
+  "zones": [
+    {
+      "id": "pack_1",
+      "type": "pack",
+      "polygon": [
+        [
+          26,
+          4
+        ],
+        [
+          28,
+          4
+        ],
+        [
+          28,
+          6
+        ],
+        [
+          26,
+          6
+        ]
+      ]
+    }
+  ],
+  "static_objects": [
+    {
+      "id": "RACK-001",
+      "type": "rack_bay",
+      "asset": "rack_bay",
+      "position": [
+        5,
+        0,
+        3
+      ],
+      "rotation": 0
+    }
+  ],
+  "asset_index": {
+    "rack_bay": {
+      "path": "assets/rack_bay.glb",
+      "version": "1.0",
+      "checksum": "TBD"
+    }
+  }
+}
