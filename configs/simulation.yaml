@@ -1,0 +1,70 @@
+# Simulator settings (TRD Section 4)
+seed: 42
+layout: large               # large (80x50 m, 40 robots) | default (small 40x28 m, 12 robots)
+tick_hz: 2                  # ticks per second in interactive mode (1 cell/tick -> 2 m/s)
+ticks_per_hour: 600         # simulated hour = 600 ticks (5 real minutes at 1x), the same clock as
+                            # dataset v3, so the trained models see the time scale they learned on
+
+orders:
+  hourly_profile: [0.3, 0.2, 0.2, 0.2, 0.3, 0.5, 0.8, 1.0, 1.2, 1.3, 1.3, 1.2,
+                   1.1, 1.2, 1.3, 1.3, 1.2, 1.0, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4]
+  priority_mix: {HIGH: 0.2, MEDIUM: 0.5, LOW: 0.3}
+  items_per_order: [1, 2]        # distinct products per order
+  deadline_ticks: {HIGH: 240, MEDIUM: 480, LOW: 900}   # 2-7.5 min at 2 Hz; a few % run late at peak
+  # Orders per tick at an average hour. The large layout completes ~0.196/tick (measured), so 0.14
+  # is ~72 % average load and ~120 % at the daily peak. scripts/generate_data.py sets its own rates.
+  arrival_prob_per_tick: 0.14
+  max_pending: 150              # safety cap on waiting orders; keep well above normal backlogs
+  pick_ticks: 4                 # dwell at the rack face per item
+  drop_ticks: 3                 # dwell at the packing station
+
+parking:
+  # Idle positioning: metres a robot will drive further to park in an emptier area (per 100 % of
+  # an area's bays taken). Measured on the large layout (2 seeds x 8,000 ticks): 0 (always the
+  # nearest bay) -> avg completion 138 ticks, 82 % parked by the packing stations; 80-260 ->
+  # 115-126 ticks and late orders ~1 % instead of 2 %, because idle robots wait closer to work.
+  balance_cost: 150
+
+workers:
+  count: 4                      # pedestrians walking the aisles (dynamic obstacles)
+  ticks_per_step: 2             # ~1 m/s walking pace at 2 Hz
+
+battery:
+  drain_per_move: 0.05
+  drain_per_item: 0.01
+  low_threshold: 20
+  opportunity_threshold: 70   # idle robots below this top up when no orders wait
+  critical_threshold: 10
+  charge_per_tick: 0.5
+
+faults:
+  enabled: true
+  probability_per_hour: 0.5     # per robot per simulated hour (generate_data.py varies this)
+  types: [battery_spike, speed_degradation, stop_event, route_deviation, overheating]
+
+thermal:                        # drive-motor temperature (simulation/robots/thermal.py)
+  ambient: 24.0                 # deg C
+  cooling: 0.01                 # share of the gap to ambient lost per tick
+  throttle_at: 60.0             # above this the robot drives at half speed
+
+hazards:                        # temporary blocked paths (simulation/environment/hazards.py)
+  enabled: true
+  closures_per_hour: 0.4        # whole aisles shut (maintenance, spill, inspection), fleet-wide
+  closure_minutes: [10, 40]
+  max_closures: 2
+  floor_hazards_per_hour: 0.8   # dropped parcels / fallen pallets on the highways
+  floor_hazard_minutes: [3, 12]
+  max_floor_hazards: 3
+
+strategies:                 # Phase 4 (ai/optimization): see configs/experiments/E1-E5.yaml
+  assignment: nearest       # nearest (baseline) | random | eta | global
+  planner: bfs              # bfs (baseline) | dijkstra | astar
+  traffic_aware: false      # Dijkstra / A* add live traffic costs to each step
+  positioning: balanced     # balanced (baseline) | demand (park near zones forecast to be busy)
+  charging: threshold       # threshold (baseline) | predictive (charge ahead of forecast peaks)
+  replanning: false         # re-plan long routes every 20 ticks with the current traffic
+
+camera:
+  enabled: true
+  frame_size: [224, 224]
+  every_n_ticks: 10

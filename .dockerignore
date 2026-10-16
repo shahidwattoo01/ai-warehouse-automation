@@ -1,11 +1,16 @@
+# Keep build contexts small and secrets out of images.
 .git
+.env
+.env.*
+!.env.example
 .venv
-node_modules
-.next
-data/raw
-data/processed
-data/images
-data/datasets
+venv
+**/__pycache__
+**/.pytest_cache
+**/.ruff_cache
+**/node_modules
+**/.next
+data
 models
-reports
-experiments
+notebooks
+evaluation/reports

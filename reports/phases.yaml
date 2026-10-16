@@ -1,0 +1,72 @@
+# Phase register for the main project report (reports/Project_Progress_Report.pdf).
+# Update this file at the end of every phase, then rebuild:
+#     python scripts/build_project_report.py --snapshot
+#
+# status:      done | in progress | planned
+# experiment:  the experiment ID (configs/experiments, results in evaluation/reports/phase4/runs.csv)
+#              whose KPIs represent the warehouse after this phase. Phases that only predict or
+#              explain (no change to decisions) keep the KPIs of the phase before them.
+# kpi_effect:  "decisions" if the phase changes how the warehouse acts, "advisory" if it only informs.
+
+phases:
+  - id: 1
+    name: Foundation
+    status: done
+    layer: Baseline
+    added: >-
+      Monorepo, FastAPI backend, Next.js frontend, PostgreSQL schema (19 tables), REST + WebSocket,
+      Docker, CI checks, configuration in YAML.
+    measured: Automated tests, Ruff and TypeScript strict clean.
+    result: Platform skeleton running locally.
+    docs: docs/README.md
+    kpi_effect: none
+
+  - id: 2
+    name: Simulator (realistic 3D) + dataset v3
+    status: done
+    layer: Baseline
+    added: >-
+      Tick-based warehouse engine (80 x 50 m, 40 AMRs, 1,584 rack bays, one-way aisles), faults,
+      hazards, workers, charging, rule-based dispatcher (nearest robot, BFS), 3D twin;
+      91-day dataset v3 (tasks 161k rows, demand 2,184 h, anomaly windows 5.2 M, 2,400 images).
+    measured: Golden-master fingerprint, 37 tests, dataset validation report.
+    result: Reference warehouse = experiment E2 (the baseline every later phase is compared with).
+    docs: docs/class_overview.md
+    experiment: E2
+    kpi_effect: decisions
+
+  - id: 3
+    name: Classical ML
+    status: done
+    layer: Layer 3
+    added: >-
+      ETA (Gradient Boosting), late risk (Logistic Regression), demand total (Gradient Boosting),
+      demand per zone / priority (Linear Regression, XGBoost), anomaly (XGBoost; Isolation Forest and
+      DBSCAN compared); live predictions and alerts saved to the database.
+    measured: Held-out test set (last 2 weeks), each model vs a simple baseline method.
+    result: ETA MAE 38.8 vs 65.4 ticks; late-risk F1 0.90; anomaly F1 0.81 vs 0.51 (rule).
+    docs: docs/phase3_role_and_roadmap.md
+    experiment: E2
+    kpi_effect: advisory
+
+  - id: 4
+    name: Optimisation
+    status: done
+    layer: Layer 4
+    added: >-
+      Dijkstra / A* with traffic costs, ETA-based and Hungarian (global) assignment, demand-aware
+      positioning, predictive charging, strategy switch in the app; 10 experiments x 5 seeds x 24 h.
+    measured: Paired comparison with E2 on the same seeds (common random numbers).
+    result: Best = E4d, -21.4 % completion, -42.9 % p90, -40.1 % late (5/5 days).
+    docs: docs/phase4_optimization.md
+    experiment: E4d
+    kpi_effect: decisions
+
+  - {id: 5, name: Deep learning + vision, status: planned, layer: Layer 5}
+  - {id: 6, name: NLP + Transformers, status: planned, layer: Layer 6}
+  - {id: 7, name: RAG, status: planned, layer: Layer 7}
+  - {id: 8, name: Tools + agents, status: planned, layer: Layer 8}
+  - {id: 9, name: Multi-agent + RL, status: planned, layer: Layer 9}
+  - {id: 10, name: Integration, status: planned, layer: Layer 10}
+  - {id: 11, name: Evaluation (E1-E7), status: planned, layer: Layer 11}
+  - {id: 12, name: Finalization, status: planned, layer: Layer 12}

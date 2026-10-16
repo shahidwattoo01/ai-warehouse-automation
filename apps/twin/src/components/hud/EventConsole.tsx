@@ -1,2 +1,0 @@
-// Filterable event log
-export {};

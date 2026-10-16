@@ -1,36 +1,36 @@
-# Data
-data/datasets/*
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+
+# Environment
+.env
+
+# Node / Next.js
+node_modules/
+.next/
+out/
+*.tsbuildinfo
+
+# Data and models (large; keep folder structure only)
 data/raw/*
 data/processed/*
-data/features/*
-data/images/*
-*.parquet
-
-# Model weights and checkpoints
+data/synthetic/*
 models/*
-checkpoints/
-*.pt
-*.pth
-*.h5
-*.ckpt
-*.onnx
-*.safetensors
-*.pkl
+evaluation/reports/*
+!**/.gitkeep
+!models/README.md
 
-# Experiment tracking and logs
-wandb/
-mlruns/
-runs/
-logs/
-lightning_logs/
-
-# Secrets
-.env
-*.key
-
-# Jupyter and OS
+# Notebooks
 .ipynb_checkpoints/
-.DS_Store
 
-# Keep placeholder files
-!.gitkeep
+# OS / editors
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

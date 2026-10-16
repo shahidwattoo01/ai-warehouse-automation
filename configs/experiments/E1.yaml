@@ -1,0 +1,13 @@
+# E1 — Random assignment (Phase 4, run with scripts/run_experiments.py)
+experiment_id: E1
+name: "Random assignment"
+phase: 4
+description: >-
+  Lower bound: any free robot takes the order. Shows what the baseline rule itself is worth.
+layout: large
+seeds: [101, 102, 103, 104, 105]   # same seeds for every experiment (paired comparison)
+hours: 24                          # one simulated day per run (600 ticks per hour)
+independent_streams: true          # orders, faults and hazards identical across experiments
+metrics: [avg_completion_ticks, p90_completion_ticks, late_percent, throughput_per_hour,
+          avg_queue_ticks, distance_m, blocked_events, avg_pending, utilisation_percent]
+strategies: {assignment: random, planner: bfs, traffic_aware: false, positioning: balanced, charging: threshold, replanning: false}

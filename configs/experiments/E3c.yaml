@@ -1,0 +1,13 @@
+# E3c — A* with gentle traffic costs (diagnostic) (Phase 4, run with scripts/run_experiments.py)
+experiment_id: E3c
+name: "A* with gentle traffic costs (diagnostic)"
+phase: 4
+description: >-
+  Diagnostic for E3: A* with traffic costs at 25 % strength, to test whether a gentler preference for free cells avoids the extra distance E3 adds.
+layout: large
+seeds: [101, 102, 103, 104, 105]   # same seeds for every experiment (paired comparison)
+hours: 24                          # one simulated day per run (600 ticks per hour)
+independent_streams: true          # orders, faults and hazards identical across experiments
+metrics: [avg_completion_ticks, p90_completion_ticks, late_percent, throughput_per_hour,
+          avg_queue_ticks, distance_m, blocked_events, avg_pending, utilisation_percent]
+strategies: {assignment: nearest, planner: astar, traffic_aware: true, traffic_weight: 0.25, positioning: balanced, charging: threshold, replanning: false}

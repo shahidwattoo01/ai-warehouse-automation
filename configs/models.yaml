@@ -1,0 +1,9 @@
+# Model registry: which model each module serves, and where it trains.
+# train_on: local (CPU) | cloud (Colab / Kaggle / Azure GPU)
+demand:        {baseline: linear_regression, candidates: [random_forest, gradient_boosting, xgboost, mlp, lstm, ts_transformer], train_on: cloud}
+eta:           {baseline: linear_regression, candidates: [random_forest, gradient_boosting, xgboost, mlp], train_on: local}
+anomaly:       {baseline: zscore, candidates: [isolation_forest, dbscan], train_on: local}
+vision:        {baseline: cnn_cell_classifier, candidates: [object_detector, vit], train_on: cloud}
+intent:        {baseline: tfidf_logreg, candidates: [transformer], train_on: cloud}
+navigation_rl: {baseline: astar, candidates: [dqn, shared_policy_marl], train_on: cloud}
+embeddings:    {model: sentence-transformers/all-MiniLM-L6-v2}

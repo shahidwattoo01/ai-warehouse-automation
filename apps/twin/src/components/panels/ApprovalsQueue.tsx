@@ -1,2 +1,0 @@
-// Pending agent approvals
-export {};

@@ -1,0 +1,13 @@
+# E5 — Dynamic congestion + replanning + demand-aware fleet (Phase 4, run with scripts/run_experiments.py)
+experiment_id: E5
+name: "Dynamic congestion + replanning + demand-aware fleet"
+phase: 4
+description: >-
+  E4 + re-planning long routes every 20 ticks, parking near zones forecast to be busy, and charging driven by the demand forecast.
+layout: large
+seeds: [101, 102, 103, 104, 105]   # same seeds for every experiment (paired comparison)
+hours: 24                          # one simulated day per run (600 ticks per hour)
+independent_streams: true          # orders, faults and hazards identical across experiments
+metrics: [avg_completion_ticks, p90_completion_ticks, late_percent, throughput_per_hour,
+          avg_queue_ticks, distance_m, blocked_events, avg_pending, utilisation_percent]
+strategies: {assignment: eta, planner: astar, traffic_aware: true, positioning: demand, charging: predictive, replanning: true}

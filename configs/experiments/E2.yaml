@@ -1,0 +1,13 @@
+# E2 — Heuristic baseline (nearest robot) (Phase 4, run with scripts/run_experiments.py)
+experiment_id: E2
+name: "Heuristic baseline (nearest robot)"
+phase: 4
+description: >-
+  Today's rules: nearest free robot, shortest-cell BFS route, balanced parking, threshold charging. Every other experiment is compared with this one.
+layout: large
+seeds: [101, 102, 103, 104, 105]   # same seeds for every experiment (paired comparison)
+hours: 24                          # one simulated day per run (600 ticks per hour)
+independent_streams: true          # orders, faults and hazards identical across experiments
+metrics: [avg_completion_ticks, p90_completion_ticks, late_percent, throughput_per_hour,
+          avg_queue_ticks, distance_m, blocked_events, avg_pending, utilisation_percent]
+strategies: {assignment: nearest, planner: bfs, traffic_aware: false, positioning: balanced, charging: threshold, replanning: false}

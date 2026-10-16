@@ -1,2 +1,0 @@
-// Streamed state store
-export {};

@@ -1,0 +1,43 @@
+# Default warehouse layout — grid units are cells; 1 cell = 1 m in the 3D view.
+name: default
+grid:
+  width: 40
+  height: 28
+  cell_size_m: 1.0
+
+zones:
+  - {zone_id: ZONE_A, name: "Zone A", bounds: [2, 2, 18, 12], capacity: 6}
+  - {zone_id: ZONE_B, name: "Zone B", bounds: [22, 2, 38, 12], capacity: 6}
+  - {zone_id: ZONE_C, name: "Zone C", bounds: [2, 15, 18, 24], capacity: 6}
+  - {zone_id: ZONE_D, name: "Zone D", bounds: [22, 15, 38, 24], capacity: 6}
+  - {zone_id: AISLE_MAIN, name: "Main aisle", bounds: [19, 0, 21, 27], capacity: 4}
+
+# Racking rows: each row spawns one shelf per cell from x_start to x_end at y.
+racking:
+  - {zone: ZONE_A, y: 3,  x_start: 3,  x_end: 17, levels: 4}
+  - {zone: ZONE_A, y: 6,  x_start: 3,  x_end: 17, levels: 4}
+  - {zone: ZONE_A, y: 9,  x_start: 3,  x_end: 17, levels: 4}
+  - {zone: ZONE_B, y: 3,  x_start: 23, x_end: 37, levels: 4}
+  - {zone: ZONE_B, y: 6,  x_start: 23, x_end: 37, levels: 4}
+  - {zone: ZONE_B, y: 9,  x_start: 23, x_end: 37, levels: 4}
+  - {zone: ZONE_C, y: 16, x_start: 3,  x_end: 17, levels: 4}
+  - {zone: ZONE_C, y: 19, x_start: 3,  x_end: 17, levels: 4}
+  - {zone: ZONE_D, y: 16, x_start: 23, x_end: 37, levels: 4}
+  - {zone: ZONE_D, y: 19, x_start: 23, x_end: 37, levels: 4}
+
+blocked:
+  - {x: 19, y: 13, w: 3, h: 1}   # structural columns
+
+stations:
+  - {station_id: PACK_1, type: PACKING,  x: 8,  y: 27, capacity: 2}
+  - {station_id: PACK_2, type: PACKING,  x: 20, y: 27, capacity: 2}
+  - {station_id: PACK_3, type: PACKING,  x: 32, y: 27, capacity: 2}
+  - {station_id: CHG_1,  type: CHARGING, x: 0,  y: 13, capacity: 3}
+  - {station_id: CHG_2,  type: CHARGING, x: 39, y: 13, capacity: 3}
+
+robots:
+  count: 12
+  model: AMR-500
+  max_speed: 1.0
+  battery_capacity: 100.0
+  max_load: 4

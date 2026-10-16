@@ -1,0 +1,81 @@
+# Large high-density layout — 80 m x 50 m, 1 cell = 1 m.
+#
+#  y 0-3    dock apron + north highway (two-way)
+#  y 4-21   north storage: back-to-back double rack rows, 1-robot one-way aisles between them
+#  y 22-23  cross highway (two-way)
+#  y 24-42  south storage (same pattern)
+#  y 43-45  south highway (two-way)
+#  y 46     parking areas P7 / P8 (more parking along the walls: P1-P6)
+#  y 47-49  packing lane; packing stations on y 49 (benches stand outside the grid)
+#
+#  x 0-2 / 77-79   side lanes with chargers on the walls
+#  x 19-20 / 59-60 cross aisles through each storage block
+#  x 38-41         main highway (two-way), with structural columns
+name: large
+grid:
+  width: 80
+  height: 50
+  cell_size_m: 1.0
+
+zones:
+  - {zone_id: ZONE_A, name: "Zone A", bounds: [3, 4, 37, 21], capacity: 10}
+  - {zone_id: ZONE_B, name: "Zone B", bounds: [42, 4, 76, 21], capacity: 10}
+  - {zone_id: ZONE_C, name: "Zone C", bounds: [3, 24, 37, 42], capacity: 10}
+  - {zone_id: ZONE_D, name: "Zone D", bounds: [42, 24, 76, 42], capacity: 10}
+  - {zone_id: AISLE_MAIN, name: "Main highway", bounds: [38, 0, 41, 49], capacity: 10}
+
+# Back-to-back pairs: rows (5,6), (8,9), ... share a spine; each row is picked from its own aisle.
+racking:
+  - {zone: ZONE_A, ys: [5, 6, 8, 9, 11, 12, 14, 15, 17, 18, 20, 21], x_ranges: [[3, 18], [21, 37]], levels: 4}
+  - {zone: ZONE_B, ys: [5, 6, 8, 9, 11, 12, 14, 15, 17, 18, 20, 21], x_ranges: [[42, 58], [61, 76]], levels: 4}
+  - {zone: ZONE_C, ys: [25, 26, 28, 29, 31, 32, 34, 35, 37, 38, 40, 41], x_ranges: [[3, 18], [21, 37]], levels: 4}
+  - {zone: ZONE_D, ys: [25, 26, 28, 29, 31, 32, 34, 35, 37, 38, 40, 41], x_ranges: [[42, 58], [61, 76]], levels: 4}
+
+# Narrow aisles are one robot wide and one-way, alternating direction (as in real AMR sites).
+# Cross aisles and highways stay two-way, so every aisle can be entered and left.
+one_way:
+  - {ys: [4, 10, 16, 24, 30, 36, 42], x_ranges: [[3, 18], [21, 37], [42, 58], [61, 76]], dir: east}
+  - {ys: [7, 13, 19, 27, 33, 39], x_ranges: [[3, 18], [21, 37], [42, 58], [61, 76]], dir: west}
+
+blocked:
+  - {x: 38, y: 12, w: 1, h: 1}   # structural columns on the main highway
+  - {x: 41, y: 12, w: 1, h: 1}
+  - {x: 38, y: 34, w: 1, h: 1}
+  - {x: 41, y: 34, w: 1, h: 1}
+
+stations:
+  - {station_id: PACK_1, type: PACKING,  x: 7,  y: 49, capacity: 3}
+  - {station_id: PACK_2, type: PACKING,  x: 20, y: 49, capacity: 3}
+  - {station_id: PACK_3, type: PACKING,  x: 33, y: 49, capacity: 3}
+  - {station_id: PACK_4, type: PACKING,  x: 46, y: 49, capacity: 3}
+  - {station_id: PACK_5, type: PACKING,  x: 59, y: 49, capacity: 3}
+  - {station_id: PACK_6, type: PACKING,  x: 72, y: 49, capacity: 3}
+  - {station_id: CHG_1,  type: CHARGING, x: 0,  y: 10, capacity: 3}
+  - {station_id: CHG_2,  type: CHARGING, x: 0,  y: 35, capacity: 3}
+  - {station_id: CHG_3,  type: CHARGING, x: 79, y: 10, capacity: 3}
+  - {station_id: CHG_4,  type: CHARGING, x: 79, y: 35, capacity: 3}
+
+# Dedicated parking areas around the building (rectangles, inclusive). Robots park at the nearest
+# free bay. Bays sit in the outer strips beside the walls, off the main traffic lanes, and the
+# planner only enters a bay as a destination, never as a shortcut.
+parking_areas:
+  - {area_id: P1, name: North-west, x: [4, 17],  y: [0, 0]}
+  - {area_id: P2, name: North-east, x: [62, 75], y: [0, 0]}
+  - {area_id: P3, name: West,       x: [0, 0],   y: [14, 20]}
+  - {area_id: P4, name: East,       x: [79, 79], y: [14, 20]}
+  - {area_id: P5, name: South-west wall, x: [0, 0],   y: [25, 31]}
+  - {area_id: P6, name: South-east wall, x: [79, 79], y: [25, 31]}
+  - {area_id: P7, name: South-west, x: [3, 18],  y: [46, 46]}
+  - {area_id: P8, name: South-east, x: [61, 76], y: [46, 46]}
+
+workers:
+  count: 8
+  waypoints: [[10, 2], [30, 2], [50, 2], [70, 2], [10, 22], [30, 23], [50, 22], [70, 23],
+              [39, 8], [40, 28], [20, 44], [60, 44], [1, 22], [78, 22], [19, 30], [60, 14]]
+
+robots:
+  count: 40
+  model: AMR-500
+  max_speed: 1.0
+  battery_capacity: 100.0
+  max_load: 4

@@ -1,0 +1,13 @@
+# E4b — Global assignment (Hungarian) (Phase 4, run with scripts/run_experiments.py)
+experiment_id: E4b
+name: "Global assignment (Hungarian)"
+phase: 4
+description: >-
+  E3 + all waiting orders of a priority assigned together, minimising the total predicted time (Hungarian algorithm).
+layout: large
+seeds: [101, 102, 103, 104, 105]   # same seeds for every experiment (paired comparison)
+hours: 24                          # one simulated day per run (600 ticks per hour)
+independent_streams: true          # orders, faults and hazards identical across experiments
+metrics: [avg_completion_ticks, p90_completion_ticks, late_percent, throughput_per_hour,
+          avg_queue_ticks, distance_m, blocked_events, avg_pending, utilisation_percent]
+strategies: {assignment: global, planner: astar, traffic_aware: true, positioning: balanced, charging: threshold, replanning: false}

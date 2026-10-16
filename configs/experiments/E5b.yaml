@@ -1,0 +1,13 @@
+# E5b — Global assignment + demand-aware fleet (Phase 4, scripts/run_experiments.py)
+experiment_id: E5b
+name: "Global assignment + demand-aware fleet"
+phase: 4
+description: >-
+  The best assignment (E4d: Hungarian on predicted delivery times, BFS routes) plus parking near zones forecast to be busy and charging driven by the demand forecast. No traffic costs (E3/E3c showed they add distance).
+layout: large
+seeds: [101, 102, 103, 104, 105]   # same seeds for every experiment (paired comparison)
+hours: 24                          # one simulated day per run (600 ticks per hour)
+independent_streams: true          # orders, faults and hazards identical across experiments
+metrics: [avg_completion_ticks, p90_completion_ticks, late_percent, throughput_per_hour,
+          avg_queue_ticks, distance_m, blocked_events, avg_pending, utilisation_percent]
+strategies: {assignment: global, planner: bfs, traffic_aware: false, positioning: demand, charging: predictive, replanning: false}

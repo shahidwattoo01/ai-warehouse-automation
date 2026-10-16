@@ -1,0 +1,16 @@
+# Keep build contexts small and secrets out of images.
+.git
+.env
+.env.*
+!.env.example
+.venv
+venv
+**/__pycache__
+**/.pytest_cache
+**/.ruff_cache
+**/node_modules
+**/.next
+data
+models
+notebooks
+evaluation/reports

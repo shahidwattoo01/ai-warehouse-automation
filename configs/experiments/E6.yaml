@@ -1,0 +1,16 @@
+# E6 — Agentic control
+experiment_id: E6
+name: "Agentic control"
+layout: default
+seeds: [11, 22, 33, 44, 55]
+ticks: 36000
+strategies:
+  assignment: agent
+  planner: astar
+features:
+  demand_forecasting: true
+  dynamic_congestion: true
+  dynamic_replanning: true
+  agentic_control: true
+metrics: [avg_completion_time, robot_utilization, collision_rate, avg_travel_distance,
+          battery_consumption, tasks_per_hour, queue_length, throughput]
