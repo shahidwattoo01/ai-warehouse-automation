@@ -30,3 +30,30 @@ def test_predictor_scores_orders_robots_and_demand():
     records, _ = predictor.drain()
     assert {"eta", "late", "demand"} <= {r["model"] for r in records}
     assert all(r["actual"] is not None for r in records)  # every record carries its outcome
+
+
+@pytest.mark.skipif(
+    not (MODELS_DIR / "anomaly_lstm_v1.pt").exists(), reason="run notebooks/07 first"
+)
+def test_phase5_lstm_replaces_xgboost_unless_switched_off(monkeypatch):
+    monkeypatch.delenv("WAREHOUSE_ANOMALY_MODEL", raising=False)
+    monkeypatch.delenv("WAREHOUSE_DEMAND_MODEL", raising=False)
+    deep = Predictor()
+    versions = {v["model_name"]: v for v in deep.versions}
+    assert versions["anomaly"]["version"] == "v2" and "lstm" in versions["anomaly"]["artifact_path"]
+    assert (
+        versions["demand"]["version"] == "v1"
+    )  # the demand network is opt-in (short live history)
+
+    monkeypatch.setenv("WAREHOUSE_ANOMALY_MODEL", "xgboost")
+    classic = Predictor()
+    assert {v["model_name"]: v["version"] for v in classic.versions}["anomaly"] == "v1"
+
+    engine = SimulationEngine(seed=11, overrides={"layout": "large"})
+    deep.attach(engine)
+    engine.start()
+    for _ in range(60):  # enough readings for a few LSTM scores
+        engine.tick()
+        deep.after_tick()
+    assert deep.snapshot()["algorithms"]["anomaly"].startswith("LSTM")
+    assert len(deep.robot_health) == len(engine.robots)

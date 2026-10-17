@@ -23,3 +23,23 @@ def test_pause_unknown_robot_404():
 def test_future_phase_endpoint_returns_501():
     with TestClient(app) as client:
         assert client.post("/api/v1/rag/query").status_code == 501
+
+
+def test_pause_and_start_are_sent_to_every_client_at_once():
+    """The loop only broadcasts while running, so a pause must be announced explicitly
+    (otherwise the Start/Pause button never learns that the run stopped)."""
+    import json
+
+    from app.services.simulator import simulator
+
+    with TestClient(app) as client:
+        queue = simulator.subscribe()
+        try:
+            client.post("/api/v1/simulation/start")
+            client.post("/api/v1/simulation/pause")
+            frames = [json.loads(queue.get_nowait()) for _ in range(queue.qsize())]
+        finally:
+            simulator.unsubscribe(queue)
+    running = [f["state"]["running"] for f in frames if f.get("type") == "tick"]
+    assert running and running[-1] is False
+    assert True in running  # the start was announced too

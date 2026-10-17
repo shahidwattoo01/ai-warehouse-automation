@@ -160,3 +160,35 @@ def test_live_predictions_and_alerts_are_saved_with_their_outcome(db_url):
     finally:
         with create_engine(db_url).begin() as conn:
             conn.execute(text("DELETE FROM simulation_runs WHERE run_id = :r"), {"r": run_id})
+
+
+def test_activating_a_new_model_version_retires_the_old_one(db_url):
+    """uq_model_active allows one active version per model: v2 must retire v1, not crash."""
+    import json
+
+    from app.services.run_store import SQL_RETIRE_OTHER_VERSIONS, SQL_UPSERT_MODEL
+
+    name = "pytest_model_versions"
+    engine = create_engine(db_url)
+    try:
+        with engine.begin() as conn:
+            for version in ("v1", "v2"):
+                m = {
+                    "model_name": name,
+                    "version": version,
+                    "artifact_path": f"models/{version}",
+                    "metrics": json.dumps({}),
+                }
+                conn.execute(SQL_RETIRE_OTHER_VERSIONS, m)
+                conn.execute(SQL_UPSERT_MODEL, m)
+        with engine.connect() as conn:
+            rows = dict(
+                conn.execute(
+                    text("SELECT version, is_active FROM model_versions WHERE model_name = :n"),
+                    {"n": name},
+                ).all()
+            )
+        assert rows == {"v1": False, "v2": True}
+    finally:
+        with engine.begin() as conn:
+            conn.execute(text("DELETE FROM model_versions WHERE model_name = :n"), {"n": name})
