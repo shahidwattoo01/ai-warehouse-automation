@@ -62,7 +62,16 @@ phases:
     experiment: E4d
     kpi_effect: decisions
 
-  - {id: 5, name: Deep learning + vision, status: planned, layer: Layer 5}
+  - id: 5
+    name: Deep learning + vision
+    status: in progress
+    layer: Layer 5
+    added: >-
+      LSTM fault detector on raw telemetry sequences; MLP, LSTM and Transformer demand forecasts
+      (5 seeds each); YOLO11s object detector on 2,400 rendered camera images (trained on Colab GPU).
+    measured: Same test sets as Phase 3 (faults, demand); held-out test images (vision); control models.
+    result: Faults F1 0.835 vs 0.813 (14/14 days); demand MAE 7.42 vs 8.51; vision mAP50 0.908.
+    kpi_effect: advisory
   - {id: 6, name: NLP + Transformers, status: planned, layer: Layer 6}
   - {id: 7, name: RAG, status: planned, layer: Layer 7}
   - {id: 8, name: Tools + agents, status: planned, layer: Layer 8}
