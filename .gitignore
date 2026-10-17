@@ -21,6 +21,7 @@ out/
 data/raw/*
 data/processed/*
 data/synthetic/*
+data/exports/
 models/*
 evaluation/reports/*
 !**/.gitkeep

@@ -31,6 +31,19 @@ validation and test score.
 
 In VS Code, open a notebook, select the `.venv` Python kernel (top right), then use **Run All**.
 
+## Phase 5: deep learning + vision
+
+| Notebook | Question | Result (test) |
+|---|---|---|
+| `07_deep_learning_faults.ipynb` | Do neural networks detect robot faults better than XGBoost? MLP on the 13 summaries, LSTM on the raw 10-reading sequence, plus XGBoost on the raw sequence as a control | **LSTM F1 0.835** vs XGBoost 0.813, better on 14/14 test days; the gain comes from the time order |
+| `08_deep_learning_demand.ipynb` | Do MLP, LSTM and Transformer (PatchTST-style) forecast hourly orders better than Gradient Boosting? 5 seeds each | **MAE 7.42-7.61** vs 8.51 (-10 to -13 %); trees cannot forecast above the peaks they have seen |
+| `cloud/train_yolo_colab.ipynb` | YOLO11s object detector on the 2,400 camera images (Colab GPU) | mAP50 0.908, mAP50-95 0.699 |
+| `09_vision_evaluation.ipynb` | Where does the detector fail (class, object size, camera)? Per-class safety thresholds, speed on a laptop CPU | Safety recall 0.90-0.97; small objects are the weak spot; 640 px = 0.75 s per image on CPU |
+
+Shared code: `ai/deep_learning/anomaly.py` (telemetry sequences, MLP, LSTM), `ai/deep_learning/demand.py`
+(history windows, MLP, LSTM, Transformer), `ai/computer_vision/evaluation.py` (box matching, sizes, thresholds). Sequences and finished demand runs are cached in
+`data/processed/deep_learning/` (rebuilt automatically when missing). PyTorch runs on the laptop CPU.
+
 ## Live use
 
 The backend (`apps/backend/app/services/predictor.py`) loads the saved models, predicts on the running
@@ -40,3 +53,9 @@ PostgreSQL (`predictions`, `model_versions`, `alerts`).
 ## Cloud
 
 - `cloud/train_on_gpu.ipynb`: train GPU-heavy models on Colab, Kaggle or Azure ML.
+- `cloud/train_yolo_colab.ipynb` (Phase 5): trains the YOLO object detector on a free Colab T4 GPU.
+  1. On your computer: `python scripts/package_vision_dataset.py` makes `data/exports/warehouse_vision_v3.zip`
+     (2,400 images, 265 MB); upload it to the top folder of your Google Drive.
+  2. Open the notebook in Colab, choose *Runtime → Change runtime type → T4 GPU*, then *Run all* (about 30-45 min).
+  3. Unzip the downloaded `warehouse_yolo_results.zip` into `models/` (gives `models/vision_yolo_v1/best.pt`
+     and its test report).
