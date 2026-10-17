@@ -244,3 +244,33 @@ export interface ExperimentResults {
 export type StreamMessage =
   | { type: "layout"; layout: LayoutSnapshot }
   | { type: "tick"; state: WarehouseState; predictions?: Predictions; strategy?: Strategy; events: unknown[] };
+
+/** Phase 5 object detector (apps/backend/app/api/v1/vision.py). */
+export interface VisionStatus {
+  available: boolean;
+  loaded: boolean;
+  model: string;
+  algorithm: string | null;
+  classes: string[] | null;
+  safety_classes: string[];
+  thresholds: Record<string, number>;
+  image_size: number;
+  test: { precision: number | null; recall: number | null; mAP50: number | null; mAP50_95: number | null };
+  test_960_gpu: { precision: number; recall: number; mAP50: number; mAP50_95: number } | null;
+}
+
+export interface Detection {
+  cls: string;
+  conf: number;
+  safety: boolean;
+  box: [number, number, number, number]; // x1, y1, x2, y2 in image pixels
+}
+
+export interface DetectionResult {
+  width: number;
+  height: number;
+  inference_ms: number;
+  detections: Detection[];
+  counts: Record<string, number>;
+  safety_alerts: Detection[];
+}

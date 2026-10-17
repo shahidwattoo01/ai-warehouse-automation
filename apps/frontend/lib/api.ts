@@ -1,4 +1,11 @@
-import type { ExperimentResults, InventoryItem, Priority, StrategyPresets } from "./types";
+import type {
+  DetectionResult,
+  ExperimentResults,
+  InventoryItem,
+  Priority,
+  StrategyPresets,
+  VisionStatus,
+} from "./types";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api/v1";
 
@@ -16,8 +23,8 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 
 export const api = {
   simulation: {
-    start: () => request("/simulation/start", { method: "POST" }),
-    pause: () => request("/simulation/pause", { method: "POST" }),
+    start: () => request<{ running: boolean }>("/simulation/start", { method: "POST" }),
+    pause: () => request<{ running: boolean }>("/simulation/pause", { method: "POST" }),
     reset: () => request("/simulation/reset", { method: "POST" }),
     speed: (multiplier: number) =>
       request("/simulation/speed", { method: "PUT", body: JSON.stringify({ multiplier }) }),
@@ -29,6 +36,11 @@ export const api = {
   },
   analytics: {
     experiments: () => request<ExperimentResults>("/analytics/experiments"),
+  },
+  vision: {
+    status: () => request<VisionStatus>("/vision/status"),
+    detect: (image: string) =>
+      request<DetectionResult>("/vision/detect", { method: "POST", body: JSON.stringify({ image }) }),
   },
   orders: {
     create: (body: { priority: Priority; items: { product_id: string; quantity: number }[]; robot_id?: string | null }) =>

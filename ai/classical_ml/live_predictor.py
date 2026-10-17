@@ -13,6 +13,10 @@ live, and each finished prediction becomes a record (input, output, actual) that
 to the `predictions` table, plus `alerts` for late-risk orders and abnormal robots.
 
 Models are the files written by notebooks/01-05 in models/. A missing file disables that model.
+Phase 5 networks (notebooks 07 and 08): the LSTM fault detector (anomaly_lstm_v1.pt) replaces
+XGBoost when present (WAREHOUSE_ANOMALY_MODEL=xgboost keeps XGBoost). The demand network
+(demand_dl_v1.pt) is used only with WAREHOUSE_DEMAND_MODEL=network: it reads the last 168 hours, and
+in a short live run those are mostly planning estimates, where Gradient Boosting was better.
 Used by the backend (live dashboard) and by scripts/run_experiments.py (Phase 4 optimisation).
 """
 
@@ -21,6 +25,7 @@ from __future__ import annotations
 import json
 import logging
 import math
+import os
 from collections import deque
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -60,11 +65,19 @@ ZONE_TARGETS = {
     "lines_zone_d": "ZONE_D",
 }
 PRIORITY_TARGETS = {"orders_high": "HIGH", "orders_medium": "MEDIUM", "orders_low": "LOW"}
+# Phase 5 networks: key -> (file, report, version label, env var, default mode, mode that uses it)
+DEEP_FILES = {
+    "anomaly": ("anomaly_lstm_v1.pt", "anomaly_dl_v1_report.json", "v2",
+                "WAREHOUSE_ANOMALY_MODEL", "lstm", "lstm"),
+    "demand": ("demand_dl_v1.pt", "demand_dl_v1_report.json", "v2",
+               "WAREHOUSE_DEMAND_MODEL", "gb", "network"),
+}  # fmt: skip
 
 
 class Predictor:
     def __init__(self, models_dir: Path = MODELS_DIR) -> None:
         self.models: dict[str, object] = {}
+        self.deep: dict[str, object] = {}  # Phase 5 networks that replace a Phase 3 model
         self.reports: dict[str, dict] = {}
         self.versions: list[dict] = []  # what the RunStore registers in model_versions
         for key, (model_file, report_file, version) in MODEL_FILES.items():
@@ -83,9 +96,37 @@ class Predictor:
                     "metrics": self._test_metrics(key),
                 }
             )
+        for key, (net_file, report_file, version, env, default, on) in DEEP_FILES.items():
+            path = models_dir / net_file
+            if not path.exists() or os.environ.get(env, default).lower() != on:
+                continue
+            try:
+                from ai.deep_learning.live import LiveDemandNet, LiveFaultLSTM
+
+                cls = LiveFaultLSTM if key == "anomaly" else LiveDemandNet
+                self.deep[key] = cls(path, models_dir / report_file)
+            except Exception:  # PyTorch missing or an incompatible file: keep the Phase 3 model
+                log.exception("Could not load %s; using the Phase 3 %s model", net_file, key)
+                continue
+            self.versions = [v for v in self.versions if v["model_name"] != key]
+            self.versions.append(
+                {
+                    "model_name": key,
+                    "version": version,
+                    "artifact_path": f"models/{net_file}",
+                    "metrics": self._test_metrics(key),
+                }
+            )
         self.engine: SimulationEngine | None = None
 
+    def _has(self, key: str) -> bool:
+        return key in self.models or key in self.deep
+
     def _test_metrics(self, key: str) -> dict:
+        if key == "anomaly" and key in self.deep:
+            return {"algorithm": self.deep[key].algorithm, "test": self.deep[key].test}
+        if key == "demand" and key in self.deep:
+            return {"algorithm": self.deep[key].algorithm, "test_mae": self.deep[key].test_mae}
         r = self.reports.get(key, {})
         if key == "eta":
             return {"algorithm": r.get("algorithm"), "test": r.get("test")}
@@ -105,6 +146,8 @@ class Predictor:
         return {"test": r.get("test")}
 
     def _algorithm(self, key: str) -> str | None:
+        if key in self.deep:
+            return self.deep[key].algorithm
         if key == "demand_breakdown":  # one model per target, possibly different algorithms
             chosen = sorted({spec["algorithm"] for spec in self.models[key]["targets"].values()})
             return "per target: " + ", ".join(chosen)
@@ -116,7 +159,8 @@ class Predictor:
         self.engine = engine
         self.tph = engine.config.get("ticks_per_hour", 600)
         self.orders: dict[str, dict] = {}  # order_id -> prediction (until delivered)
-        self.samples: dict[str, deque] = {r: deque(maxlen=WINDOW) for r in engine.robots}
+        # One reading more than a window: the networks need the step into the first reading.
+        self.samples: dict[str, deque] = {r: deque(maxlen=WINDOW + 1) for r in engine.robots}
         self.prev_pos: dict[str, tuple[int, int]] = {}
         self.robot_health: dict[str, dict] = {}
         # Per simulated hour: customer orders, order lines per zone, orders per priority.
@@ -280,10 +324,11 @@ class Predictor:
                     t - started if started is not None else 0,
                     eng.congestion.get(zone or "", 0.0),
                     eng.faults.label(r.robot_id) is not None,
+                    r.load,
                 )
             )
             self.prev_pos[r.robot_id] = r.position
-        if "anomaly" in self.models and (t // STATUS_EVERY) % WINDOW_STEP == 0:
+        if self._has("anomaly") and (t // STATUS_EVERY) % WINDOW_STEP == 0:
             self._score_robots(t)
 
     @staticmethod
@@ -327,15 +372,28 @@ class Predictor:
         return "unusual pattern"
 
     def _score_robots(self, tick: int) -> None:
-        bundle = self.models["anomaly"]
-        ids = [rid for rid, s in self.samples.items() if len(s) == WINDOW]
+        ids = [rid for rid, s in self.samples.items() if len(s) >= WINDOW]
         if not ids:
             return
-        feats = [self._window_features(list(self.samples[rid])) for rid in ids]
-        scores = bundle["model"].predict_proba(pd.DataFrame(feats)[bundle["features"]])[:, 1]
+        readings = {rid: list(self.samples[rid]) for rid in ids}
+        windows = {rid: r[-WINDOW:] for rid, r in readings.items()}
+        feats = [self._window_features(windows[rid]) for rid in ids]  # input or explanation
+        if "anomaly" in self.deep:  # Phase 5 LSTM on the raw readings
+            from ai.deep_learning.live import fault_channels
+
+            net = self.deep["anomaly"]
+            before = {
+                rid: r[-WINDOW - 1] if len(r) > WINDOW else None for rid, r in readings.items()
+            }
+            seqs = np.stack([fault_channels(windows[rid], before[rid]) for rid in ids])
+            scores, threshold = net.scores(seqs), net.threshold
+        else:  # Phase 3 XGBoost on the 13 window features
+            bundle = self.models["anomaly"]
+            scores = bundle["model"].predict_proba(pd.DataFrame(feats)[bundle["features"]])[:, 1]
+            threshold = bundle["threshold"]
         for rid, f, score in zip(ids, feats, scores, strict=True):
-            flag = bool(score >= bundle["threshold"])
-            truth = any(s[8] for s in self.samples[rid])
+            flag = bool(score >= threshold)
+            truth = any(s[8] for s in windows[rid])
             self.anomaly_outcomes.append((flag, truth))
             was = self.robot_health.get(rid, {})
             newly = flag and not was.get("abnormal")
@@ -388,11 +446,14 @@ class Predictor:
             "is_promo_day": int(cal["is_promo_day"]),
         }
 
+    def _calendar_flags(self, hour: int) -> dict:
+        cal = self._calendar(hour * self.tph)
+        return {"is_weekend": float(cal["is_weekend"]), "is_promo_day": float(cal["is_promo_day"])}
+
     def _forecast_hour(self, hour: int) -> None:
         """Forecast simulated hour `hour` from earlier hours only (total + breakdown)."""
         cal = self._calendar_row(hour)
-        if "demand" in self.models:
-            model = self.models["demand"]
+        if self._has("demand"):
             total = "orders_total"
             row = {
                 **cal,
@@ -404,7 +465,17 @@ class Predictor:
                     np.mean([self._past(total, hour - k, hour) for k in range(1, 25)])
                 ),
             }
-            value = float(model.predict(pd.DataFrame([row])[list(model.feature_names_in_)])[0])
+            if "demand" in self.deep:  # Phase 5 network on the last week, hour by hour
+                net = self.deep["demand"]
+                past = range(hour - net.history, hour)
+                calendars = [{"hour": h % 24, **self._calendar_flags(h)} for h in past]
+                target = {"hour": hour % 24, "day_of_week": cal["day_of_week"]}
+                target |= self._calendar_flags(hour)
+                orders = [self._past(total, h, hour) for h in past]
+                value = net.forecast(orders, calendars, target, row)
+            else:
+                model = self.models["demand"]
+                value = float(model.predict(pd.DataFrame([row])[list(model.feature_names_in_)])[0])
             self.forecasts[total][hour] = round(max(value, 0.0), 1)
             self.forecast_inputs[total][hour] = row
         if "demand_breakdown" in self.models:
@@ -486,7 +557,7 @@ class Predictor:
             }
 
         return {
-            "models": sorted(self.models),
+            "models": sorted(set(self.models) | set(self.deep)),
             "orders": active,
             "robots": self.robot_health,
             "demand": {
@@ -511,10 +582,14 @@ class Predictor:
             "test_scores": {
                 "eta_mae": (self.reports.get("eta", {}).get("test") or {}).get("MAE"),
                 "late": self.reports.get("late", {}).get("test"),
-                "demand_mae": self.reports.get("demand", {}).get("test_mae"),
+                "demand_mae": self._test_metrics("demand").get("test_mae")
+                if self._has("demand")
+                else None,
                 "anomaly": self._test_metrics("anomaly").get("test")
-                if "anomaly" in self.models
+                if self._has("anomaly")
                 else None,
             },
-            "algorithms": {k: self._algorithm(k) for k in self.models},
+            "algorithms": {
+                k: self._algorithm(k) for k in sorted(set(self.models) | set(self.deep))
+            },
         }

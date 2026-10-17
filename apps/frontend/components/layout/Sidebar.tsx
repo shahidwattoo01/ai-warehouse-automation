@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Bot, BookOpen, Boxes, LayoutDashboard, LineChart, MessageSquare, PackageCheck, Warehouse } from "lucide-react";
+import { Bot, BookOpen, Boxes, Cctv, LayoutDashboard, LineChart, MessageSquare, PackageCheck, Warehouse } from "lucide-react";
 
 const NAV = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -10,6 +10,7 @@ const NAV = [
   { href: "/fleet", label: "Fleet", icon: Bot },
   { href: "/orders", label: "Orders", icon: PackageCheck },
   { href: "/inventory", label: "Inventory", icon: Warehouse },
+  { href: "/vision", label: "Vision", icon: Cctv },
   { href: "/analytics", label: "Analytics", icon: LineChart },
   { href: "/copilot", label: "Copilot", icon: MessageSquare },
   { href: "/knowledge", label: "Knowledge", icon: BookOpen },

@@ -84,6 +84,12 @@ INSERT INTO robot_events (run_id, tick, type, robot_id, order_id, is_injected_fa
 VALUES (:run_id, :tick, CAST(:type AS event_type_t), :robot_id, :order_id, :fault,
         CAST(:payload AS jsonb))""")
 
+# One active version per model (index uq_model_active): retire the others before activating one,
+# e.g. anomaly v1 (XGBoost) when v2 (LSTM, Phase 5) is loaded. Retired versions stay for history.
+SQL_RETIRE_OTHER_VERSIONS = text("""
+UPDATE model_versions SET is_active = false
+WHERE model_name = :model_name AND version <> :version AND is_active""")
+
 SQL_UPSERT_MODEL = text("""
 INSERT INTO model_versions (model_name, version, artifact_path, training_run_ids, metrics,
                             is_active)
@@ -156,14 +162,13 @@ class RunStore:
                 if closed:
                     log.warning("Closed %d run(s) left open by an unclean shutdown", closed)
                 seed_reference(conn, engine)
-                self._model_ids = {
-                    m["model_name"]: str(
-                        conn.execute(
-                            SQL_UPSERT_MODEL, {**m, "metrics": json.dumps(m["metrics"])}
-                        ).scalar_one()
+                self._model_ids = {}
+                for m in models or []:
+                    conn.execute(SQL_RETIRE_OTHER_VERSIONS, m)
+                    row = {**m, "metrics": json.dumps(m["metrics"])}
+                    self._model_ids[m["model_name"]] = str(
+                        conn.execute(SQL_UPSERT_MODEL, row).scalar_one()
                     )
-                    for m in models or []
-                }
                 self.run_id = (
                     conn.execute(
                         text("""INSERT INTO simulation_runs (mode, seed, layout_name, config,
