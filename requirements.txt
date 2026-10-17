@@ -1,33 +1,37 @@
+# Runtime dependencies of the backend, simulator and AI modules.
+# Exact versions: the ones all tests pass with (CI and Docker install exactly these), so results
+# and behaviour do not change when a library publishes a new release. Upgrade deliberately:
+# change a version here, run the tests, commit.
+#
+# PyTorch: install the CPU build with
+#   pip install --extra-index-url https://download.pytorch.org/whl/cpu -r requirements.txt
+
 # --- API and data ---
-fastapi>=0.115
-uvicorn[standard]>=0.30
-pydantic>=2.7
-pydantic-settings>=2.3
-sqlalchemy>=2.0
-alembic>=1.13
-psycopg[binary]>=3.2
-pgvector>=0.3
-pyyaml>=6.0
-numpy>=1.26
-pandas>=2.2
-pyarrow>=15.0             # Parquet datasets written by scripts/generate_data.py
+fastapi==0.143.0
+uvicorn[standard]==0.54.0
+pydantic==2.14.0
+pydantic-settings==2.15.0
+sqlalchemy==2.1.4
+alembic==1.20.0
+psycopg[binary]==3.3.6
+pyyaml==6.0.3
+numpy==2.4.6
+pandas==3.0.6
+pyarrow==26.0.0          # Parquet datasets written by scripts/generate_data.py
 
-# --- Classical ML ---
-scikit-learn>=1.5
-xgboost>=2.0             # gradient-boosted trees (the saved Phase 3 pipelines need it)
-joblib>=1.3              # loads the trained models in the backend
+# --- Classical ML and optimisation (Phases 3-4) ---
+scikit-learn==1.9.1
+scipy==1.17.1            # Hungarian algorithm (ai/optimization/assignment.py)
+xgboost==3.2.0           # gradient-boosted trees (the saved Phase 3 pipelines need it)
+joblib==1.6.0            # loads the trained models in the backend
 
-# --- Deep learning, vision, NLP (CPU wheels locally; GPU on Colab/Kaggle/Azure) ---
-torch>=2.3
-torchvision>=0.18
-ultralytics==8.4.178     # YOLO object detector (Phase 5); same version as notebooks/cloud/train_yolo_colab.ipynb
-transformers>=4.44
-sentence-transformers>=3.0
+# --- Deep learning and vision (Phase 5; CPU wheels locally, GPU on Colab) ---
+torch==2.14.1
+torchvision==0.29.1
+ultralytics==8.4.178     # YOLO11s detector; same version as notebooks/cloud/train_yolo_colab.ipynb (AGPL-3.0, see THIRD_PARTY_LICENSES.md)
 
-# --- RAG and agents ---
-langgraph>=0.2
-langchain-core>=0.3
-pypdf>=4.3
-
-# --- RL ---
-gymnasium>=0.29
+# --- Added when their phase starts (not used by the code yet, so not installed) ---
+# transformers, sentence-transformers   Phase 6 NLP
+# pypdf, pgvector                       Phase 7 RAG
+# langgraph, langchain-core             Phase 8 agents
+# gymnasium                             Phase 9 reinforcement learning
