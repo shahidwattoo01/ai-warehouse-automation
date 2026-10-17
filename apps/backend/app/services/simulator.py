@@ -55,6 +55,11 @@ class SimulatorService:
         self._broadcast(self.layout_message())  # connected clients re-sync to the new run
         self._broadcast(self.tick_message())
 
+    def publish_state(self) -> None:
+        """Send the current state to every client now. The loop only broadcasts while running, so
+        after a pause clients would otherwise never learn that the run stopped."""
+        self._broadcast(self.tick_message())
+
     # ----- background loop ---------------------------------------------------
     async def start_loop(self) -> None:
         if self.store:

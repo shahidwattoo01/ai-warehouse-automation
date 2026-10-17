@@ -30,12 +30,14 @@ async def get_layout() -> dict:
 @router.post("/start")
 async def start() -> dict:
     simulator.engine.start()
+    simulator.publish_state()
     return {"running": True}
 
 
 @router.post("/pause")
 async def pause() -> dict:
     simulator.engine.pause()
+    simulator.publish_state()  # the loop stops broadcasting: tell clients the run is paused
     return {"running": False}
 
 

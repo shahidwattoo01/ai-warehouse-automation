@@ -1,6 +1,7 @@
 "use client";
 
 import { Pause, Play, RotateCcw } from "lucide-react";
+import { useState } from "react";
 import { api } from "@/lib/api";
 import { useSim } from "@/lib/store";
 import { StrategySelect } from "./StrategySelect";
@@ -8,13 +9,26 @@ import { ThemeToggle } from "./ThemeToggle";
 
 export function Header({ title }: { title: string }) {
   const running = useSim((s) => s.state?.running ?? false);
+  const [pending, setPending] = useState(false);
+  // Flip the button as soon as the server confirms (the state stream also reports it).
+  const toggle = async () => {
+    setPending(true);
+    try {
+      const res = running ? await api.simulation.pause() : await api.simulation.start();
+      useSim.setState((s) => (s.state ? { state: { ...s.state, running: res.running } } : {}));
+    } finally {
+      setPending(false);
+    }
+  };
   return (
     <header className="flex h-14 items-center justify-between border-b border-border px-6">
       <h1 className="text-xl font-semibold">{title}</h1>
       <div className="flex items-center gap-2">
         <button
-          onClick={() => (running ? api.simulation.pause() : api.simulation.start())}
-          className="flex items-center gap-2 rounded-control border border-border px-3 py-1.5 text-sm"
+          onClick={() => void toggle()}
+          disabled={pending}
+          aria-pressed={running}
+          className="flex items-center gap-2 rounded-control border border-border px-3 py-1.5 text-sm disabled:opacity-60"
         >
           {running ? <Pause size={16} /> : <Play size={16} />} {running ? "Pause" : "Start"}
         </button>
