@@ -24,9 +24,9 @@ TASKS: dict[str, tuple[list[str], Path]] = {
     "test": ([PY, "-m", "pytest", "-q"], ROOT),
     "lint": ([PY, "-m", "ruff", "check", "."], ROOT),
     "migrate": ([PY, "-m", "alembic", "upgrade", "head"], BACKEND),
-    "seed": ([PY, "scripts/seed.py", "--layout", "default"], ROOT),
+    "seed": ([PY, "scripts/seed.py"], ROOT),  # layout from configs/simulation.yaml (large)
     "data": ([PY, "scripts/generate_data.py", "--runs", "50"], ROOT),
-    "experiments": ([PY, "scripts/run_experiments.py", "--all"], ROOT),
+    "experiments": ([PY, "scripts/run_experiments.py"], ROOT),  # all Phase 4 experiments
 }
 
 
