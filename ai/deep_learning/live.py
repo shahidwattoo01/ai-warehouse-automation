@@ -73,7 +73,7 @@ class LiveDemandNet:
         from ai.deep_learning import demand
 
         self.torch = torch
-        bundle = torch.load(path, map_location="cpu", weights_only=False)
+        bundle = torch.load(path, map_location="cpu", weights_only=True)
         self.arch = bundle["arch"]
         self.history = bundle["history"]
         n_step, n_target = len(bundle["step_features"]), len(bundle["target_features"])
