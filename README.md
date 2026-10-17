@@ -1,10 +1,17 @@
 # Warehouse AI Platform
 
+[![CI](https://github.com/shahidwattoo01/ai-warehouse-automation/actions/workflows/ci.yml/badge.svg)](https://github.com/shahidwattoo01/ai-warehouse-automation/actions/workflows/ci.yml)
+
 **AI-Powered Autonomous Warehouse Automation & Fleet Intelligence Platform**
 
 A simulated intelligent warehouse — robots, orders, shelves, inventory, workers and packing stations living inside one simulator — with ten AI layers on top: classical ML, deep learning, computer vision, NLP + Transformers, RAG, tool calling, agents and multi-agent coordination, optimization and reinforcement learning. Operators control it through a realistic 3D web Control Center and an AI Operations Copilot.
 
 > Final project — NAVTTC AI/ML training, NetSol Technologies, Lahore.
+
+**Quality and compliance:** every push is linted, tested (unit, API and database tests) and built
+by [CI](.github/workflows/ci.yml) · [model cards](docs/model_cards/README.md) for every model ·
+[security model](SECURITY.md) · [third-party licences](THIRD_PARTY_LICENSES.md) (note:
+Ultralytics YOLO is AGPL-3.0) · exact dependency versions in `requirements.txt`.
 
 ---
 

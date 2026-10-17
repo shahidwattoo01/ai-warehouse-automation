@@ -14,6 +14,10 @@ addopts = "--import-mode=importlib"
 line-length = 100
 target-version = "py311"
 
+[tool.ruff.format]
+# Notebooks keep their compact teaching layout (they are still linted).
+exclude = ["*.ipynb"]
+
 [tool.ruff.lint]
 select = ["E", "F", "I", "B", "UP"]
 # (str, Enum) is kept on purpose: StrEnum changes str()/format() output used in payloads.
