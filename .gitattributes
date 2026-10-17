@@ -1,0 +1,21 @@
+# Line endings: text files are stored with LF in the repository and checked out in the
+# platform's style, so Windows and Linux/macOS contributors (and CI) see the same content.
+* text=auto
+
+# Scripts that must keep their line endings
+*.sh text eol=lf
+*.bat text eol=crlf
+*.ps1 text eol=crlf
+
+# Binary files: never touch line endings or show text diffs
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
+*.pdf binary
+*.zip binary
+*.parquet binary
+*.npy binary
+*.npz binary
+*.pt binary
+*.joblib binary
