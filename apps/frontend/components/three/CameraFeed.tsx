@@ -28,18 +28,8 @@ import { SceneLighting } from "./SceneLighting";
 import { Stations } from "./Stations";
 import { WorkerLayer } from "./Worker";
 
-export const FEED_W = 640;
-export const FEED_H = 480;
-
-/** A fixed camera (world metres), or the forward camera of a robot. */
-export type FeedCamera =
-  | {
-      kind: "fixed";
-      position: [number, number, number];
-      target: [number, number, number];
-      fov: number;
-    }
-  | { kind: "robot"; robotId: string; fov: number };
+export { FEED_H, FEED_W, type FeedCamera } from "./feed";
+import { FEED_H, FEED_W, type FeedCamera } from "./feed";
 
 const UP = new Vector3(0, 1, 0);
 const AHEAD = new Vector3();

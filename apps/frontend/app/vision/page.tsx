@@ -3,8 +3,7 @@
 import dynamic from "next/dynamic";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Screen } from "@/components/layout/Screen";
-import type { FeedCamera } from "@/components/three/CameraFeed";
-import { FEED_H, FEED_W } from "@/components/three/CameraFeed";
+import { FEED_H, FEED_W, type FeedCamera } from "@/components/three/feed";
 import { api } from "@/lib/api";
 import { useSim } from "@/lib/store";
 import type {
