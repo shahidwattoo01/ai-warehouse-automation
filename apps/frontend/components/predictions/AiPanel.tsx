@@ -111,7 +111,7 @@ export function AiPanel() {
   return (
     <section>
       <div className="mb-2 flex items-baseline justify-between">
-        <h2 className="text-base font-semibold">AI predictions · Phase 3 models</h2>
+        <h2 className="text-base font-semibold">AI predictions · live models</h2>
         <span className="text-xs text-muted">Live accuracy is measured on this run against what really happens</span>
       </div>
       <div className="grid grid-cols-4 gap-4">

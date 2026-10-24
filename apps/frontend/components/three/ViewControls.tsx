@@ -78,7 +78,8 @@ export function ViewControls({ width, depth, compact }: { width: number; depth: 
     const [eye, target] = viewPose(request.view, width, depth, compact);
     flyTo(eye, target);
     useCameraView.setState({ request: null }); // handled; a remounted scene must not replay it
-  }, [request]); // only a new request should fly, not a layout change
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- only a new request should fly, not a layout change
+  }, [request]);
 
   // Double-click: fly to the clicked spot on the floor, keeping the current viewing direction.
   useEffect(() => {
@@ -97,7 +98,8 @@ export function ViewControls({ width, depth, compact }: { width: number; depth: 
     };
     el.addEventListener("dblclick", onDoubleClick);
     return () => el.removeEventListener("dblclick", onDoubleClick);
-  }, [gl, camera]); // flyTo only reads refs
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- flyTo only reads refs
+  }, [gl, camera]);
 
   useFrame((_, dt) => {
     const c = controls.current;

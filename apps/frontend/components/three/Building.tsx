@@ -144,7 +144,7 @@ export function Building({
   const columns = useMemo(() => {
     const interior = blocked.map(([x, y]) => gridToWorld(x, y, width, height)).map(([x, , z]) => [x, z] as [number, number]);
     return { interior };
-  }, [W, H, blocked, width, height]);
+  }, [blocked, width, height]);
 
   const geo = useMemo(
     () => ({
