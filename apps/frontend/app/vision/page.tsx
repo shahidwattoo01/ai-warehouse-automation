@@ -6,25 +6,14 @@ import { Screen } from "@/components/layout/Screen";
 import { FEED_H, FEED_W, type FeedCamera } from "@/components/three/feed";
 import { api } from "@/lib/api";
 import { useSim } from "@/lib/store";
-import type {
-  DetectionResult,
-  LayoutSnapshot,
-  VisionStatus,
-  WarehouseState,
-} from "@/lib/types";
+import type { DetectionResult, LayoutSnapshot, VisionStatus, WarehouseState } from "@/lib/types";
 
-const CameraWall = dynamic(
-  () => import("@/components/three/CameraFeed").then((m) => m.CameraWall),
-  {
-    ssr: false,
-  },
-);
-const CameraFeed = dynamic(
-  () => import("@/components/three/CameraFeed").then((m) => m.CameraFeed),
-  {
-    ssr: false,
-  },
-);
+const CameraWall = dynamic(() => import("@/components/three/CameraFeed").then((m) => m.CameraWall), {
+  ssr: false,
+});
+const CameraFeed = dynamic(() => import("@/components/three/CameraFeed").then((m) => m.CameraFeed), {
+  ssr: false,
+});
 
 // Fixed cameras of the camera dataset (scripts/capture_frames.py): grid (x, y, height) -> look at (x, y).
 const CCTV: [[number, number, number], [number, number]][] = [
@@ -60,17 +49,10 @@ interface CameraOption {
   camera: FeedCamera;
 }
 
-function cameras(
-  layout: LayoutSnapshot | null,
-  state: WarehouseState | null,
-): CameraOption[] {
+function cameras(layout: LayoutSnapshot | null, state: WarehouseState | null): CameraOption[] {
   if (!layout) return [];
   const { width: w, height: h } = layout;
-  const world = (x: number, y: number, z: number): [number, number, number] => [
-    x - w / 2 + 0.5,
-    z,
-    y - h / 2 + 0.5,
-  ];
+  const world = (x: number, y: number, z: number): [number, number, number] => [x - w / 2 + 0.5, z, y - h / 2 + 0.5];
   const out: CameraOption[] = [
     {
       key: "overview-above",
@@ -224,9 +206,7 @@ export default function VisionPage() {
   // Re-list cameras only when the set of hazards, closures or robots changes, not every tick.
   const signature = [
     layout?.name,
-    state?.obstacles
-      .map((o) => o.obstacle_id ?? o.position.join(","))
-      .join("|"),
+    state?.obstacles.map((o) => o.obstacle_id ?? o.position.join(",")).join("|"),
     state?.closures?.map((c) => c.aisle_id).join("|"),
     state?.robots.length,
   ].join("/");
@@ -287,9 +267,7 @@ export default function VisionPage() {
     shotAt.current[key] = Date.now();
     setShots((s) => ({ ...s, [key]: image }));
   }, []);
-  const wallCameras = options.filter(
-    (o) => wallGroup === "All" || o.group === wallGroup,
-  );
+  const wallCameras = options.filter((o) => wallGroup === "All" || o.group === wallGroup);
   const openCamera = (key: string) => {
     setSelected(key);
     setView("single");
@@ -352,9 +330,7 @@ export default function VisionPage() {
   movingRef.current = moving;
   const wallDetRef = useRef(wallDet);
   wallDetRef.current = wallDet;
-  const movingOnWall = wallCameras.filter(
-    (o) => o.camera.kind === "robot" && moving.has(o.camera.robotId),
-  ).length;
+  const movingOnWall = wallCameras.filter((o) => o.camera.kind === "robot" && moving.has(o.camera.robotId)).length;
 
   useEffect(() => {
     if (view !== "wall" || !autoRobots || scanning) return;
@@ -389,10 +365,7 @@ export default function VisionPage() {
   return (
     <Screen title="Vision · object detection on the live warehouse">
       <div className="mb-4 flex flex-wrap items-center gap-3">
-        <div
-          className="flex overflow-hidden rounded-control border border-border text-sm"
-          role="tablist"
-        >
+        <div className="flex overflow-hidden rounded-control border border-border text-sm" role="tablist">
           {(["single", "wall"] as const).map((v) => (
             <button
               key={v}
@@ -401,9 +374,7 @@ export default function VisionPage() {
               onClick={() => setView(v)}
               className={`px-3 py-1.5 ${view === v ? "bg-accent text-white" : "bg-surface text-muted hover:text-ink"}`}
             >
-              {v === "single"
-                ? "Single camera + detection"
-                : `Camera wall (${options.length})`}
+              {v === "single" ? "Single camera + detection" : `Camera wall (${options.length})`}
             </button>
           ))}
         </div>
@@ -414,16 +385,10 @@ export default function VisionPage() {
                 key={g}
                 onClick={() => setWallGroup(g)}
                 className={`rounded-full border px-2.5 py-1 ${
-                  wallGroup === g
-                    ? "border-accent bg-accent/10 text-ink"
-                    : "border-border text-muted hover:text-ink"
+                  wallGroup === g ? "border-accent bg-accent/10 text-ink" : "border-border text-muted hover:text-ink"
                 }`}
               >
-                {g} (
-                {g === "All"
-                  ? options.length
-                  : options.filter((o) => o.group === g).length}
-                )
+                {g} ({g === "All" ? options.length : options.filter((o) => o.group === g).length})
               </button>
             ))}
           </div>
@@ -477,20 +442,16 @@ export default function VisionPage() {
             <span className="ml-auto text-muted">
               {analysed} / {wallCameras.length} analysed ·{" "}
               {wallAlerts.map((a) => (
-                <span
-                  key={a.cls}
-                  className="ml-2"
-                  style={{ color: a.cameras ? CLASS_COLOR[a.cls] : undefined }}
-                >
+                <span key={a.cls} className="ml-2" style={{ color: a.cameras ? CLASS_COLOR[a.cls] : undefined }}>
                   {CLASS_LABEL[a.cls]}: {a.cameras} {a.cameras === 1 ? "camera" : "cameras"}
                 </span>
               ))}
             </span>
           </div>
           <p className="mb-3 text-xs text-muted">
-            Cameras refresh every few seconds (one renderer photographs them in turn, so the laptop stays responsive).
-            A camera with detections shows the frame that was analysed, with its age; detection takes about 1 s per
-            camera on an idle laptop, longer when the CPU is busy.
+            Cameras refresh every few seconds (one renderer photographs them in turn, so the laptop stays responsive). A
+            camera with detections shows the frame that was analysed, with its age; detection takes about 1 s per camera
+            on an idle laptop, longer when the CPU is busy.
           </p>
           <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-6">
             {wallCameras.map((o) => {
@@ -603,22 +564,15 @@ export default function VisionPage() {
                   {busy ? "Detecting…" : "Detect now"}
                 </button>
                 <label className="flex items-center gap-1 text-muted">
-                  <input
-                    type="checkbox"
-                    checked={auto}
-                    onChange={(e) => setAuto(e.target.checked)}
-                  />
+                  <input type="checkbox" checked={auto} onChange={(e) => setAuto(e.target.checked)} />
                   Auto (every 3 s)
                 </label>
               </div>
               <div className="aspect-[4/3] w-full overflow-hidden rounded-control bg-black">
-                {option && (
-                  <CameraFeed camera={option.camera} onCapture={onCapture} />
-                )}
+                {option && <CameraFeed camera={option.camera} onCapture={onCapture} />}
               </div>
               <p className="mt-1 text-[11px] text-muted">
-                Live view · sent to the detector as a {FEED_W} × {FEED_H} frame,
-                rendered like its training images
+                Live view · sent to the detector as a {FEED_W} × {FEED_H} frame, rendered like its training images
               </p>
             </section>
 
@@ -626,27 +580,17 @@ export default function VisionPage() {
               <div className="mb-2 flex h-[26px] items-center justify-between text-xs">
                 <span className="text-muted">Last analysed frame</span>
                 <label className="flex items-center gap-1 text-muted">
-                  <input
-                    type="checkbox"
-                    checked={showShelves}
-                    onChange={(e) => setShowShelves(e.target.checked)}
-                  />
+                  <input type="checkbox" checked={showShelves} onChange={(e) => setShowShelves(e.target.checked)} />
                   Show shelves
                 </label>
               </div>
               <div className="relative aspect-[4/3] w-full overflow-hidden rounded-control bg-canvas">
                 {frame ? (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={frame}
-                    alt="Analysed camera frame"
-                    className="h-full w-full"
-                  />
+                  <img src={frame} alt="Analysed camera frame" className="h-full w-full" />
                 ) : (
                   <div className="flex h-full items-center justify-center text-sm text-muted">
-                    {status?.available === false
-                      ? "No detector trained yet"
-                      : "Press “Detect now”"}
+                    {status?.available === false ? "No detector trained yet" : "Press “Detect now”"}
                   </div>
                 )}
                 {frame && result && <Boxes result={result} showShelves={showShelves} />}
@@ -661,26 +605,16 @@ export default function VisionPage() {
 
           <div className="mt-4 grid gap-4 md:grid-cols-3">
             <div className="rounded-card border border-border bg-surface p-4">
-              <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted">
-                Safety alerts
-              </div>
+              <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted">Safety alerts</div>
               {!result ? (
                 <p className="text-sm text-muted">No frame analysed yet.</p>
               ) : result.safety_alerts.length === 0 ? (
-                <p className="text-sm text-success">
-                  No workers, dropped parcels, obstacles or barriers in view.
-                </p>
+                <p className="text-sm text-success">No workers, dropped parcels, obstacles or barriers in view.</p>
               ) : (
                 <ul className="space-y-1.5">
                   {result.safety_alerts.map((d, i) => (
-                    <li
-                      key={i}
-                      className="flex items-center justify-between gap-3 text-sm"
-                    >
-                      <span
-                        style={{ color: CLASS_COLOR[d.cls] }}
-                        className="font-medium"
-                      >
+                    <li key={i} className="flex items-center justify-between gap-3 text-sm">
+                      <span style={{ color: CLASS_COLOR[d.cls] }} className="font-medium">
                         ⚠ {CLASS_LABEL[d.cls]}
                       </span>
                       <span className="flex items-center gap-2">
@@ -693,27 +627,21 @@ export default function VisionPage() {
                             }}
                           />
                         </span>
-                        <span className="tabular w-10 text-right text-muted">
-                          {Math.round(d.conf * 100)}%
-                        </span>
+                        <span className="tabular w-10 text-right text-muted">{Math.round(d.conf * 100)}%</span>
                       </span>
                     </li>
                   ))}
                 </ul>
               )}
               <p className="mt-3 border-t border-border pt-2 text-[11px] leading-relaxed text-muted">
-                The percentage is the detector&apos;s <b>confidence</b> that the
-                box holds that object, not an accuracy. Low values (e.g. 19 %)
-                are usually distant or partly hidden objects: safety classes are
-                reported from a low confidence on purpose, so that a possible
-                person is not missed.
+                The percentage is the detector&apos;s <b>confidence</b> that the box holds that object, not an accuracy.
+                Low values (e.g. 19 %) are usually distant or partly hidden objects: safety classes are reported from a
+                low confidence on purpose, so that a possible person is not missed.
               </p>
             </div>
 
             <div className="rounded-card border border-border bg-surface p-4">
-              <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted">
-                Objects in this frame
-              </div>
+              <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted">Objects in this frame</div>
               <table className="w-full text-sm">
                 <thead>
                   <tr className="text-[11px] text-muted">
@@ -732,9 +660,7 @@ export default function VisionPage() {
                         />
                         {CLASS_LABEL[c]}
                       </td>
-                      <td className="tabular text-right">
-                        {result?.counts[c] ?? 0}
-                      </td>
+                      <td className="tabular text-right">{result?.counts[c] ?? 0}</td>
                       <td className="tabular text-right text-muted">
                         {status?.thresholds[c] !== undefined
                           ? `${Math.round(status.thresholds[c] * 100)}% confidence`
@@ -747,32 +673,19 @@ export default function VisionPage() {
             </div>
 
             <div className="rounded-card border border-border bg-surface p-4 text-sm">
-              <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted">
-                Model
-              </div>
+              <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted">Model</div>
               {status ? (
                 <div className="space-y-1.5">
-                  <div className="font-medium">
-                    {status.algorithm ?? status.model}
-                  </div>
+                  <div className="font-medium">{status.algorithm ?? status.model}</div>
                   <div className="text-muted">
-                    Test images ({status.image_size} px): mAP@0.5{" "}
-                    {status.test.mAP50?.toFixed(3) ?? "—"}, precision{" "}
-                    {status.test.precision?.toFixed(3) ?? "—"}, recall{" "}
-                    {status.test.recall?.toFixed(3) ?? "—"}
+                    Test images ({status.image_size} px): mAP@0.5 {status.test.mAP50?.toFixed(3) ?? "—"}, precision{" "}
+                    {status.test.precision?.toFixed(3) ?? "—"}, recall {status.test.recall?.toFixed(3) ?? "—"}
                   </div>
                   {status.test_960_gpu && (
-                    <div className="text-muted">
-                      At 960 px on a GPU: mAP@0.5{" "}
-                      {status.test_960_gpu.mAP50.toFixed(3)}
-                    </div>
+                    <div className="text-muted">At 960 px on a GPU: mAP@0.5 {status.test_960_gpu.mAP50.toFixed(3)}</div>
                   )}
-                  <div
-                    className={status.loaded ? "text-success" : "text-warning"}
-                  >
-                    {status.loaded
-                      ? "● Model loaded"
-                      : "● Model loading on the server…"}
+                  <div className={status.loaded ? "text-success" : "text-warning"}>
+                    {status.loaded ? "● Model loaded" : "● Model loading on the server…"}
                   </div>
                 </div>
               ) : (

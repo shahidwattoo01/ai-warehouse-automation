@@ -10,13 +10,7 @@
 
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { useEffect, useRef } from "react";
-import {
-  ACESFilmicToneMapping,
-  type PerspectiveCamera,
-  SRGBColorSpace,
-  Vector2,
-  Vector3,
-} from "three";
+import { ACESFilmicToneMapping, type PerspectiveCamera, SRGBColorSpace, Vector2, Vector3 } from "three";
 import { QUALITY } from "@/lib/quality";
 import { useSim } from "@/lib/store";
 import { Building } from "./Building";
@@ -58,14 +52,8 @@ function aim(camera: PerspectiveCamera, spec: FeedCamera): boolean {
     // Forward camera 0.55 m above the floor, as in the dataset (scripts/capture_frames.py).
     const fx = Math.cos(node.rotation.y);
     const fz = -Math.sin(node.rotation.y);
-    camera.position.set(
-      node.position.x + 0.4 * fx,
-      0.55,
-      node.position.z + 0.4 * fz,
-    );
-    camera.lookAt(
-      AHEAD.set(node.position.x + 8 * fx, 0.4, node.position.z + 8 * fz),
-    );
+    camera.position.set(node.position.x + 0.4 * fx, 0.55, node.position.z + 0.4 * fz);
+    camera.lookAt(AHEAD.set(node.position.x + 8 * fx, 0.4, node.position.z + 8 * fz));
   }
   camera.updateProjectionMatrix();
   return true;
@@ -79,12 +67,7 @@ function Warehouse() {
   return (
     <>
       <color attach="background" args={["#e7e4dd"]} />
-      <SceneLighting
-        width={width}
-        depth={depth}
-        quality={QUALITY.balanced}
-        layoutKey={layout?.name ?? ""}
-      />
+      <SceneLighting width={width} depth={depth} quality={QUALITY.balanced} layoutKey={layout?.name ?? ""} />
       {layout && (
         <>
           <Building
@@ -95,12 +78,7 @@ function Warehouse() {
             oneWay={layout.one_way ?? []}
             parkingAreas={layout.parking_areas ?? []}
           />
-          <Racking
-            shelves={layout.shelves}
-            width={width}
-            height={depth}
-            detail="full"
-          />
+          <Racking shelves={layout.shelves} width={width} height={depth} detail="full" />
           <Stations stations={layout.stations} width={width} height={depth} />
           <Props width={width} height={depth} />
           <RobotFleet width={width} height={depth} castShadows />
@@ -113,13 +91,7 @@ function Warehouse() {
 }
 
 // ----- one live camera ---------------------------------------------------------------------------
-function Rig({
-  camera: spec,
-  onCapture,
-}: {
-  camera: FeedCamera;
-  onCapture: (fn: () => string) => void;
-}) {
+function Rig({ camera: spec, onCapture }: { camera: FeedCamera; onCapture: (fn: () => string) => void }) {
   const gl = useThree((s) => s.gl);
   const scene = useThree((s) => s.scene);
   const camera = useThree((s) => s.camera) as PerspectiveCamera;
@@ -148,13 +120,7 @@ function Rig({
   return null;
 }
 
-export function CameraFeed({
-  camera,
-  onCapture,
-}: {
-  camera: FeedCamera;
-  onCapture: (fn: () => string) => void;
-}) {
+export function CameraFeed({ camera, onCapture }: { camera: FeedCamera; onCapture: (fn: () => string) => void }) {
   return (
     <Canvas shadows dpr={1} style={{ width: "100%", height: "100%" }} gl={GL}>
       <Warehouse />
@@ -227,13 +193,7 @@ export function CameraWall(props: {
         opacity: 0,
       }}
     >
-      <Canvas
-        shadows
-        dpr={1}
-        frameloop="never"
-        style={{ width: THUMB_W, height: THUMB_H }}
-        gl={GL}
-      >
+      <Canvas shadows dpr={1} frameloop="never" style={{ width: THUMB_W, height: THUMB_H }} gl={GL}>
         <Warehouse />
         <Photographer {...props} />
       </Canvas>
