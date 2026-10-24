@@ -274,3 +274,49 @@ export interface DetectionResult {
   counts: Record<string, number>;
   safety_alerts: Detection[];
 }
+
+/** Operator copilot (Phase 6, apps/backend/app/api/v1/copilot.py). */
+export interface CopilotEntity {
+  type: string;
+  text: string;
+  value: string;
+  start: number;
+  end: number;
+}
+
+export interface ToolCall {
+  name: string;
+  arguments: Record<string, unknown>;
+}
+
+export interface Understanding {
+  text: string;
+  intent: string;
+  confidence: number;
+  entities: CopilotEntity[];
+  tool_calls: ToolCall[];
+  requires_approval: boolean;
+  status: "ok" | "needs_information" | "unsure" | "out_of_scope";
+  question: string | null;
+}
+
+export interface CopilotReply {
+  understanding: Understanding;
+  problems: string[];
+  action: { id: string; summary: string; unsure: boolean } | null;
+  answer: string | null;
+}
+
+export interface CopilotStatus {
+  loaded: boolean;
+  algorithm: string | null;
+  intents: string[];
+  write_actions_need_approval: boolean;
+}
+
+export interface CopilotHistoryItem {
+  tick: number;
+  text: string;
+  tool_calls: ToolCall[];
+  outcome: string;
+}

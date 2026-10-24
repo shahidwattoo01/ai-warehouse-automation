@@ -30,8 +30,13 @@ torch==2.14.1
 torchvision==0.29.1
 ultralytics==8.4.178     # YOLO11s detector; same version as notebooks/cloud/train_yolo_colab.ipynb (AGPL-3.0, see THIRD_PARTY_LICENSES.md)
 
+# --- NLP: operator commands (Phase 6) ---
+transformers==5.20.2     # DistilBERT intent + entity model (ai/transformers/intent_transformer.py)
+tokenizers==0.23.3
+safetensors==0.8.0
+huggingface-hub==2.2.0   # downloads distilbert-base-uncased once, then works offline
+
 # --- Added when their phase starts (not used by the code yet, so not installed) ---
-# transformers, sentence-transformers   Phase 6 NLP
 # pypdf, pgvector                       Phase 7 RAG
 # langgraph, langchain-core             Phase 8 agents
 # gymnasium                             Phase 9 reinforcement learning

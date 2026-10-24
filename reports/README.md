@@ -9,7 +9,7 @@
 ## Report contents
 
 1. Project progress: phase table and the warehouse KPIs after each completed phase
-2. Executive summary
+2. Executive summary (Layers 4 and 5 headline results)
 3. Layers compared, glossary of technical terms
 4. Simulation setup and unit conversion (ticks → seconds, metres, orders per robot)
 5. Layer 3: Classical ML test metrics
@@ -18,7 +18,10 @@
 8. Head-to-head: Baseline vs Layer 3 vs Layer 4
 9. Results per simulated day
 10. Charts
-11. Interpretation, validity and limitations
+11. Layer 5: deep learning (faults, demand) and the object detector, with the Vision page
+12. Layer 6: operator commands (rules, TF-IDF, DistilBERT) and the Copilot
+13. Interpretation
+14. Validity and limitations
 
 ## Updating at the end of a phase
 

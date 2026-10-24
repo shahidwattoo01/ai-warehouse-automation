@@ -44,6 +44,18 @@ Shared code: `ai/deep_learning/anomaly.py` (telemetry sequences, MLP, LSTM), `ai
 (history windows, MLP, LSTM, Transformer), `ai/computer_vision/evaluation.py` (box matching, sizes, thresholds). Sequences and finished demand runs are cached in
 `data/processed/deep_learning/` (rebuilt automatically when missing). PyTorch runs on the laptop CPU.
 
+## Phase 6: NLP + Transformers (operator commands)
+
+| Notebook | Question | Result (test: phrasings never seen in training) |
+|---|---|---|
+| `10_nlp_commands_baselines.ipynb` | How far do keyword rules + regex entities and TF-IDF + Logistic Regression get? Honest validation split (whole templates held out), typo noise | Exact tool call: rules 0.656, **TF-IDF 0.725**; entities ≈ 1.0 for both; TF-IDF misses out-of-scope requests (recall 0.04) |
+| `11_nlp_transformer.ipynb` | Does a fine-tuned DistilBERT (intent head + BIO entity head on one encoder) understand new phrasings better? Confidence calibration | **Exact tool call 0.807**, 0.762 with typos; above 0.99 confidence right 98.5 %; remaining errors are opposites (open/close, resume/pause) |
+
+Data: `python scripts/generate_nlp_data.py` → `data/processed/nlp/commands.jsonl` (5,461 messages, 17 intents,
+13 entity types). Shared code: `ai/nlp/commands.py` (canonical values, tool calls, approval: also used to label
+the data), `ai/nlp/intent_parser.py` (baselines), `ai/nlp/evaluation.py`, `ai/transformers/intent_transformer.py`.
+DistilBERT fine-tunes in about 30 min on a laptop CPU (`python scripts/train.py --phase 6`).
+
 ## Live use
 
 The backend (`apps/backend/app/services/predictor.py`) loads the saved models, predicts on the running

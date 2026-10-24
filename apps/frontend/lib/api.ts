@@ -1,4 +1,7 @@
 import type {
+  CopilotHistoryItem,
+  CopilotReply,
+  CopilotStatus,
   DetectionResult,
   ExperimentResults,
   InventoryItem,
@@ -36,6 +39,13 @@ export const api = {
   },
   analytics: {
     experiments: () => request<ExperimentResults>("/analytics/experiments"),
+  },
+  copilot: {
+    status: () => request<CopilotStatus>("/copilot/status"),
+    chat: (text: string) => request<CopilotReply>("/copilot/chat", { method: "POST", body: JSON.stringify({ text }) }),
+    approve: (id: string) => request<{ ok: boolean; answer: string }>(`/copilot/actions/${id}/approve`, { method: "POST" }),
+    reject: (id: string) => request<{ ok: boolean; answer: string }>(`/copilot/actions/${id}/reject`, { method: "POST" }),
+    history: () => request<CopilotHistoryItem[]>("/copilot/history"),
   },
   vision: {
     status: () => request<VisionStatus>("/vision/status"),

@@ -1,5 +1,5 @@
 # ruff: noqa: E501  (report text and table rows are kept on one line for readability)
-"""Main project report: phase-by-phase progress and Baseline vs Layer 3 vs Layer 4 comparison.
+"""Main project report: phase-by-phase progress, Baseline vs Layer 3 vs Layer 4, and Layer 5.
 
     python scripts/build_project_report.py              # -> reports/Project_Progress_Report.pdf
     python scripts/build_project_report.py --snapshot   # also archive a copy for the latest done phase
@@ -10,6 +10,8 @@ phase's own section below if it has new results, rebuild with --snapshot.
 Reads only generated results, so it can be rebuilt whenever they change:
     reports/phases.yaml                  phase register (status, what was added, results)
     models/*_report.json                 Layer 3 model test scores (notebooks/01-05)
+    models/anomaly_dl_v1_report.json, demand_dl_v1_report.json, vision_yolo_v1/   Layer 5 (07-09)
+    models/nlp_distilbert_v1/report.json                                           Layer 6 (10-11)
     evaluation/reports/phase4/runs.csv   Layer 4 experiments (scripts/run_experiments.py)
     evaluation/reports/phase4/figures/   charts
     configs/experiments/*.yaml           strategy definitions
@@ -211,6 +213,151 @@ def progress_section(phases: list[dict], mean: pd.DataFrame) -> list:
     return out
 
 
+def layer5_section() -> list:
+    """Section 11: Phase 5 deep learning and vision, from the reports notebooks 07-09 wrote."""
+    out = [PageBreak(), p("11. Layer 5 — Deep learning + vision (Phase 5)", H2)]
+    out += [p("Neural networks compared with the Layer 3 models on the same held-out test data, with control "
+              "models that explain each result, and a camera object detector. Like Layer 3, Layer 5 is advisory "
+              "(it predicts and alerts; the warehouse KPIs stay those of Layer 4).", NOTE)]  # fmt: skip
+    dl = json.loads((MODELS / "anomaly_dl_v1_report.json").read_text())
+    rows = [["Fault detection model", "Input", "Precision", "Recall", "F1", "Avg. precision"]]
+    inputs = {"XGBoost v1 (13 features)": "13 window summaries (Phase 3)",
+              "XGBoost (raw sequence)": "10 raw readings, flattened (control)",
+              "MLP (13 features)": "13 window summaries (control)",
+              "LSTM (raw sequence)": "10 raw readings in time order"}  # fmt: skip
+    for name, r in dl["test"].items():
+        rows.append([name, inputs.get(name, ""), f"{r['precision']:.3f}", f"{r['recall']:.3f}",
+                     f"{r['F1']:.3f}", f"{r['avg_precision']:.3f}"])  # fmt: skip
+    best = len(rows) - 1
+    out += [p("Fault detection (test: last 14 days, 805,840 windows)", H3),
+            table(rows, [60, 75, 28, 28, 28, 32], highlight={best: "#E3F4EA"})]  # fmt: skip
+    day = dl.get("lstm_vs_xgboost_per_day", {})
+    per = dl["recall_per_fault_type"]
+    lstm, xgb = per["LSTM (raw sequence)"], per["XGBoost v1 (13 features)"]
+    faults = [f for f in lstm if f != "none"]
+    out += [p(f"LSTM better on {day.get('days_better', '?')} of {day.get('days', '?')} test days "
+              f"(95 % interval of the F1 gain {day.get('f1_diff_95ci', ['?', '?'])[0]:+} to "
+              f"{day.get('f1_diff_95ci', ['?', '?'])[1]:+}). Recall per fault type, XGBoost → LSTM: "
+              + ", ".join(f"{f.replace('_', ' ')} {xgb[f]:.2f} → {lstm[f]:.2f}" for f in faults)
+              + ". Live check (same simulated day): precision 0.951 / recall 0.865 vs 0.932 / 0.795. "
+              "Decision: the LSTM is the live fault detector (anomaly v2), XGBoost the fallback.", NOTE)]  # fmt: skip
+
+    dd = json.loads((MODELS / "demand_dl_v1_report.json").read_text())
+    s_ = dd["summary"]
+    rows = [
+        ["Demand model (next hour)", "Test MAE", "vs Gradient Boosting", "Busiest 10 % of hours"]
+    ]
+    busy = dd.get("test_mae_by_situation", {}).get("busiest 10 % of hours", {})
+    base = s_["Gradient Boosting v1"]["test_MAE"]
+    for name in ("Same hour last week", "Gradient Boosting v1", "MLP ensemble", "LSTM ensemble",
+                 "Transformer ensemble"):  # fmt: skip
+        mae = s_[name]["test_MAE"]
+        rows.append(
+            [name, f"{mae:.2f}", f"{(mae / base - 1) * 100:+.1f} %", fmt(busy.get(name), 2)]
+        )
+    out += [p("Demand forecast (test: 23 Nov - 6 Dec, including Black Friday and Cyber Monday)", H3),
+            table(rows, [70, 35, 45, 50], highlight={3: "#E3F4EA"}),
+            p("Networks win by extrapolating: tree models never forecast above the busiest hours seen in training "
+              "(146 orders/hour), while the test weeks reach 179. Gradient Boosting stays the live default: at the start "
+              "of a live run the network's 168-hour history is mostly estimates (live MAE 7.9 vs 6.3); the network is "
+              "opt-in (WAREHOUSE_DEMAND_MODEL=network).", NOTE)]  # fmt: skip
+
+    ev = json.loads((MODELS / "vision_yolo_v1" / "evaluation.json").read_text())
+    rows = [
+        [
+            "Object detector (YOLO11s)",
+            "Precision",
+            "Recall",
+            "mAP@0.5",
+            "mAP@0.5:0.95",
+            "CPU time / image",
+        ]
+    ]
+    for size, r in ev["test_official"].items():
+        rows.append([f"Image size {size} px", f"{r['precision']:.3f}", f"{r['recall']:.3f}",
+                     f"{r['mAP50']:.3f}", f"{r['mAP50_95']:.3f}",
+                     f"{r['CPU ms per image (inference)'] / 1000:.1f} s"])  # fmt: skip
+    out += [
+        PageBreak(),
+        p("Object detection (336 held-out camera images)", H3),
+        table(rows, [70, 30, 30, 30, 34, 40]),
+    ]
+    out += [
+        Spacer(1, 6),
+        p("Per class: default confidence 0.25 vs safety thresholds (test images)", H3),
+    ]
+    rows = [["Class", "Recall @0.25", "Safety threshold", "Recall (tuned)", "Precision (tuned)"]]
+    for cls, r in ev["test_with_thresholds"].items():
+        rows.append([cls, f"{r['recall @0.25']:.3f}", f"{r['threshold']:.2f}", f"{r['recall tuned']:.3f}",
+                     f"{r['precision tuned']:.3f}"])  # fmt: skip
+    out += [table(rows, [45, 35, 35, 35, 35]),
+            p("Safety classes (worker, package, obstacle, blocked_path) use the lowest threshold whose validation "
+              "precision is still ≥ 0.80: a missed person is worse than a false alarm. Weak spot: small, distant "
+              "objects. In the app, the detector runs in its own process (one frame in about 1-3 s on a laptop CPU) "
+              "and serves the Vision page: single camera, a wall of all cameras, live detection for moving robots.",
+              NOTE)]  # fmt: skip
+    wall = ROOT / "docs" / "images" / "vision_wall.png"
+    if wall.exists():
+        out += [Spacer(1, 6), Image(str(wall), width=150 * mm, height=94 * mm),
+                p("The Vision page: camera wall with detections on the 16 CCTV cameras (red border = safety alert).",
+                  NOTE)]  # fmt: skip
+    return out
+
+
+def layer6_section() -> list:
+    """Section 12: Phase 6 operator commands (NLP + Transformers), from notebooks 10-11."""
+    out = [PageBreak(), p("12. Layer 6 — Operator commands: NLP + Transformers (Phase 6)", H2)]
+    out += [p("The operator types a command in plain English; a model reads the <b>intent</b> (17 kinds) and the "
+              "<b>entities</b> (robot, order, aisle, product …); fixed rules turn them into the exact tool call, the live "
+              "warehouse is checked, read-only questions are answered at once and every action that changes the "
+              "warehouse runs only after the operator approves it (ADR 006). Test messages come from <b>phrasing "
+              "templates never seen in training</b> (5,461 generated messages: 3,535 train, 796 validation, 1,130 test).",
+              NOTE)]  # fmt: skip
+    r = json.loads((MODELS / "nlp_distilbert_v1" / "report.json").read_text())
+    rows = [
+        [
+            "Command parser",
+            "Intent accuracy",
+            "Entity F1",
+            "Exact tool call",
+            "With typos",
+            "Approval right",
+            "ms / message",
+        ]
+    ]
+    for name, t in r["test"].items():
+        rows.append([name, f"{t['intent_accuracy']:.3f}", f"{t['entity_F1']:.3f}", f"{t['exact_tool_call']:.3f}",
+                     f"{r['test_with_noise'][name]['exact_tool_call']:.3f}", f"{t['approval_correct']:.3f}",
+                     f"{t['ms_per_message']:.1f}"])  # fmt: skip
+    out += [p("Understanding commands (test: 1,130 messages, new phrasings)", H3),
+            table(rows, [42, 28, 22, 28, 24, 28, 24], highlight={len(rows) - 1: "#E3F4EA"})]  # fmt: skip
+    bins = r["confidence_bins"]
+    top = bins[-1]
+    out += [p(f"<b>Exact tool call</b> = intent, every entity value and the action all right (the strictest score). "
+              f"DistilBERT (66 M parameters, fine-tuned {r['train_minutes']:.0f} min on a laptop CPU; intent head + BIO "
+              f"tag head on one encoder) is the live parser. Its confidence is meaningful: above 0.99 the intent is right "
+              f"{float(top['accuracy']):.1%} of the time ({top['messages']} messages), between 0.5 and 0.9 only about 55 %, "
+              "so proposals below 0.9 are marked <i>not sure</i> and below 0.5 the copilot asks instead. Remaining errors "
+              "are mostly opposites (open → close aisle, resume → pause), which the live checks catch (an open aisle "
+              "cannot be opened, a moving robot cannot be resumed) and the approval step stops.", NOTE)]  # fmt: skip
+    rows = [["Intent (test F1)", "Rules", "TF-IDF + LR", "DistilBERT"]]
+    for intent, v in r["per_intent_f1"].items():
+        rows.append(
+            [
+                intent.replace("_", " "),
+                *(f"{v[k]:.2f}" for k in ("Rules", "TF-IDF + LR", "DistilBERT")),
+            ]
+        )
+    out += [Spacer(1, 4), p("Per intent", H3), table(rows, [55, 30, 30, 30])]
+    shot = ROOT / "docs" / "images" / "copilot.png"
+    if shot.exists():
+        out += [PageBreak(), p("The Copilot page", H3), Image(str(shot), width=240 * mm, height=150 * mm),
+                p("Questions are answered at once (robot status, waiting orders); \"pause robot 3\" waits for approval; "
+                  "\"unpause robot 8\" was read as pause with only 53 % confidence and is marked <i>not sure</i>; an "
+                  "out-of-scope request is declined. Right: the loaded model and the audit trail.", NOTE)]  # fmt: skip
+    return out
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument(
@@ -247,7 +394,8 @@ def main() -> None:
     story += [
         p("Warehouse AI Platform — Project Progress Report", H1),
         p(
-            f"Phases 1–{done[-1]['id']} complete · Baseline vs Layer 3 (Classical ML) vs Layer 4 (Optimisation) · "
+            f"Phases 1–{done[-1]['id']} complete · Baseline vs Layer 3 (Classical ML) vs Layer 4 (Optimisation) "
+            "vs Layer 5 (Deep learning + vision) · Layer 6 (operator commands) · "
             f"simulated 80 × 50 m warehouse, 40 AMRs · built {date.today():%d %B %Y}",
             NOTE,
         ),
@@ -284,6 +432,18 @@ def main() -> None:
          change(BEST, "throughput_per_hour").split(" (")[0], change(BEST, "throughput_per_hour").split("(")[-1].rstrip(")")],
     ]  # fmt: skip
     story += [table(head, [70, 35, 35, 30, 30]), Spacer(1, 6)]
+    story += [
+        p(
+            "<b>Layer 5</b> (Phase 5) replaces or extends Layer 3 models with neural networks and adds a camera "
+            "detector: the <b>LSTM</b> fault detector reaches F1 0.835 vs 0.813 (better on 14 of 14 test days) and is "
+            "the live model; demand networks reach MAE 7.42 vs 8.51 orders/hour (gain at the Black Friday / Cyber Monday "
+            "peaks); the <b>YOLO11s</b> detector reaches mAP@0.5 0.908 on held-out camera images. Details in section 11. "
+            "<b>Layer 6</b> (Phase 6) adds the operator copilot: a fine-tuned <b>DistilBERT</b> turns 80.7 % of commands "
+            "phrased in new ways into exactly the right action (TF-IDF 72.5 %, keyword rules 65.6 %); every action "
+            "that changes the warehouse needs the operator's approval. Details in section 12."
+        ),
+        Spacer(1, 6),
+    ]
 
     # ===== 2. Definitions & glossary ===========================================================
     story += [p("3. Layers compared", H2)]
@@ -332,6 +492,17 @@ def main() -> None:
         ["Precision / Recall / F1", "Correct share of alarms; share of real positives caught; harmonic mean of the two."],
         ["ROC-AUC", "Probability the model ranks a random positive above a random negative (0.5 = chance, 1 = perfect)."],
         ["Threshold", "Probability above which a classifier says 'yes' (tuned on validation for best F1)."],
+        ["Neural network / MLP", "Layers of weighted sums and non-linear activations, trained by gradient descent; MLP = fully connected layers."],
+        ["LSTM", "Recurrent network that reads a sequence step by step with a gated memory (what to keep, forget, output)."],
+        ["Transformer / attention", "Every part of the input weighs every other part (query, key, value); PatchTST reads a time series in patches (here 14 × 12 h)."],
+        ["Seeds / ensemble", "Several trainings with different random starts; the ensemble averages their forecasts (more stable)."],
+        ["YOLO", "One-pass object detector: a CNN predicts boxes, classes and confidences in a single pass; overlapping duplicates removed (NMS)."],
+        ["IoU / mAP@0.5", "Overlap of predicted and true box ÷ their union; mAP@0.5 = average precision over classes, a box correct at IoU ≥ 0.5."],
+        ["Training / serving skew", "Inputs built differently in training and live; guarded by a test that compares both."],
+        ["Intent / entity", "What the operator wants (e.g. pause_robot) / the things named in the message (robot R12, aisle 30)."],
+        ["BIO tags", "One label per word: B- begins an entity, I- continues it, O is outside; turns entity finding into word classification."],
+        ["Exact tool call", "The command is completely right: intent, every entity value and the resulting action all match."],
+        ["DistilBERT / fine-tuning", "A 66 M-parameter Transformer pretrained on English text, then trained a little further on our commands."],
     ]  # fmt: skip
     story += [table(gloss, [45, 214])]
 
@@ -458,7 +629,7 @@ def main() -> None:
     ]
 
     # ===== 6. Paired comparison ================================================================
-    story += [PageBreak(), p(f"6. Paired comparison with the baseline {BASE} (same seeds)", H2),
+    story += [PageBreak(), p(f"7. Paired comparison with the baseline {BASE} (same seeds)", H2),
               p("Each cell: mean change in % of the baseline, and on how many of the 5 days the strategy was better. "
                 "Green = better on all 5 days; red = worse on all 5 days.", NOTE)]  # fmt: skip
     pk = ["avg_completion_ticks", "p90_completion_ticks", "late_percent", "avg_queue_ticks", "throughput_per_hour",
@@ -492,7 +663,7 @@ def main() -> None:
 
     # ===== 7. Head-to-head =====================================================================
     story += [
-        p(f"7. Head-to-head: Baseline vs Layer 3 vs Layer 4 ({BEST}) — technical metrics", H2)
+        p(f"8. Head-to-head: Baseline vs Layer 3 vs Layer 4 ({BEST}) — technical metrics", H2)
     ]
 
     def both(k, d=1):
@@ -538,7 +709,7 @@ def main() -> None:
     story += [
         PageBreak(),
         p(
-            "9. Charts (mean over 5 seeds; error bars = standard deviation; grey = baseline, green = best)",
+            "10. Charts (mean over 5 seeds; error bars = standard deviation; grey = baseline, green = best)",
             H2,
         ),
     ]
@@ -548,7 +719,9 @@ def main() -> None:
     story += [Table([imgs[:2], imgs[2:]], colWidths=[128 * mm, 128 * mm])]
 
     # ===== 10. Interpretation & limits ==========================================================
-    story += [PageBreak(), p("11. Interpretation", H2)]
+    story += layer5_section()
+    story += layer6_section()
+    story += [PageBreak(), p("13. Interpretation", H2)]
     for text in (
         f"<b>Why {BEST} wins.</b> At peak hours the fleet is overloaded: in the baseline more than half of an order's "
         f"completion time ({b.avg_queue_ticks:.0f} of {b.avg_completion_ticks:.0f} ticks) is waiting for a robot. Matching all "
@@ -562,9 +735,16 @@ def main() -> None:
         "ordering problem the Hungarian method solves.",
         "<b>Demand-aware positioning and predictive charging (E5b)</b> add nothing on top of E4d: robots are rarely "
         "idle at peaks, so where they wait matters little.",
+        "<b>Layer 5: the reason matters as much as the score.</b> For faults the sequence model wins because the time "
+        "order of the readings matters (the MLP and raw-data XGBoost controls do not gain); for demand any network wins "
+        "because it can extrapolate to new peaks. A model is deployed where it is better in the situation it is used "
+        "in (LSTM live; Gradient Boosting stays the live demand default).",
+        "<b>Layer 6: the model understands, rules act.</b> The Transformer wins because it reads words in context "
+        "(it fixed 164 test messages TF-IDF got wrong, broke 41); the entities were already solved by both. Keeping "
+        "the action deterministic, checked and approved makes the remaining 19 % of errors visible instead of harmful.",
     ):
         story += [p(text), Spacer(1, 4)]
-    story += [p("12. Validity and limitations", H2)]
+    story += [p("14. Validity and limitations", H2)]
     for text in (
         "Paired design with common random numbers: every strategy faced identical orders, faults and hazards; "
         f"{BEST} improved completion time and late % on all 5 days.",
@@ -576,13 +756,18 @@ def main() -> None:
         "One layout and fleet size; the ETA model was trained on baseline behaviour; 5 seeds per experiment, so "
         "small differences (e.g. E4c) are within day-to-day variation.",
         "Some recorded run durations include time the computer was asleep; they are not used in any result.",
+        "Layer 5 results are measured on simulator data (telemetry, demand, rendered camera images); a real site needs "
+        "its own data, and the detector needs domain randomisation and labelled real footage (sim-to-real gap).",
+        "Layer 6 commands are template-generated English; real operators' phrasing must be collected and labelled "
+        "before the accuracy figures apply to a real site.",
+        "Ultralytics YOLO is AGPL-3.0 (see THIRD_PARTY_LICENSES.md).",
     ):
         story += [p("• " + text), Spacer(1, 2)]
     story += [
         Spacer(1, 6),
         p(
-            "Sources: models/*_report.json, evaluation/reports/phase4/runs.csv, vs_baseline.csv, manifest.json, "
-            "configs/experiments/*.yaml. Rebuild: python scripts/build_project_report.py",
+            "Sources: models/*_report.json, models/vision_yolo_v1/evaluation.json, models/nlp_distilbert_v1/report.json, evaluation/reports/phase4/runs.csv, "
+            "vs_baseline.csv, manifest.json, configs/experiments/*.yaml. Rebuild: python scripts/build_project_report.py",
             NOTE,
         ),
     ]

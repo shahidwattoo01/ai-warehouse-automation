@@ -50,55 +50,96 @@ The Python simulator owns the logic (grid, tick loop, robots, orders, events). T
 | `ai/` | One package per AI layer, all implementing `ai.common.base.AIModule` |
 | `configs/` | Warehouse layouts, simulation settings, experiments E1–E7, model registry config |
 | `data/` | `raw/`, `processed/`, `synthetic/` (simulator output) and `documents/` (RAG knowledge base) |
-| `models/` | Trained model artefacts with version and metrics |
+| `models/` | Trained models and their test reports (not in Git; see `models/README.md`) |
 | `evaluation/` | Experiment harness and metric reports (ML, RAG, agents, simulation) |
 | `notebooks/cloud/` | Colab / Kaggle / Azure GPU training notebooks |
 | `scripts/` | Seed, data generation, training and experiment entry points |
-| `tests/` | Unit, integration and agent scenario tests |
-| `docs/` | Planning documents and architecture decision records |
+| `tests/` | Unit and end-to-end (browser) tests; API and database tests are in `apps/backend/tests/` |
+| `docs/` | Phase documents, model cards, architecture decision records |
 | `reports/` | **Main project report** (`Project_Progress_Report.pdf`), updated at the end of every phase |
 
 ## Quick start
 
 ```bash
-cp .env.example .env
+cp .env.example .env               # then set your own POSTGRES_PASSWORD
 docker compose up --build          # postgres + backend + frontend
 # Backend:  http://localhost:8000/docs
 # Frontend: http://localhost:3000
 ```
 
-Local development without Docker:
+Local development without Docker (Python 3.11, Node 20, PostgreSQL 16 with pgvector):
 
 ```bash
 python -m venv .venv
 .venv\Scripts\activate            # Windows  (macOS/Linux: source .venv/bin/activate)
-pip install -r requirements.txt -r requirements-dev.txt
-cd apps/frontend && npm install && cd ../..
+pip install --extra-index-url https://download.pytorch.org/whl/cpu -r requirements.txt -r requirements-dev.txt
+cd apps/frontend && npm ci && cd ../..
 
+python tasks.py migrate   # database schema
+python tasks.py seed      # reference data (layout, shelves, robots, products)
 python tasks.py backend   # FastAPI with reload  -> http://localhost:8000/docs
 python tasks.py frontend  # Next.js dev server    -> http://localhost:3000
-python tasks.py test
 ```
 
-## Training on cloud GPUs
+Trained models are not in Git (see [`models/README.md`](models/README.md)): copy them into
+`models/` or retrain them (next section). Without them the app runs, with predictions off.
 
-There is no local GPU requirement. The simulator, API and 3D view run on a normal laptop; heavy training (LSTM, Transformers, vision, RL) runs on **Google Colab, Kaggle or Azure ML**:
+## Screens
 
-1. Generate datasets locally: `python scripts/generate_data.py --runs 50`
-2. Open `notebooks/cloud/train_on_gpu.ipynb` in Colab/Kaggle, upload `data/processed/` (or clone the repo).
-3. Download the trained artefacts into `models/` and register them: `python scripts/register_model.py`.
+| Dashboard · live 3D warehouse | Vision · camera wall with detections |
+| --- | --- |
+| ![Dashboard](docs/images/dashboard.png) | ![Vision camera wall](docs/images/vision_wall.png) |
 
-## Build phases
+![Copilot: what the model understood, and actions waiting for approval](docs/images/copilot.png)
 
-| # | Phase | # | Phase |
+## Build phases and results
+
+| # | Phase | Status | Result (held-out test data unless noted) |
 | --- | --- | --- | --- |
-| 1 | Foundation | 7 | RAG |
-| 2 | Simulator (realistic 3D) | 8 | Tools + agents |
-| 3 | Classical ML | 9 | Multi-agent + RL |
-| 4 | Optimization | 10 | Integration |
-| 5 | Deep learning + vision | 11 | Evaluation (E1–E7) |
-| 6 | NLP + Transformers | 12 | Finalization |
+| 1 | Foundation | ✅ | FastAPI + Next.js + PostgreSQL, Docker, CI |
+| 2 | Simulator (realistic 3D) + dataset v3 | ✅ | 80 × 50 m warehouse, 40 AMRs, faults and hazards; 91-day dataset |
+| 3 | Classical ML | ✅ | ETA MAE 38.8 vs 65.4 baseline · late risk F1 0.90 · demand MAE 8.51 vs 10.34 · faults F1 0.813 |
+| 4 | Optimisation | ✅ | Best strategy E4d (Hungarian on predicted ETAs): −21 % delivery time, −40 % late orders, 5/5 days |
+| 5 | Deep learning + vision | ✅ | LSTM faults F1 0.835 (14/14 days) · demand networks MAE 7.42 · YOLO11s mAP@0.5 0.908 · Vision page |
+| 6 | NLP + Transformers | ✅ | Copilot commands: DistilBERT exact tool call 0.807 vs 0.725 TF-IDF · approval-gated actions · Copilot page |
+| 7 | RAG | ⏳ | Answers from warehouse manuals with sources |
+| 8 | Tools + agents | ⏳ | Copilot that plans and executes approved actions |
+| 9 | Multi-agent + RL | ⏳ | RL navigation compared with A\* |
+| 10 | Integration | ⏳ | All layers connected end to end |
+| 11 | Evaluation (E1–E7) | ⏳ | Progressive experiments on identical seeds |
+| 12 | Finalization | ⏳ | Deployment, final report, presentation |
 
-Progress and the phase-by-phase KPI comparison: [`reports/Project_Progress_Report.pdf`](reports/Project_Progress_Report.pdf) (see `reports/README.md`).
+Details: [`docs/phase4_optimization.md`](docs/phase4_optimization.md),
+[`docs/phase5_deep_learning_vision.md`](docs/phase5_deep_learning_vision.md), [`docs/phase6_nlp.md`](docs/phase6_nlp.md), the beginner's
+guide [`docs/phase4_phase5_explained.md`](docs/phase4_phase5_explained.md), and the main report
+[`reports/Project_Progress_Report.pdf`](reports/Project_Progress_Report.pdf) (see `reports/README.md`).
+
+## Training
+
+The notebooks in `notebooks/` are the training pipelines (they explain every step); one command
+runs a notebook end to end and checks the model it writes:
+
+```bash
+python scripts/generate_data.py            # dataset v3 -> data/processed/
+python scripts/train.py --list             # models, notebooks, current test results
+python scripts/train.py --model eta        # or: --phase 3, --model anomaly_lstm, --phase 6, ...
+python scripts/register_model.py --db      # show models / register them in model_versions
+```
+
+Seeds are fixed: retraining reproduces the same models. No local GPU is needed; the YOLO detector
+trains on a free Google Colab GPU (`notebooks/cloud/train_yolo_colab.ipynb`, see
+[`notebooks/README.md`](notebooks/README.md)).
+
+## Tests and quality
+
+```bash
+python tasks.py test                 # unit, API and database tests (database tests skip without PostgreSQL)
+python -m pytest tests/e2e           # browser tests against the running app (skip when it is not running)
+python tasks.py lint                 # ruff
+cd apps/frontend && npm run lint && npm run typecheck
+```
+
+CI runs all of this on every push, plus a production build of the frontend, a Docker image check
+and dependency vulnerability scans.
 
 See `docs/README.md` for the PRD, TRD, App Flow, UI/UX brief, Backend Schema and Implementation Plan.

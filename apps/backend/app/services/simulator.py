@@ -14,6 +14,7 @@ import time
 
 from ai.optimization.optimizer import BASELINE, Optimizer
 from app.core.config import get_settings
+from app.services.copilot import copilot
 from app.services.predictor import Predictor
 from app.services.run_store import RunStore
 from simulation.environment.engine import SimulationEngine
@@ -29,6 +30,7 @@ class SimulatorService:
         self.engine = self._new_engine()
         self.predictor = Predictor()  # Phase 3 models, scored live against the simulator
         self.predictor.attach(self.engine)
+        copilot.attach(self.engine)  # Phase 6: operator commands in plain language
         self.strategies = dict(BASELINE)  # Phase 4: the decision rules in use
         self.preset: str | None = "E2"
         self.optimizer = Optimizer(self.engine, self.predictor, self.strategies)
@@ -47,6 +49,7 @@ class SimulatorService:
         """Start a fresh run: a new engine with the same layout and seed (stopped, speed 1x)."""
         old, self.engine = self.engine, self._new_engine()
         self.predictor.attach(self.engine)
+        copilot.attach(self.engine)
         self.optimizer = Optimizer(self.engine, self.predictor, self.strategies)  # same rules
         if self.store:  # close the old run and open the new one (the old engine no longer ticks)
             await asyncio.to_thread(self.store.end_run, old)

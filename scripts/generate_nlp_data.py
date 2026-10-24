@@ -32,6 +32,13 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
+from ai.nlp.commands import (  # noqa: E402  (shared with the models and the app)
+    NUMBER_WORDS,
+    PRIORITY_WORDS,
+    REASON_WORDS,
+    bio,
+    tool_calls,
+)
 from simulation.inventory.catalog import build_catalog  # noqa: E402
 from simulation.warehouse.layout import load_layout  # noqa: E402
 
@@ -383,28 +390,6 @@ T: dict[str, list[str]] = {
     ],
 }
 
-TOOL_OF = {
-    "robot_status": "get_robot_status", "pending_orders": "get_pending_orders",
-    "inventory_query": "get_inventory", "route_planning": "calculate_route",
-    "assign_order": "assign_order", "reroute_robot": "reroute_robot", "pause_robot": "pause_robot",
-    "resume_robot": "resume_robot", "fleet_overview": "get_warehouse_state",
-    "close_aisle": "close_aisle", "open_aisle": "open_aisle",
-    "set_assignment_mode": "set_assignment_mode", "create_order": "create_order",
-    "knowledge_query": "search_knowledge",
-}  # fmt: skip
-NUMBER_WORDS = ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine",
-                "ten", "eleven", "twelve"]  # fmt: skip
-PRIORITY_WORDS = {
-    "HIGH": ["high", "HIGH", "high-priority", "urgent", "express", "rush"],
-    "MEDIUM": ["medium", "MEDIUM", "normal", "standard"],
-    "LOW": ["low", "LOW", "low-priority", "non-urgent"],
-}
-REASON_WORDS = {
-    "maintenance": ["maintenance", "repairs"],
-    "spill cleanup": ["spill cleanup", "spill", "cleaning"],
-    "rack inspection": ["rack inspection", "inspection"],
-}
-
 
 class Builder:
     def __init__(self, rng: random.Random) -> None:
@@ -526,76 +511,6 @@ class Builder:
             e["end"] += len(prefix)
             e["text"] = text[e["start"] : e["end"]]  # capitalisation may have changed it
         return text, entities
-
-
-def tool_calls(intent: str, entities: list[dict], text: str) -> list[dict]:
-    v = {}
-    for e in entities:
-        v.setdefault(e["type"], []).append(e["value"])
-    one = {k: vals[0] for k, vals in v.items()}
-    if intent == "out_of_scope":
-        return []
-    if intent == "investigate_delay":
-        if "ROBOT" in one:
-            return [
-                {"name": "get_robot_status", "arguments": {"robot_id": one["ROBOT"]}},
-                {"name": "get_events", "arguments": {"entity_id": one["ROBOT"]}},
-            ]
-        return [{"name": "get_events", "arguments": {"entity_id": one["ORDER"]}}]
-    if intent == "task_assignment":
-        args = {"priority": one.get("PRIORITY", "HIGH")}
-        return [{"name": "get_pending_orders", "arguments": args}]
-    name = TOOL_OF[intent]
-    args: dict = {}
-    if intent in ("robot_status", "pause_robot", "resume_robot", "assign_order"):
-        args["robot_id"] = one["ROBOT"]
-    if intent == "assign_order":
-        args["order_id"] = one["ORDER"]
-    if intent == "pending_orders" and "PRIORITY" in one:
-        args["priority"] = one["PRIORITY"]
-    if intent == "inventory_query":
-        args["product_id"] = one.get("PRODUCT") or f"P-{one['LOCATION']}"
-    if intent in ("route_planning", "reroute_robot"):
-        args["robot_id"] = one["ROBOT"]
-        dest = one.get("STATION") or one.get("CHARGER") or one.get("PARKING") or one.get("LOCATION")
-        if dest:
-            args["destination"] = dest
-        if "AISLE" in v:
-            args["avoid"] = v["AISLE"]
-        if "ZONE" in one:
-            args["avoid_zone"] = one["ZONE"]
-    if intent in ("close_aisle", "open_aisle"):
-        args["aisle_id"] = one["AISLE"]
-    if intent == "close_aisle":
-        args["reason"] = one.get("REASON", "operator request")
-    if intent == "set_assignment_mode":
-        mode = one.get("MODE")
-        if mode is None:
-            mode = "manual" if "by hand" in text.lower() else "auto"
-        args["mode"] = mode
-    if intent == "create_order":
-        args["priority"] = one.get("PRIORITY", "HIGH" if "urgent" in text.lower() else "MEDIUM")
-        args["items"] = [{"product_id": one["PRODUCT"], "quantity": int(one.get("QUANTITY", 1))}]
-    if intent == "knowledge_query":
-        args["query"] = text
-    return [{"name": name, "arguments": args}]
-
-
-TOKEN = re.compile(r"[A-Za-z0-9_#]+(?:[-.'][A-Za-z0-9_]+)*|[^\sA-Za-z0-9_]")
-
-
-def bio(text: str, entities: list[dict]) -> tuple[list[str], list[str]]:
-    tokens, tags = [], []
-    for m in TOKEN.finditer(text):
-        tag = "O"
-        for e in entities:
-            if e["start"] <= m.start() < e["end"]:
-                tag = ("B-" if m.start() == e["start"] or not tags or tags[-1] == "O"
-                       or tags[-1][2:] != e["type"] else "I-") + e["type"]  # fmt: skip
-                break
-        tokens.append(m.group())
-        tags.append(tag)
-    return tokens, tags
 
 
 WRITE_TOOLS = {name for name, *_, write in TOOLS if write}

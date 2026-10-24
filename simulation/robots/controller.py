@@ -470,6 +470,18 @@ class RobotController:
             eng = self.engine
             eng.events.emit(Event(eng.time, EventType.ROUTE_CHANGED, robot.robot_id))
 
+    def reroute_avoiding(self, robot: Robot, cells: set[Cell]) -> bool:
+        """Operator reroute: plan the current route again around `cells` (falls back to the
+        normal route when no way around exists). False when the robot has no route."""
+        if not robot.route or not cells:
+            return False
+        self._route(robot, self.goal.get(robot.robot_id, robot.route[-1]), avoid=cells)
+        eng = self.engine
+        eng.events.emit(
+            Event(eng.time, EventType.ROUTE_CHANGED, robot.robot_id, {"operator": True})
+        )
+        return True
+
     def _path_length(self, a: Cell, b: Cell) -> int:
         """Metres along the shortest legal route; Manhattan distance if none exists now."""
         if a == b:

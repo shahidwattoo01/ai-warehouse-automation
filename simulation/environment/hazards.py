@@ -148,6 +148,30 @@ class Hazards:
         )
         return closure
 
+    def reopen_aisle(self, aisle_id: str) -> bool:
+        """Reopen a closed aisle now (operator command). False if it was not closed."""
+        closure = self.closures.get(aisle_id)
+        if closure is None:
+            return False
+        self._reopen(closure)
+        return True
+
+    def blockers(self, aisle_id: str) -> list[str]:
+        """Why closing an aisle now would trap work: robots inside it or with a stop in it,
+        workers walking in it (empty list = safe to close; the same rule as random closures)."""
+        eng = self.engine
+        aisle = next((a for a in eng.layout.aisles if a.aisle_id == aisle_id), None)
+        if aisle is None:
+            return []
+        cells = set(aisle.cells)
+        reasons = [f"{r.robot_id} is inside it" for r in eng.robots.values() if r.position in cells]
+        for rid, task in eng.controller.tasks.items():
+            if cells.intersection(task.stops):
+                reasons.append(f"{rid} still has a pick in it")
+        if any(w in cells for w in eng.workers.positions):
+            reasons.append("a worker is in it")
+        return reasons
+
     def _reopen(self, closure: Closure) -> None:
         eng = self.engine
         del self.closures[closure.aisle_id]

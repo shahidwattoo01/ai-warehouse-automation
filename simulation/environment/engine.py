@@ -48,6 +48,7 @@ from simulation.warehouse.layout import CONFIG_DIR, Layout, load_layout
 
 Cell = tuple[int, int]
 KEEP_FINISHED_ORDERS = 50  # finished orders kept in the state (bounds the live payload)
+OPERATOR_CLOSURE_TICKS = 10**9  # an aisle an operator closes stays closed until reopened
 
 
 @dataclass
@@ -203,7 +204,26 @@ class SimulationEngine:
                 self.dispatcher.assign_manual(args["order_id"], args["robot_id"])
             elif cmd.name == "set_assignment_mode":
                 self.dispatcher.auto = bool(args["auto"])
+            elif cmd.name == "close_aisle":  # operator closure: until reopened (or `ticks`)
+                ticks = int(args.get("ticks", OPERATOR_CLOSURE_TICKS))
+                self.hazards.close_aisle(
+                    args["aisle_id"], args.get("reason", "operator request"), ticks
+                )
+            elif cmd.name == "open_aisle":
+                self.hazards.reopen_aisle(args["aisle_id"])
+            elif cmd.name == "reroute_robot" and robot:
+                self.controller.reroute_avoiding(robot, self.cells_to_avoid(args))
         self._commands.clear()
+
+    def cells_to_avoid(self, args: dict) -> set[tuple[int, int]]:
+        """Cells of the aisles (and the aisles of the zone) an operator asked a robot to avoid."""
+        avoid_aisles = set(args.get("avoid", []))
+        zone = args.get("avoid_zone")
+        cells: set[tuple[int, int]] = set()
+        for aisle in self.layout.aisles:
+            if aisle.aisle_id in avoid_aisles or (zone and aisle.zone_id == zone):
+                cells |= set(aisle.cells)
+        return cells
 
     def _add_order(self, order: Order) -> None:
         self.orders[order.order_id] = order

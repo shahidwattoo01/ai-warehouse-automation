@@ -35,6 +35,7 @@ advice: for commercial use, have the licences reviewed.)
 | pyarrow, xgboost | Apache-2.0 | |
 | torch, torchvision (PyTorch) | BSD-3-Clause | |
 | opencv-python (installed with ultralytics) | Apache-2.0 | |
+| transformers, tokenizers, safetensors, huggingface-hub (Hugging Face) | Apache-2.0 | Phase 6 command model |
 
 Development and reporting only (not part of the running service): pytest (MIT), ruff (MIT),
 pip-audit (Apache-2.0), jupyter / nbconvert / ipykernel (BSD-3-Clause), matplotlib (PSF-based),
@@ -65,3 +66,6 @@ reportlab (BSD-3-Clause), playwright (Apache-2.0).
   third-party or personal data.
 * **Pretrained weights:** YOLO11s was pretrained by Ultralytics on the COCO dataset (COCO
   annotations: CC BY 4.0); the weights follow the Ultralytics AGPL-3.0 licence above.
+* **DistilBERT** (`distilbert-base-uncased`, Hugging Face): Apache-2.0. The fine-tuned copy in
+  `models/nlp_distilbert_v1/` may be used and redistributed under the same terms (keep the licence
+  notice). It was pretrained on English Wikipedia and BookCorpus.

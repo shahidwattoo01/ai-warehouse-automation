@@ -64,15 +64,32 @@ phases:
 
   - id: 5
     name: Deep learning + vision
-    status: in progress
+    status: done
     layer: Layer 5
     added: >-
       LSTM fault detector on raw telemetry sequences; MLP, LSTM and Transformer demand forecasts
       (5 seeds each); YOLO11s object detector on 2,400 rendered camera images (trained on Colab GPU).
     measured: Same test sets as Phase 3 (faults, demand); held-out test images (vision); control models.
-    result: Faults F1 0.835 vs 0.813 (14/14 days); demand MAE 7.42 vs 8.51; vision mAP50 0.908.
+    result: >-
+      Faults F1 0.835 vs 0.813 (14/14 days, LSTM live); demand MAE 7.42 vs 8.51; vision mAP50 0.908;
+      Vision page with camera wall and live detection for moving robots.
+    docs: docs/phase5_deep_learning_vision.md
+    experiment: E4d
     kpi_effect: advisory
-  - {id: 6, name: NLP + Transformers, status: planned, layer: Layer 6}
+  - id: 6
+    name: NLP + Transformers
+    status: done
+    layer: Layer 6
+    added: >-
+      Operator copilot: 5,461 labelled commands (17 intents, 13 entity types); keyword-rule and
+      TF-IDF baselines; fine-tuned DistilBERT (intent + BIO entity heads); approval-gated actions.
+    measured: Test on phrasing templates never seen in training; exact tool call; typo noise.
+    result: >-
+      Exact tool call 0.807 vs 0.725 (TF-IDF) and 0.656 (rules); 0.762 with typos; Copilot page with
+      live checks, approve / cancel and audit trail.
+    docs: docs/phase6_nlp.md
+    experiment: E4d
+    kpi_effect: advisory
   - {id: 7, name: RAG, status: planned, layer: Layer 7}
   - {id: 8, name: Tools + agents, status: planned, layer: Layer 8}
   - {id: 9, name: Multi-agent + RL, status: planned, layer: Layer 9}
