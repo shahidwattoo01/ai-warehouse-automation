@@ -15,6 +15,7 @@ PERMISSIONS: dict[str, str] = {
     "analytics:view": "See analytics, experiments and reports",
     "simulation:control": "Start, pause, reset the simulation; change speed and strategy",
     "robots:command": "Pause, resume and reroute robots; close and open aisles",
+    "safety:reset": "Release and reset an emergency stop; change slow zones (anyone may press it)",
     "orders:create": "Create orders",
     "orders:assign": "Assign orders to robots; switch manual / automatic assignment",
     "orders:manage": "Hold, release, cancel and partly ship customer orders",
@@ -53,6 +54,7 @@ ROLES: dict[str, dict] = {
         | {
             "simulation:control",
             "robots:command",
+            "safety:reset",
             "orders:create",
             "orders:assign",
             "orders:manage",

@@ -13,6 +13,7 @@ from app.api.v1 import (
     prediction,
     rag,
     robots,
+    safety,
     simulation,
     tools,
     vision,
@@ -35,3 +36,4 @@ api_router.include_router(tools.router)
 api_router.include_router(copilot.router)
 api_router.include_router(analytics.router)
 api_router.include_router(wms.router)
+api_router.include_router(safety.router)

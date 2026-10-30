@@ -82,6 +82,7 @@ ENDPOINTS = [
     ("put", "/wms/settings", {"auto_tasks": {}}, "wms:settings"),
     ("post", "/wms/outbound/orders/NOPE/hold", {"reason": "test hold"}, "orders:manage"),
     ("post", "/wms/outbound/load", {"sscc": "000000000000000000"}, "wms:ship"),
+    ("post", "/safety/release", {}, "safety:reset"),  # 409 when allowed: no stop is active
     ("get", "/users", None, "users:manage"),
     ("post", "/copilot/actions/none/approve", None, "copilot:approve"),
 ]

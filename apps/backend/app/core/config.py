@@ -28,6 +28,7 @@ class Settings(BaseSettings):
     # Inventory: "wms" (receiving, lots, allocation, replenishment, counts; wms/) or "simple"
     # (one stock number per bay, the model behind dataset v3 and the Phase 4 experiments).
     inventory_model: str = "wms"
+    safety_slow_zones: bool = True  # robots at half speed near people (configs: safety)
 
     # Authentication (JWT access tokens + rotating refresh tokens; app/core/auth.py).
     # Set JWT_SECRET in .env (python -c "import secrets; print(secrets.token_urlsafe(48))").

@@ -138,6 +138,17 @@ export function FleetTable({ detailed = false }: { detailed?: boolean }) {
                     <span className="inline-flex items-center gap-1.5">
                       <span className="h-2 w-2 rounded-full" style={{ background: color }} />
                       {statusLabel(r)}
+                      {r.safety === "ESTOP" && (
+                        <span className="rounded bg-red-600 px-1 text-[10px] font-bold text-white">E-STOP</span>
+                      )}
+                      {r.safety === "SLOW" && (
+                        <span
+                          className="rounded bg-warning/20 px-1 text-[10px] text-warning"
+                          title="Half speed near a person"
+                        >
+                          slow
+                        </span>
+                      )}
                     </span>
                   </td>
                   {detailed && <td className="tabular py-1.5 pr-2 font-mono text-muted">({r.position.join(", ")})</td>}

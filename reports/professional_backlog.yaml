@@ -17,7 +17,7 @@ items:
     priority: high
     effort: M
     status: done
-    evidence: "JWT access + rotating refresh tokens, 5 roles / 20 permissions on every endpoint, user admin page, login audit; docs/authentication.md"
+    evidence: "JWT access + rotating refresh tokens, 5 roles / 21 permissions on every endpoint, user admin page, login audit; docs/authentication.md"
   - id: PR-02
     area: Security
     gap: Local-only hardening
@@ -210,7 +210,8 @@ items:
     phase: 10
     priority: high
     effort: M
-    status: planned
+    status: done
+    evidence: "Fleet and zone e-stop with release and separate reset (no automatic restart), slow zones near people, near-miss detection, safety log in PostgreSQL (migration 006), E-STOP button and banner on every page, Safety page; docs/safety.md with the ISO 3691-4 / R15.08 hand-off"
   - id: PR-24
     area: Compliance
     gap: Licence not decided

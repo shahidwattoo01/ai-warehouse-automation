@@ -19,6 +19,21 @@ export interface Robot {
   items_left?: number;
   /** Average cells moved per tick over the last few ticks (1 cell = 1 m). */
   speed_cells_per_tick?: number;
+  /** ESTOP: held by an emergency stop; SLOW: half speed near a person. */
+  safety?: "ESTOP" | "SLOW" | null;
+}
+
+/** Fleet safety (simulation/environment/safety.py). */
+export interface SafetyState {
+  tick: number;
+  state: "NORMAL" | "ESTOP" | "RELEASED";
+  stop: { scope: "fleet" | "zone"; zone: string | null; by: string; reason: string; tick: number } | null;
+  robots_held: string[];
+  slow_zones: boolean;
+  slow_radius: number;
+  robots_slowed: string[];
+  near_misses: number;
+  estops: number;
 }
 
 export type Priority = "LOW" | "MEDIUM" | "HIGH";
@@ -88,6 +103,7 @@ export interface WarehouseState {
   closures?: Closure[];
   stations: Station[];
   congestion: Record<string, number>;
+  safety?: SafetyState;
   kpis?: Kpis;
   clock?: SimClock;
 }

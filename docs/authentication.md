@@ -21,6 +21,7 @@ recorded under the person who made it. Decision record: [ADR 009](adr/009-jwt-rb
 | `dashboard:view`, `analytics:view`, `wms:view` | ✓ | ✓ | ✓ | ✓ | ✓ |
 | `simulation:control` (start, pause, reset, speed, strategy) | ✓ | ✓ | ✓ | | |
 | `robots:command` (pause / resume / reroute, aisles) | ✓ | ✓ | ✓ | | |
+| `safety:reset` (release and reset an emergency stop, slow zones) | ✓ | ✓ | ✓ | | |
 | `orders:create`, `orders:assign` | ✓ | ✓ | ✓ | | |
 | `orders:manage` (hold, release, cancel, ship partial) | ✓ | ✓ | ✓ | | |
 | `vision:use` (run detection) | ✓ | ✓ | ✓ | | |
@@ -31,6 +32,9 @@ recorded under the person who made it. Decision record: [ADR 009](adr/009-jwt-rb
 | `wms:count_approve` (sign off count differences) | ✓ | ✓ | | | |
 | `wms:settings` (what associates do automatically, release mode) | ✓ | ✓ | | | |
 | `users:manage` | ✓ | | | | |
+
+**Emergency stop:** every logged-in user may press it (`dashboard:view`, which all roles have),
+like the red buttons on the floor; only `safety:reset` may release and restart (docs/safety.md).
 
 The table lives in `apps/backend/app/core/permissions.py`; the **Users & roles** page shows it,
 and a test checks every role against the endpoints (`apps/backend/tests/test_auth.py`). Approving

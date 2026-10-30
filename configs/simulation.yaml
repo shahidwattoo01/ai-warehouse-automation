@@ -47,6 +47,13 @@ thermal:                        # drive-motor temperature (simulation/robots/the
   cooling: 0.01                 # share of the gap to ambient lost per tick
   throttle_at: 60.0             # above this the robot drives at half speed
 
+safety:                         # simulation/environment/safety.py (e-stop is always available)
+  slow_zones: false             # half speed within slow_radius of a person; off here so datasets
+                                # and the golden master keep their behaviour; the live app turns
+                                # it on (SAFETY_SLOW_ZONES)
+  slow_radius: 3                # cells (m)
+  near_miss_radius: 1           # a moving robot this close to a person is logged
+
 hazards:                        # temporary blocked paths (simulation/environment/hazards.py)
   enabled: true
   closures_per_hour: 0.4        # whole aisles shut (maintenance, spill, inspection), fleet-wide

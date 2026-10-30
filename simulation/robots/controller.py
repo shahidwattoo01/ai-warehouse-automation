@@ -108,6 +108,8 @@ class RobotController:
         """Free for a new order: idle, or just driving to parking (re-taskable on the way)."""
         if robot.status in (RobotStatus.PAUSED, RobotStatus.FAULT):
             return False
+        if self.engine.safety.holds(robot):
+            return False
         task = self.tasks.get(robot.robot_id)
         return task is None or task.kind == "park"
 
@@ -115,6 +117,8 @@ class RobotController:
         """Why this robot cannot take a new order now (None = it can)."""
         if robot.status in (RobotStatus.PAUSED, RobotStatus.FAULT):
             return f"{robot.robot_id} is {robot.status.value.lower()}"
+        if self.engine.safety.holds(robot):
+            return f"{robot.robot_id} is held by an emergency stop"
         if not self.available(robot):
             doing = (
                 "charging" if self.tasks[robot.robot_id].kind == "charge" else "on another order"
@@ -251,9 +255,10 @@ class RobotController:
         robot_at = {r.position: r.robot_id for r in eng.robots.values()}  # updated as robots move
         obstacle_cells = {o.position for o in eng.obstacles}
 
+        safety = eng.safety
         for robot in eng.robots.values():
-            if robot.status in (RobotStatus.PAUSED, RobotStatus.FAULT):
-                continue
+            if robot.status in (RobotStatus.PAUSED, RobotStatus.FAULT) or safety.holds(robot):
+                continue  # an emergency stop freezes driving and work alike
             rid = robot.robot_id
             task = self.tasks.get(rid)
             if task and task.working:
@@ -265,10 +270,12 @@ class RobotController:
                 elif task:
                     self._arrive(robot, task)
                 continue
-            if eng.faults.slowed(rid):
+            if eng.faults.slowed(rid) or safety.slow(robot):
                 continue
 
             nxt = robot.route[0]
+            if safety.blocks_cell(nxt):
+                continue  # zone stop: wait at the edge of the stopped zone
             if nxt in robot_at or nxt in obstacle_cells:
                 self._wait_in_traffic(robot, task, nxt, robot_at, obstacle_cells)
                 continue
@@ -516,7 +523,13 @@ class RobotController:
         # Parked, or driving to a bay: name the parking area when there is one.
         bay = task.park if task and task.park else robot.position
         area = self.parking_area.get(bay)
+        safety = self.engine.safety
         info: dict = {
+            "safety": "ESTOP"
+            if safety.holds(robot)
+            else "SLOW"
+            if robot.robot_id in safety.slowed
+            else None,
             "speed_cells_per_tick": round(sum(moves) / len(moves), 2) if moves else 0.0,
             "destination": f"Parking {area}" if area else "Parking",
             "destination_type": "PARKING",

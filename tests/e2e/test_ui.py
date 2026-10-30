@@ -290,3 +290,29 @@ def test_customer_orders_packing_and_trucks(page, restore_running):
         page.get_by_text(carrier).first.wait_for()
     page.get_by_role("button", name="Packing", exact=True).click()
     page.get_by_text("Packed cartons").wait_for()
+
+
+def test_emergency_stop_button_release_and_reset(page, restore_running):
+    """The red E-STOP holds the fleet at once; release keeps robots holding; reset restarts."""
+    _call(f"{API}/api/v1/simulation/start", "POST", token=token())
+    page.goto(f"{UI}/safety", wait_until="domcontentloaded")
+    page.get_by_text("Safety log").wait_for()
+    try:
+        page.get_by_role("button", name="Emergency stop").click()
+        banner = page.get_by_role("alert").filter(has_text="Emergency stop")
+        banner.wait_for()
+        assert get(f"{API}/api/v1/safety/status")["state"] == "ESTOP"
+        page.get_by_role("button", name="Release").click()
+        page.get_by_text("Stop released, waiting for reset").wait_for()
+        page.get_by_role("button", name="Reset and restart robots").click()
+        page.wait_for_timeout(1500)
+        anyway = page.get_by_role("button", name="Area checked, reset anyway")
+        if anyway.count():  # refused: a person stands next to a held robot
+            anyway.click()
+            page.wait_for_timeout(1500)
+        assert get(f"{API}/api/v1/safety/status")["state"] == "NORMAL"
+        page.locator("tbody").get_by_text("ESTOP RESET").first.wait_for()  # logged
+    finally:
+        status = get(f"{API}/api/v1/safety/status")["state"]
+        if status == "ESTOP":
+            _call(f"{API}/api/v1/safety/release", "POST", {}, token=token())

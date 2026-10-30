@@ -5,6 +5,7 @@ import { useState } from "react";
 import { api } from "@/lib/api";
 import { useSim } from "@/lib/store";
 import { Can } from "./Can";
+import { EStopButton } from "./EStop";
 import { StrategySelect } from "./StrategySelect";
 import { ThemeToggle } from "./ThemeToggle";
 import { UserMenu } from "./UserMenu";
@@ -26,6 +27,7 @@ export function Header({ title }: { title: string }) {
     <header className="flex h-14 items-center justify-between border-b border-border px-6">
       <h1 className="text-xl font-semibold">{title}</h1>
       <div className="flex items-center gap-2">
+        <EStopButton />
         <Can
           permission="simulation:control"
           fallback={

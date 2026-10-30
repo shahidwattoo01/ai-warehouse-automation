@@ -26,6 +26,7 @@ from simulation.environment.congestion import zone_congestion
 from simulation.environment.faults import FaultInjector
 from simulation.environment.hazards import Hazards
 from simulation.environment.kpis import Kpis
+from simulation.environment.safety import Safety
 from simulation.environment.workers import Workers
 from simulation.events.events import Event, EventBus, EventType
 from simulation.inventory.inventory import Inventory
@@ -117,6 +118,7 @@ class SimulationEngine:
         self.hazards = Hazards(self)
         self.thermal = thermal_config(self.config)
         self.generator = OrderGenerator(self.config, self.stream("orders"))
+        self.safety = Safety(self)  # e-stop, slow zones, safety log (no randomness)
         self.dispatcher = Dispatcher(self)
         self.kpis = Kpis(self)
 
@@ -181,12 +183,15 @@ class SimulationEngine:
         self.hazards.step()
         self.dispatcher.step()
         self.faults.step()
+        self.safety.step()
         self.controller.advance()
         update_temperatures(self)
         self.workers.step()
         self._update_resources()
         self.time += 1
-        return self.events.drain()
+        events = self.events.drain()
+        self.safety.observe(events)
+        return events
 
     def _apply_commands(self) -> None:
         for cmd in self._commands:
@@ -292,6 +297,7 @@ class SimulationEngine:
             "closures": self.hazards.snapshot(),
             "stations": [vars(s) for s in self.layout.stations],
             "congestion": self.congestion,
+            "safety": self.safety.snapshot(),
             "kpis": self.kpis.snapshot(),
             "clock": self.kpis.clock(),
         }

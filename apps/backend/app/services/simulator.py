@@ -46,6 +46,7 @@ class SimulatorService:
             overrides={
                 "layout": self.settings.sim_layout,
                 "inventory_model": self.settings.inventory_model,
+                "safety": {"slow_zones": self.settings.safety_slow_zones},
             },
         )
 

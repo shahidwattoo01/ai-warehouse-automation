@@ -15,6 +15,7 @@ import {
   PackageCheck,
   PanelLeftClose,
   PanelLeftOpen,
+  ShieldAlert,
   ShieldCheck,
   Warehouse,
 } from "lucide-react";
@@ -29,6 +30,7 @@ const NAV = [
   { href: "/analytics", label: "Analytics", icon: LineChart },
   { href: "/copilot", label: "Copilot", icon: MessageSquare },
   { href: "/knowledge", label: "Knowledge", icon: BookOpen },
+  { href: "/safety", label: "Safety", icon: ShieldAlert },
   { href: "/admin/users", label: "Users & roles", icon: ShieldCheck },
 ];
 

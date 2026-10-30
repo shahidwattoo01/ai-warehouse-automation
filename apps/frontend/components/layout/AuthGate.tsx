@@ -3,6 +3,7 @@
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { pagePermission, refreshSession, useAuth } from "@/lib/auth";
+import { SafetyBanner } from "./EStop";
 import { Sidebar } from "./Sidebar";
 
 // Pages without a login: the login page itself, and the camera-dataset page that
@@ -40,6 +41,7 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
     <div className="flex h-screen overflow-hidden">
       <Sidebar />
       <main className="flex min-w-0 flex-1 flex-col">
+        <SafetyBanner />
         <PageAccess path={path}>{children}</PageAccess>
       </main>
     </div>

@@ -125,6 +125,13 @@ VALUES (:run_id, :sku, :location, :lot, :status, :lpn, :qty, :tick)
 ON CONFLICT (run_id, sku, location, lot, status, lpn) DO UPDATE
 SET qty = EXCLUDED.qty, updated_tick = EXCLUDED.updated_tick""")
 
+SQL_INSERT_SAFETY = text("""
+INSERT INTO safety_events (run_id, seq, tick, kind, severity, text, robot_id, zone, x, y,
+                           user_name, detail)
+VALUES (:run_id, :seq, :tick, :kind, :severity, :text, :robot_id, :zone, :x, :y, :user,
+        CAST(:detail AS jsonb))
+ON CONFLICT DO NOTHING""")
+
 
 @dataclass
 class Batch:
@@ -139,6 +146,7 @@ class Batch:
     alerts: list[dict] = field(default_factory=list)
     wms_txns: list[dict] = field(default_factory=list)  # WMS ledger lines (inventory_model: wms)
     wms_stock: dict[tuple, dict] = field(default_factory=dict)  # latest balance per stock key
+    safety: list[dict] = field(default_factory=list)  # safety event log (e-stops, near misses)
 
     def empty(self) -> bool:
         return not (
@@ -153,6 +161,7 @@ class Batch:
             or self.alerts
             or self.wms_txns
             or self.wms_stock
+            or self.safety
         )
 
 
@@ -163,6 +172,7 @@ class RunStore:
         self.run_id: str | None = None
         self._batch = Batch()
         self._known_orders: set[str] = set()
+        self._safety_seq = 0
         self._task_ids: dict[str, str] = {}  # order_id -> robot_tasks.task_id
         self._lock = threading.Lock()  # one writer at a time
         self._model_ids: dict[str, str] = {}  # model name -> model_versions.model_version_id
@@ -211,6 +221,8 @@ class RunStore:
                     ],
                 )
             self._batch, self._known_orders, self._task_ids = Batch(), set(), {}
+            self._safety_seq = 0
+            engine.safety.take_new()  # the log starts with this run
             self._collect_wms(engine, everything=True)  # opening WMS balances of this run
             log.info("Recording simulation run %s to the database", self.run_id)
         except Exception as exc:  # database down, not migrated, or seeded with another layout
@@ -290,6 +302,16 @@ class RunStore:
                 }
             )
         self._collect_wms(engine)
+        for entry in engine.safety.take_new():
+            self._safety_seq += 1
+            b.safety.append(
+                {
+                    "run_id": run,
+                    "seq": self._safety_seq,
+                    **{k: v for k, v in entry.items() if k != "detail"},
+                    "detail": json.dumps(entry["detail"], default=str),
+                }
+            )
         if tick % STATUS_EVERY == 0:
             for r in engine.robots.values():
                 moves = engine.controller.recent_moves.get(r.robot_id) or [0]
@@ -439,6 +461,7 @@ class RunStore:
             (SQL_INSERT_ALERTS, b.alerts),
             (SQL_INSERT_WMS_TXNS, b.wms_txns),
             (SQL_UPSERT_WMS_STOCK, list(b.wms_stock.values())),
+            (SQL_INSERT_SAFETY, b.safety),
         ]
         try:
             with self._lock, self.db.begin() as conn:
