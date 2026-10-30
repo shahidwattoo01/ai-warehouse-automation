@@ -90,7 +90,21 @@ phases:
     docs: docs/phase6_nlp.md
     experiment: E4d
     kpi_effect: advisory
-  - {id: 7, name: RAG, status: planned, layer: Layer 7}
+  - id: 7
+    name: RAG
+    status: done
+    layer: Layer 7
+    added: >-
+      Knowledge assistant over 6 warehouse PDFs (120 sections): section chunks, BM25 + MiniLM
+      hybrid retrieval with a cross-encoder reranker, pgvector store, "not covered" threshold,
+      extractive answers with citations (optional Claude), Knowledge page and Copilot questions.
+    measured: 94 questions with cited sections; choices on 38 development, 56 test scored once.
+    result: >-
+      Test hit@3 0.962, MRR 0.910, first citation right 0.865 (dense only 0.769); 3 of 4
+      unanswerable refused, 7 of 52 answerable too; answers cite a right section 0.889.
+    docs: docs/phase7_rag.md
+    experiment: E4d
+    kpi_effect: advisory
   - {id: 8, name: Tools + agents, status: planned, layer: Layer 8}
   - {id: 9, name: Multi-agent + RL, status: planned, layer: Layer 9}
   - {id: 10, name: Integration, status: planned, layer: Layer 10}

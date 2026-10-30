@@ -56,6 +56,16 @@ Data: `python scripts/generate_nlp_data.py` → `data/processed/nlp/commands.jso
 the data), `ai/nlp/intent_parser.py` (baselines), `ai/nlp/evaluation.py`, `ai/transformers/intent_transformer.py`.
 DistilBERT fine-tunes in about 30 min on a laptop CPU (`python scripts/train.py --phase 6`).
 
+## Phase 7: RAG (the knowledge assistant)
+
+| Notebook | Question | Result (test: 56 questions, choices made on 38 development questions) |
+|---|---|---|
+| `12_rag.ipynb` | Which chunking (sections, 120- or 40-word windows) and retriever (BM25, dense, hybrid, + cross-encoder rerank)? When to say "not covered"? Extractive answer styles; optional Claude answers | **Sections + rerank: hit@3 0.962, MRR 0.910, cite@1 0.865**; 3 of 4 unanswerable refused (7 of 52 answerable too); answers cite a right section 0.889 |
+
+Data: `python scripts/build_knowledge_base.py` → 6 PDFs in `data/documents/pdf/`, 120 sections and 94
+questions in `data/processed/rag/`. Code: `ai/rag/` (ingest, retriever, store, generator, pipeline,
+evaluation), `ai/embeddings/embedder.py`. The Claude cell runs only with `LLM_PROVIDER=anthropic`.
+
 ## Live use
 
 The backend (`apps/backend/app/services/predictor.py`) loads the saved models, predicts on the running
