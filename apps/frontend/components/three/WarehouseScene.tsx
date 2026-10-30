@@ -82,7 +82,12 @@ export function WarehouseScene({ compact = false }: { compact?: boolean }) {
 
         {layout && (
           <>
-            <Building width={width} height={depth} zones={layout.zones} blocked={layout.blocked} oneWay={layout.one_way ?? []}
+            <Building
+              width={width}
+              height={depth}
+              zones={layout.zones}
+              blocked={layout.blocked}
+              oneWay={layout.one_way ?? []}
               parkingAreas={layout.parking_areas ?? []}
             />
             <Racking shelves={layout.shelves} width={width} height={depth} detail={q.rackDetail} />
@@ -98,7 +103,11 @@ export function WarehouseScene({ compact = false }: { compact?: boolean }) {
       </Canvas>
 
       <div className="absolute left-3 top-3 flex flex-col items-start gap-1.5">
-        <div className="flex overflow-hidden rounded-control border border-border bg-surface/90 text-xs" role="group" aria-label="Camera views">
+        <div
+          className="flex overflow-hidden rounded-control border border-border bg-surface/90 text-xs"
+          role="group"
+          aria-label="Camera views"
+        >
           {(Object.keys(VIEW_LABEL) as ViewName[]).map((view) => (
             <button
               key={view}

@@ -16,7 +16,12 @@ const FILTERS: { id: Filter; label: string; hint?: string; match: (r: Robot, h: 
   { id: "all", label: "All", match: () => true },
   { id: "working", label: "Working", match: (r) => !!r.current_task },
   { id: "parked", label: "Parked", match: (r) => !r.current_task && r.destination_type === "PARKING" },
-  { id: "charging", label: "Charging", hint: "Heading to or plugged into a charger", match: (r) => r.destination_type === "CHARGER" },
+  {
+    id: "charging",
+    label: "Charging",
+    hint: "Heading to or plugged into a charger",
+    match: (r) => r.destination_type === "CHARGER",
+  },
   {
     id: "alerts",
     label: "Alerts",
@@ -61,7 +66,11 @@ export function FleetTable({ detailed = false }: { detailed?: boolean }) {
   };
 
   const counts = useMemo(
-    () => Object.fromEntries(FILTERS.map((f) => [f.id, robots.filter((r) => f.match(r, health)).length])) as Record<Filter, number>,
+    () =>
+      Object.fromEntries(FILTERS.map((f) => [f.id, robots.filter((r) => f.match(r, health)).length])) as Record<
+        Filter,
+        number
+      >,
     [robots, health],
   );
   const rows = useMemo(() => {
@@ -135,7 +144,10 @@ export function FleetTable({ detailed = false }: { detailed?: boolean }) {
                   <td className="py-1.5 pr-2 font-mono">
                     {r.current_task ? (
                       <span className="inline-flex items-center gap-1.5">
-                        <span className={`h-1.5 w-1.5 rounded-full ${PRIORITY_DOT[r.order_priority ?? "LOW"]}`} title={`${r.order_priority} priority`} />
+                        <span
+                          className={`h-1.5 w-1.5 rounded-full ${PRIORITY_DOT[r.order_priority ?? "LOW"]}`}
+                          title={`${r.order_priority} priority`}
+                        />
                         {r.current_task}
                       </span>
                     ) : (
@@ -146,7 +158,9 @@ export function FleetTable({ detailed = false }: { detailed?: boolean }) {
                     {r.destination ?? "—"}
                     {(r.items_left ?? 0) > 1 && <span className="text-muted"> +{(r.items_left ?? 1) - 1}</span>}
                   </td>
-                  <td className="tabular py-1.5 pr-2 text-right">{speed > 0.05 ? speed.toFixed(1) : <span className="text-muted">0</span>}</td>
+                  <td className="tabular py-1.5 pr-2 text-right">
+                    {speed > 0.05 ? speed.toFixed(1) : <span className="text-muted">0</span>}
+                  </td>
                   <td className="py-1.5 pr-2">
                     <span className="inline-flex items-center gap-1.5">
                       <span className="h-1.5 w-8 overflow-hidden rounded-full bg-border">
@@ -155,7 +169,10 @@ export function FleetTable({ detailed = false }: { detailed?: boolean }) {
                       <span className="tabular">{Math.round(r.battery)}%</span>
                     </span>
                   </td>
-                  <td className="py-1.5 pr-2" title={health?.[r.robot_id] ? `anomaly score ${health[r.robot_id].score}` : undefined}>
+                  <td
+                    className="py-1.5 pr-2"
+                    title={health?.[r.robot_id] ? `anomaly score ${health[r.robot_id].score}` : undefined}
+                  >
                     {!health?.[r.robot_id] ? (
                       <span className="text-muted">—</span>
                     ) : health[r.robot_id].abnormal ? (

@@ -1,7 +1,16 @@
 "use client";
 
 import { useLayoutEffect, useRef } from "react";
-import { Color, Euler, type BufferGeometry, type InstancedMesh, type Material, Matrix4, Quaternion, Vector3 } from "three";
+import {
+  Color,
+  Euler,
+  type BufferGeometry,
+  type InstancedMesh,
+  type Material,
+  Matrix4,
+  Quaternion,
+  Vector3,
+} from "three";
 
 export interface Placement {
   p: [number, number, number];

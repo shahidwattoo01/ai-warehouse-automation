@@ -81,7 +81,12 @@ function PackingStation({ station }: { station: Station }) {
 
       <group position={[0, 0, 1.05]}>
         {/* Workbench: steel frame, butcher-block top, lower shelf with flat-packed boxes */}
-        {[[-0.9, -0.3], [-0.9, 0.3], [0.9, -0.3], [0.9, 0.3]].map(([x, z], i) => (
+        {[
+          [-0.9, -0.3],
+          [-0.9, 0.3],
+          [0.9, -0.3],
+          [0.9, 0.3],
+        ].map(([x, z], i) => (
           <mesh key={i} position={[x, 0.45, z]} castShadow>
             <boxGeometry args={[0.05, 0.9, 0.05]} />
             <meshStandardMaterial {...STEEL} />
@@ -131,7 +136,13 @@ function PackingStation({ station }: { station: Station }) {
           </RoundedBox>
           <mesh position={[0, 0, 0.019]}>
             <planeGeometry args={[0.51, 0.3]} />
-            <meshStandardMaterial map={screenTexture("#22C55E")} emissive="#ffffff" emissiveMap={screenTexture("#22C55E")} emissiveIntensity={0.8} toneMapped={false} />
+            <meshStandardMaterial
+              map={screenTexture("#22C55E")}
+              emissive="#ffffff"
+              emissiveMap={screenTexture("#22C55E")}
+              emissiveIntensity={0.8}
+              toneMapped={false}
+            />
           </mesh>
         </group>
         {/* Label printer, tape gun, open shipping box on the bench */}

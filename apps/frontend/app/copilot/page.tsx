@@ -1,5 +1,6 @@
 "use client";
 
+import { Can } from "@/components/layout/Can";
 import { Check, Send, X } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Screen } from "@/components/layout/Screen";
@@ -173,18 +174,23 @@ export default function CopilotPage() {
                             <b>{turn.reply.action.unsure ? "Not sure, check first:" : "Approval needed:"}</b>{" "}
                             {turn.reply.action.summary}
                           </span>
-                          <button
-                            onClick={() => void decide(turn, true)}
-                            className="flex items-center gap-1 rounded-control bg-success px-2.5 py-1 text-xs font-medium text-white"
+                          <Can
+                            permission="copilot:approve"
+                            fallback={<span className="text-xs text-muted">Waiting for an operator or supervisor</span>}
                           >
-                            <Check size={14} /> Approve
-                          </button>
-                          <button
-                            onClick={() => void decide(turn, false)}
-                            className="flex items-center gap-1 rounded-control border border-border px-2.5 py-1 text-xs"
-                          >
-                            <X size={14} /> Cancel
-                          </button>
+                            <button
+                              onClick={() => void decide(turn, true)}
+                              className="flex items-center gap-1 rounded-control bg-success px-2.5 py-1 text-xs font-medium text-white"
+                            >
+                              <Check size={14} /> Approve
+                            </button>
+                            <button
+                              onClick={() => void decide(turn, false)}
+                              className="flex items-center gap-1 rounded-control border border-border px-2.5 py-1 text-xs"
+                            >
+                              <X size={14} /> Cancel
+                            </button>
+                          </Can>
                         </div>
                       )}
                       {turn.outcome && (

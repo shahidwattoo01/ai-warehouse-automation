@@ -1,12 +1,27 @@
 "use client";
 
 import { useMemo } from "react";
-import { BoxGeometry, CylinderGeometry, DoubleSide, MeshPhysicalMaterial, MeshStandardMaterial, PlaneGeometry } from "three";
+import {
+  BoxGeometry,
+  CylinderGeometry,
+  DoubleSide,
+  MeshPhysicalMaterial,
+  MeshStandardMaterial,
+  PlaneGeometry,
+} from "three";
 import type { Shelf } from "@/lib/types";
 import { gridToWorld } from "./coords";
 import { InstancedParts, type Placement } from "./Instanced";
 import { SignBoards } from "./SignBoards";
-import { cartonTexture, hazardTexture, meshDeckTexture, palletDeckTexture, signTexture, uprightTexture, woodTexture } from "./textures";
+import {
+  cartonTexture,
+  hazardTexture,
+  meshDeckTexture,
+  palletDeckTexture,
+  signTexture,
+  uprightTexture,
+  woodTexture,
+} from "./textures";
 
 const BAY = 1.0; // bay pitch along the row (1 grid cell)
 const DEPTH = 0.9; // frame depth
@@ -51,12 +66,25 @@ export function Racking({
       brace: new MeshStandardMaterial({ color: "#2459b8", metalness: 0.6, roughness: 0.4 }),
       plate: new MeshStandardMaterial({ color: "#5d646c", metalness: 0.8, roughness: 0.45 }),
       beam: new MeshStandardMaterial({ color: "#e0561b", metalness: 0.45, roughness: 0.38 }),
-      deck: new MeshStandardMaterial({ map: deck, alphaTest: 0.4, transparent: false, side: DoubleSide, metalness: 0.8, roughness: 0.35 }),
+      deck: new MeshStandardMaterial({
+        map: deck,
+        alphaTest: 0.4,
+        transparent: false,
+        side: DoubleSide,
+        metalness: 0.8,
+        roughness: 0.35,
+      }),
       wood: new MeshStandardMaterial({ map: palletDeckTexture(), roughness: 0.85 }),
       block: new MeshStandardMaterial({ color: "#a98458", map: woodTexture(), roughness: 0.9 }),
       carton: new MeshStandardMaterial({ map: cartonTexture(), roughness: 0.92 }),
       wrap: new MeshPhysicalMaterial({
-        color: "#e8f1f8", transparent: true, opacity: 0.22, roughness: 0.12, metalness: 0, clearcoat: 1, depthWrite: false,
+        color: "#e8f1f8",
+        transparent: true,
+        opacity: 0.22,
+        roughness: 0.12,
+        metalness: 0,
+        clearcoat: 1,
+        depthWrite: false,
       }),
       bin: new MeshStandardMaterial({ roughness: 0.55 }),
       label: new MeshStandardMaterial({ map: signTexture("|| ||| | ||", "#ffffff", "#111111"), roughness: 0.6 }),
@@ -137,14 +165,22 @@ export function Racking({
         for (let l = 0; l < layers; l++) {
           if (lite) {
             // One box per layer, carton texture tiled across it.
-            cartons.push({ p: [x, top + ch * l + ch / 2, z], s: [0.76, ch - 0.004, 0.92], c: cartonTints[Math.floor(hash(bayId, l) * 4)] });
+            cartons.push({
+              p: [x, top + ch * l + ch / 2, z],
+              s: [0.76, ch - 0.004, 0.92],
+              c: cartonTints[Math.floor(hash(bayId, l) * 4)],
+            });
             continue;
           }
           for (const cx of [-0.19, 0.19]) {
             for (const cz of [-0.23, 0.23]) {
               if (l === layers - 1 && hash(bayId, level, l, cx, cz) < 0.2) continue;
               const j = (hash(bayId, l, cx * 10, cz * 10) - 0.5) * 0.02;
-              cartons.push({ p: [x + cx + j, top + ch * l + ch / 2, z + cz], s: [0.37, ch - 0.004, 0.45], c: cartonTints[Math.floor(hash(bayId, l, cz) * 4)] });
+              cartons.push({
+                p: [x + cx + j, top + ch * l + ch / 2, z + cz],
+                s: [0.37, ch - 0.004, 0.45],
+                c: cartonTints[Math.floor(hash(bayId, l, cz) * 4)],
+              });
             }
           }
         }
@@ -159,7 +195,9 @@ export function Racking({
           for (const bz of [-0.24, 0.24]) {
             // Open-top plastic tote: floor + 4 walls, filled with stock.
             const c = binColors[Math.floor(hash(bayId, level, bx * 10, bz * 10) * 3)];
-            const bxp = x + bx, bzp = z + bz, t = 0.015;
+            const bxp = x + bx,
+              bzp = z + bz,
+              t = 0.015;
             if (lite) {
               bins.push({ p: [bxp, top + 0.13, bzp], s: [0.38, 0.26, 0.46], c });
               continue;
@@ -195,7 +233,8 @@ export function Racking({
         }
         decks.push({ p: [x, y + 0.058, z], s: [BAY - 0.1, DEPTH + 0.02, 1], r: [-Math.PI / 2, 0, 0] });
         // Location barcode label on the aisle-facing beam(s).
-        for (const dz of [-1, 1]) labels.push({ p: [x, y, z + dz * (DEPTH / 2 + 0.062)], s: [0.22, 0.07, 1], r: [0, dz > 0 ? 0 : Math.PI, 0] });
+        for (const dz of [-1, 1])
+          labels.push({ p: [x, y, z + dz * (DEPTH / 2 + 0.062)], s: [0.22, 0.07, 1], r: [0, dz > 0 ? 0 : Math.PI, 0] });
       }
       // Storage positions: floor + each beam level.
       const supports = [0, ...BEAM_LEVELS.slice(0, levels).map((y) => y + 0.065)];
@@ -211,7 +250,10 @@ export function Racking({
       const first = row[0];
       const [x0, , z] = gridToWorld(Math.min(...xs), first.y, width, height);
       const [x1] = gridToWorld(Math.max(...xs), first.y, width, height);
-      for (const [x, dir] of [[x0 - BAY / 2 - 0.12, -1], [x1 + BAY / 2 + 0.12, 1]] as const) {
+      for (const [x, dir] of [
+        [x0 - BAY / 2 - 0.12, -1],
+        [x1 + BAY / 2 + 0.12, 1],
+      ] as const) {
         guards.push({ p: [x, 0.2, z], s: [0.08, 0.4, DEPTH + 0.15] });
         signs.push({
           text: `${first.zone_id.replace("ZONE_", "")}-${String(first.y).padStart(2, "0")}`,
@@ -221,7 +263,23 @@ export function Racking({
       }
     });
 
-    return { uprights, plates, braces, diagonals, braceBars, beams, decks, boards, blocks, cartons, wraps, bins, labels, guards, signs };
+    return {
+      uprights,
+      plates,
+      braces,
+      diagonals,
+      braceBars,
+      beams,
+      decks,
+      boards,
+      blocks,
+      cartons,
+      wraps,
+      bins,
+      labels,
+      guards,
+      signs,
+    };
   }, [shelves, width, height, detail]);
 
   const full = detail === "full";
@@ -238,7 +296,15 @@ export function Racking({
       <InstancedParts items={parts.blocks} geometry={geo.box} material={mats.block} castShadow={false} />
       <InstancedParts items={parts.cartons} geometry={geo.box} material={mats.carton} />
       <InstancedParts items={parts.bins} geometry={geo.box} material={mats.bin} />
-      {full && <InstancedParts items={parts.wraps} geometry={geo.box} material={mats.wrap} castShadow={false} receiveShadow={false} />}
+      {full && (
+        <InstancedParts
+          items={parts.wraps}
+          geometry={geo.box}
+          material={mats.wrap}
+          castShadow={false}
+          receiveShadow={false}
+        />
+      )}
       {full && <InstancedParts items={parts.labels} geometry={geo.plane} material={mats.label} castShadow={false} />}
       <InstancedParts items={parts.guards} geometry={geo.box} material={mats.guard} />
       <SignBoards signs={parts.signs} />

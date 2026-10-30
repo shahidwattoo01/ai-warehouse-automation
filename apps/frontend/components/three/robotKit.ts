@@ -33,24 +33,48 @@ export const BATTERY_CENTER = new Vector3(0.36, 0.374, 0.16);
 type V3 = [number, number, number];
 
 function place(g: BufferGeometry, pos: V3, rot: V3 = [0, 0, 0]): BufferGeometry {
-  const m = new Matrix4().compose(new Vector3(...pos), new Quaternion().setFromEuler(new Euler(...rot)), new Vector3(1, 1, 1));
+  const m = new Matrix4().compose(
+    new Vector3(...pos),
+    new Quaternion().setFromEuler(new Euler(...rot)),
+    new Vector3(1, 1, 1),
+  );
   return (g.index ? g.toNonIndexed() : g).applyMatrix4(m);
 }
 const box = (w: number, h: number, d: number, pos: V3, rot?: V3) => place(new BoxGeometry(w, h, d), pos, rot);
-const rbox = (w: number, h: number, d: number, r: number, pos: V3, rot?: V3) => place(new RoundedBoxGeometry(w, h, d, 3, r), pos, rot);
-const cyl = (rt: number, rb: number, h: number, seg: number, pos: V3, rot?: V3) => place(new CylinderGeometry(rt, rb, h, seg), pos, rot);
+const rbox = (w: number, h: number, d: number, r: number, pos: V3, rot?: V3) =>
+  place(new RoundedBoxGeometry(w, h, d, 3, r), pos, rot);
+const cyl = (rt: number, rb: number, h: number, seg: number, pos: V3, rot?: V3) =>
+  place(new CylinderGeometry(rt, rb, h, seg), pos, rot);
 
 function merge(parts: BufferGeometry[]): BufferGeometry {
   // Keep only the attributes every part has, so mergeGeometries accepts them.
-  for (const p of parts) for (const name of Object.keys(p.attributes)) if (!["position", "normal", "uv"].includes(name)) p.deleteAttribute(name);
+  for (const p of parts)
+    for (const name of Object.keys(p.attributes))
+      if (!["position", "normal", "uv"].includes(name)) p.deleteAttribute(name);
   const g = mergeGeometries(parts, false)!;
   g.computeBoundingSphere();
   return g;
 }
 
 export type GroupName =
-  | "shell" | "dark" | "orange" | "yellow" | "metal" | "glass" | "gold" | "lights" | "red"
-  | "status" | "beacon" | "screen" | "tote0" | "tote1" | "contents0" | "contents1" | "battery" | "wheels";
+  | "shell"
+  | "dark"
+  | "orange"
+  | "yellow"
+  | "metal"
+  | "glass"
+  | "gold"
+  | "lights"
+  | "red"
+  | "status"
+  | "beacon"
+  | "screen"
+  | "tote0"
+  | "tote1"
+  | "contents0"
+  | "contents1"
+  | "battery"
+  | "wheels";
 
 export interface KitGroup {
   geometry: BufferGeometry;
@@ -88,7 +112,12 @@ export function robotKit(): Record<GroupName, KitGroup> {
     ],
     dark: [
       rbox(0.92, 0.12, 0.68, 0.04, [0, 0.11, 0]), // bumper skirt
-      ...[[0.34, 0.22], [0.34, -0.22], [-0.34, 0.22], [-0.34, -0.22]].map(([x, z]) => cyl(0.03, 0.03, 0.025, 14, [x, 0.03, z], [Math.PI / 2, 0, 0])), // casters
+      ...[
+        [0.34, 0.22],
+        [0.34, -0.22],
+        [-0.34, 0.22],
+        [-0.34, -0.22],
+      ].map(([x, z]) => cyl(0.03, 0.03, 0.025, 14, [x, 0.03, z], [Math.PI / 2, 0, 0])), // casters
       box(0.04, 0.03, 0.14, [0.2, 0.42, 0]), // depth camera
       ...TOTE_LEVELS.map((y) => box(0.56, 0.025, 0.54, [0.06, y, 0])), // tote shelves
       cyl(0.018, 0.018, 0.12, 12, [-0.2, 1.42, 0], [0, 0, Math.PI / 2]), // screen arm
@@ -105,7 +134,12 @@ export function robotKit(): Record<GroupName, KitGroup> {
       box(0.06, 0.14, 0.04, [-0.32, 1.22, 0.27], [0.15, 0, 0]), // scanner in holster
     ],
     metal: [
-      ...[[0.34, 0.22], [0.34, -0.22], [-0.34, 0.22], [-0.34, -0.22]].map(([x, z]) => box(0.04, 0.04, 0.035, [x, 0.065, z])),
+      ...[
+        [0.34, 0.22],
+        [0.34, -0.22],
+        [-0.34, 0.22],
+        [-0.34, -0.22],
+      ].map(([x, z]) => box(0.04, 0.04, 0.035, [x, 0.065, z])),
       ...sides.map((s) => cyl(0.04, 0.04, 0.004, 20, [0, WHEEL_R, s * 0.316], [Math.PI / 2, 0, 0])), // hubs
     ],
     glass: [
@@ -146,7 +180,10 @@ export function robotKit(): Record<GroupName, KitGroup> {
   const bright = (hex: string, k: number) => new Color(hex).multiplyScalar(k);
   const carton = new MeshStandardMaterial({ map: cartonTexture(), roughness: 0.9 });
   const mats: Record<GroupName, [Material, boolean, boolean?]> = {
-    shell: [new MeshPhysicalMaterial({ color: "#eef0f2", roughness: 0.32, clearcoat: 0.6, clearcoatRoughness: 0.25 }), true],
+    shell: [
+      new MeshPhysicalMaterial({ color: "#eef0f2", roughness: 0.32, clearcoat: 0.6, clearcoatRoughness: 0.25 }),
+      true,
+    ],
     dark: [new MeshStandardMaterial({ color: "#1d2024", roughness: 0.7, metalness: 0.2 }), true],
     orange: [new MeshPhysicalMaterial({ color: "#f26b1d", roughness: 0.35, clearcoat: 0.5 }), false],
     yellow: [new MeshStandardMaterial({ color: "#f2c200", roughness: 0.5 }), false],
@@ -156,7 +193,11 @@ export function robotKit(): Record<GroupName, KitGroup> {
     lights: [new MeshBasicMaterial({ color: bright("#f4f8ff", 3), toneMapped: false }), false],
     red: [new MeshBasicMaterial({ color: bright("#ff2a2a", 1.6), toneMapped: false }), false],
     status: [new MeshBasicMaterial({ color: "#ffffff", toneMapped: false }), false, true],
-    beacon: [new MeshBasicMaterial({ color: "#ffffff", toneMapped: false, transparent: true, opacity: 0.92 }), false, true],
+    beacon: [
+      new MeshBasicMaterial({ color: "#ffffff", toneMapped: false, transparent: true, opacity: 0.92 }),
+      false,
+      true,
+    ],
     screen: [new MeshBasicMaterial({ map: screenTexture("#3B82F6"), toneMapped: false }), false],
     tote0: [new MeshStandardMaterial({ color: "#1f5fbf", roughness: 0.5 }), true],
     tote1: [new MeshStandardMaterial({ color: "#d9480f", roughness: 0.5 }), true],

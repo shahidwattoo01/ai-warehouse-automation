@@ -53,7 +53,10 @@ export default function AnalyticsPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    api.analytics.experiments().then(setData).catch((e) => setError(String(e.message ?? e)));
+    api.analytics
+      .experiments()
+      .then(setData)
+      .catch((e) => setError(String(e.message ?? e)));
   }, []);
 
   return (
@@ -66,9 +69,10 @@ export default function AnalyticsPage() {
       {data && (
         <div className="space-y-4">
           <p className="text-sm text-muted">
-            {Object.keys(data.results).length} experiments × {data.manifest.seeds} seeds × {data.manifest.hours} simulated hours.
-            Every experiment received exactly the same orders, faults and hazards, so differences come from the strategies.
-            Baseline: <b className="text-ink">{data.manifest.baseline}</b> (today&apos;s rules). Green = best.
+            {Object.keys(data.results).length} experiments × {data.manifest.seeds} seeds × {data.manifest.hours}{" "}
+            simulated hours. Every experiment received exactly the same orders, faults and hazards, so differences come
+            from the strategies. Baseline: <b className="text-ink">{data.manifest.baseline}</b> (today&apos;s rules).
+            Green = best.
           </p>
           <div className="overflow-auto rounded-card border border-border bg-surface p-4">
             <table className="w-full whitespace-nowrap text-left text-xs">

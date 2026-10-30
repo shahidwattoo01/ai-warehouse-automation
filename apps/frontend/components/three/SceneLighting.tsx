@@ -29,9 +29,29 @@ function PanelEnvironment({ width, depth }: { width: number; depth: number }) {
           />
         )),
       )}
-      <Lightformer form="rect" intensity={1.2} color="#dfe9f5" position={[0, 3, -depth / 2 - 5]} scale={[width, 4, 1]} />
-      <Lightformer form="rect" intensity={0.5} color="#c9d3df" position={[-width / 2 - 5, 4, 0]} rotation-y={Math.PI / 2} scale={[depth, 5, 1]} />
-      <Lightformer form="rect" intensity={0.5} color="#c9d3df" position={[width / 2 + 5, 4, 0]} rotation-y={-Math.PI / 2} scale={[depth, 5, 1]} />
+      <Lightformer
+        form="rect"
+        intensity={1.2}
+        color="#dfe9f5"
+        position={[0, 3, -depth / 2 - 5]}
+        scale={[width, 4, 1]}
+      />
+      <Lightformer
+        form="rect"
+        intensity={0.5}
+        color="#c9d3df"
+        position={[-width / 2 - 5, 4, 0]}
+        rotation-y={Math.PI / 2}
+        scale={[depth, 5, 1]}
+      />
+      <Lightformer
+        form="rect"
+        intensity={0.5}
+        color="#c9d3df"
+        position={[width / 2 + 5, 4, 0]}
+        rotation-y={-Math.PI / 2}
+        scale={[depth, 5, 1]}
+      />
     </Environment>
   );
 }

@@ -1,5 +1,6 @@
 "use client";
 
+import { useCan } from "@/lib/auth";
 import dynamic from "next/dynamic";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Screen } from "@/components/layout/Screen";
@@ -201,6 +202,7 @@ interface WallDetection {
 }
 
 export default function VisionPage() {
+  const canDetect = useCan("vision:use");
   const layout = useSim((s) => s.layout);
   const state = useSim((s) => s.state);
   // Re-list cameras only when the set of hazards, closures or robots changes, not every tick.
@@ -401,7 +403,7 @@ export default function VisionPage() {
           <div className="mb-3 flex flex-wrap items-center gap-3 rounded-card border border-border bg-surface p-3 text-xs">
             <button
               onClick={() => setScanning((s) => !s)}
-              disabled={!status?.available}
+              disabled={!status?.available || !canDetect}
               className={`rounded-control px-3 py-1.5 font-medium text-white disabled:opacity-50 ${
                 scanning ? "bg-danger" : "bg-accent"
               }`}
@@ -493,7 +495,7 @@ export default function VisionPage() {
                       <span className="flex shrink-0 gap-1">
                         <button
                           onClick={() => void detectCamera(o.key)}
-                          disabled={!shots[o.key] || detecting === o.key || !status?.available}
+                          disabled={!shots[o.key] || detecting === o.key || !status?.available || !canDetect}
                           className="rounded-control border border-border px-1.5 py-0.5 hover:border-accent hover:text-accent disabled:opacity-40"
                           title="Run the detector on this camera"
                         >
@@ -558,7 +560,7 @@ export default function VisionPage() {
                 </label>
                 <button
                   onClick={() => void detect()}
-                  disabled={busy || !status?.available}
+                  disabled={busy || !status?.available || !canDetect}
                   className="rounded-control bg-accent px-3 py-1 font-medium text-white disabled:opacity-50"
                 >
                   {busy ? "Detecting…" : "Detect now"}

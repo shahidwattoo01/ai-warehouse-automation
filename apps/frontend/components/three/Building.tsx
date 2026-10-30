@@ -2,14 +2,32 @@
 
 import { useFrame } from "@react-three/fiber";
 import { useMemo, useRef } from "react";
-import { BoxGeometry, CylinderGeometry, type Group, type Material, MeshStandardMaterial, PlaneGeometry, type Texture, Vector3 } from "three";
+import {
+  BoxGeometry,
+  CylinderGeometry,
+  type Group,
+  type Material,
+  MeshStandardMaterial,
+  PlaneGeometry,
+  type Texture,
+  Vector3,
+} from "three";
 import type { ParkingAreaSnapshot, Zone } from "@/lib/types";
 import { gridToWorld } from "./coords";
 import { InstancedParts, type Placement } from "./Instanced";
 import { FirePoint } from "./Props";
 import { StaticBatch } from "./StaticBatch";
 import { SignBoards, type Sign } from "./SignBoards";
-import { arrowTexture, parkingBayTexture, concreteRoughness, concreteTexture, hazardTexture, shutterTexture, signTexture, wallPanelTexture } from "./textures";
+import {
+  arrowTexture,
+  parkingBayTexture,
+  concreteRoughness,
+  concreteTexture,
+  hazardTexture,
+  shutterTexture,
+  signTexture,
+  wallPanelTexture,
+} from "./textures";
 
 const MARGIN = 3; // floor beyond the grid on each side (dock apron, charger alcoves)
 const WALL_H = 8;
@@ -142,7 +160,9 @@ export function Building({
 
   // Structural columns from the layout (portal-frame wall columns live in <Wall>).
   const columns = useMemo(() => {
-    const interior = blocked.map(([x, y]) => gridToWorld(x, y, width, height)).map(([x, , z]) => [x, z] as [number, number]);
+    const interior = blocked
+      .map(([x, y]) => gridToWorld(x, y, width, height))
+      .map(([x, , z]) => [x, z] as [number, number]);
     return { interior };
   }, [blocked, width, height]);
 
@@ -163,7 +183,12 @@ export function Building({
       steel: new MeshStandardMaterial({ color: "#596570", metalness: 0.7, roughness: 0.4 }),
       guard: new MeshStandardMaterial({ map: hazardTexture(), roughness: 0.5 }),
       lamp: new MeshStandardMaterial({ color: "#c3c8ce", metalness: 0.8, roughness: 0.3 }),
-      lampGlow: new MeshStandardMaterial({ color: "#ffffff", emissive: "#fffaf0", emissiveIntensity: 3, toneMapped: false }),
+      lampGlow: new MeshStandardMaterial({
+        color: "#ffffff",
+        emissive: "#fffaf0",
+        emissiveIntensity: 3,
+        toneMapped: false,
+      }),
       cable: new MeshStandardMaterial({ color: "#222" }),
     }),
     [],
@@ -243,9 +268,30 @@ export function Building({
           </group>
         ))}
       </Wall>
-      <Wall position={[0, 0, H / 2]} rotation={Math.PI} length={W} material={wall.long} steel={mats.steel} box={geo.box} />
-      <Wall position={[-W / 2, 0, 0]} rotation={Math.PI / 2} length={H} material={wall.short} steel={mats.steel} box={geo.box} />
-      <Wall position={[W / 2, 0, 0]} rotation={-Math.PI / 2} length={H} material={wall.short} steel={mats.steel} box={geo.box} />
+      <Wall
+        position={[0, 0, H / 2]}
+        rotation={Math.PI}
+        length={W}
+        material={wall.long}
+        steel={mats.steel}
+        box={geo.box}
+      />
+      <Wall
+        position={[-W / 2, 0, 0]}
+        rotation={Math.PI / 2}
+        length={H}
+        material={wall.short}
+        steel={mats.steel}
+        box={geo.box}
+      />
+      <Wall
+        position={[W / 2, 0, 0]}
+        rotation={-Math.PI / 2}
+        length={H}
+        material={wall.short}
+        steel={mats.steel}
+        box={geo.box}
+      />
 
       {/* Steel structure */}
       <InstancedParts items={steelParts.items} geometry={geo.box} material={mats.steel} />
@@ -253,9 +299,21 @@ export function Building({
 
       {/* High-bay lights (hidden when the camera is above them, i.e. where the roof would be) */}
       <group ref={lampGroup}>
-      <InstancedParts items={lamps.body} geometry={geo.lamp} material={mats.lamp} castShadow={false} />
-      <InstancedParts items={lamps.glow} geometry={geo.plane} material={mats.lampGlow} castShadow={false} receiveShadow={false} />
-      <InstancedParts items={lamps.cables} geometry={geo.cable} material={mats.cable} castShadow={false} receiveShadow={false} />
+        <InstancedParts items={lamps.body} geometry={geo.lamp} material={mats.lamp} castShadow={false} />
+        <InstancedParts
+          items={lamps.glow}
+          geometry={geo.plane}
+          material={mats.lampGlow}
+          castShadow={false}
+          receiveShadow={false}
+        />
+        <InstancedParts
+          items={lamps.cables}
+          geometry={geo.cable}
+          material={mats.cable}
+          castShadow={false}
+          receiveShadow={false}
+        />
       </group>
     </group>
   );

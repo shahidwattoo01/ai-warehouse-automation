@@ -9,7 +9,13 @@ import type { Order, Robot } from "@/lib/types";
 const NO_ROBOTS: Robot[] = [];
 
 /** "Assign" button for a waiting order: lists robots, free and nearest to the first rack first. */
-export function AssignMenu({ order, onResult }: { order: Order; onResult: (msg: { ok: boolean; text: string }) => void }) {
+export function AssignMenu({
+  order,
+  onResult,
+}: {
+  order: Order;
+  onResult: (msg: { ok: boolean; text: string }) => void;
+}) {
   const robots = useSim((s) => s.state?.robots ?? NO_ROBOTS);
   const [open, setOpen] = useState(false);
   const [sending, setSending] = useState<string | null>(null);

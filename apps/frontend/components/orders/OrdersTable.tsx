@@ -1,5 +1,6 @@
 "use client";
 
+import { Can } from "@/components/layout/Can";
 import { useMemo, useState } from "react";
 import { PRIORITY_STYLE, rackLabel, simDuration } from "@/lib/orders";
 import { useSim } from "@/lib/store";
@@ -71,8 +72,8 @@ export function OrdersTable({ onResult }: { onResult: (msg: { ok: boolean; text:
       </div>
       {tab === "waiting" && mode === "auto" && (
         <p className="mt-2 text-xs text-muted">
-          Auto assignment is on, so waiting orders are usually taken within a tick. Switch to <b className="text-ink">Manual</b>{" "}
-          above to choose robots yourself.
+          Auto assignment is on, so waiting orders are usually taken within a tick. Switch to{" "}
+          <b className="text-ink">Manual</b> above to choose robots yourself.
         </p>
       )}
 
@@ -111,7 +112,11 @@ export function OrdersTable({ onResult }: { onResult: (msg: { ok: boolean; text:
                     <div className="text-[10px] text-muted">{o.source === "MANUAL" ? "Operator" : "Customer"}</div>
                   </td>
                   <td className="py-1.5 pr-2">
-                    <span className={`rounded border px-1.5 py-px text-[10px] font-semibold ${PRIORITY_STYLE[o.priority]}`}>{o.priority}</span>
+                    <span
+                      className={`rounded border px-1.5 py-px text-[10px] font-semibold ${PRIORITY_STYLE[o.priority]}`}
+                    >
+                      {o.priority}
+                    </span>
                   </td>
                   <td className="max-w-[190px] whitespace-normal py-1.5 pr-2">
                     {o.items.map((i) => (
@@ -120,10 +125,14 @@ export function OrdersTable({ onResult }: { onResult: (msg: { ok: boolean; text:
                       </span>
                     ))}
                   </td>
-                  <td className="py-1.5 pr-2 text-muted">{o.status === "PENDING" ? "—" : o.destination ?? "—"}</td>
+                  <td className="py-1.5 pr-2 text-muted">{o.status === "PENDING" ? "—" : (o.destination ?? "—")}</td>
                   <td className={`py-1.5 pr-2 ${o.status === "LATE" ? "text-danger" : ""}`}>{STATUS_TEXT[o.status]}</td>
                   <td className={`tabular py-1.5 pr-2 ${tab !== "done" && left < 60 ? "text-danger" : "text-muted"}`}>
-                    {tab === "done" ? "—" : left > 0 ? `in ${simDuration(left, secondsPerTick)}` : `overdue ${simDuration(-left, secondsPerTick)}`}
+                    {tab === "done"
+                      ? "—"
+                      : left > 0
+                        ? `in ${simDuration(left, secondsPerTick)}`
+                        : `overdue ${simDuration(-left, secondsPerTick)}`}
                   </td>
                   {tab === "active" && (
                     <td className="tabular py-1.5 pr-2">
@@ -164,7 +173,9 @@ export function OrdersTable({ onResult }: { onResult: (msg: { ok: boolean; text:
                         {o.manual_assignment && <span className="ml-1 font-sans font-normal text-muted">(you)</span>}
                       </button>
                     ) : (
-                      <AssignMenu order={o} onResult={onResult} />
+                      <Can permission="orders:assign">
+                        <AssignMenu order={o} onResult={onResult} />
+                      </Can>
                     )}
                   </td>
                 </tr>
@@ -173,7 +184,11 @@ export function OrdersTable({ onResult }: { onResult: (msg: { ok: boolean; text:
             {rows.length === 0 && (
               <tr>
                 <td colSpan={tab === "active" ? 9 : 7} className="py-8 text-center text-muted">
-                  {tab === "waiting" ? "No orders waiting." : tab === "active" ? "No orders in progress." : "No finished orders yet."}
+                  {tab === "waiting"
+                    ? "No orders waiting."
+                    : tab === "active"
+                      ? "No orders in progress."
+                      : "No finished orders yet."}
                 </td>
               </tr>
             )}

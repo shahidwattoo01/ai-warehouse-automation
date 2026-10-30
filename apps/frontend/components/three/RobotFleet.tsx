@@ -218,7 +218,13 @@ export function RobotFleet({
           ))}
       </group>
       {!castShadows && count > 0 && (
-        <instancedMesh key={`blob:${count}`} ref={blobs} args={[blobGeo, blobMat, count]} frustumCulled={false} renderOrder={-1} />
+        <instancedMesh
+          key={`blob:${count}`}
+          ref={blobs}
+          args={[blobGeo, blobMat, count]}
+          frustumCulled={false}
+          renderOrder={-1}
+        />
       )}
       <mesh ref={ring} rotation-x={-Math.PI / 2} visible={false}>
         <ringGeometry args={[0.66, 0.72, 64]} />

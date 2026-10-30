@@ -3,6 +3,7 @@
 import dynamic from "next/dynamic";
 import { FleetTable } from "@/components/fleet/FleetTable";
 import { Screen } from "@/components/layout/Screen";
+import { YourWork } from "@/components/layout/YourWork";
 import { AiPanel } from "@/components/predictions/AiPanel";
 import { KpiCard } from "@/components/ui/KpiCard";
 import { simDuration } from "@/lib/orders";
@@ -24,16 +25,29 @@ export default function DashboardPage() {
 
   return (
     <Screen title="Dashboard">
+      <YourWork />
       <div className="grid grid-cols-6 gap-4">
-        <KpiCard label="Active robots" value={`${active}/${robots.length}`} hint={kpis ? `${kpis.utilisation_percent}% utilisation` : undefined} />
+        <KpiCard
+          label="Active robots"
+          value={`${active}/${robots.length}`}
+          hint={kpis ? `${kpis.utilisation_percent}% utilisation` : undefined}
+        />
         <KpiCard label="Pending orders" value={pending} tone={pending >= 20 ? "warning" : "normal"} />
-        <KpiCard label="Completed" value={kpis?.orders_completed ?? 0} hint={kpis ? `${kpis.late_percent}% late` : undefined} />
+        <KpiCard
+          label="Completed"
+          value={kpis?.orders_completed ?? 0}
+          hint={kpis ? `${kpis.late_percent}% late` : undefined}
+        />
         <KpiCard
           label="Avg completion"
           value={kpis?.avg_completion_ticks != null ? simDuration(kpis.avg_completion_ticks, secondsPerTick) : "—"}
           hint="order placed → packed"
         />
-        <KpiCard label="Throughput" value={kpis ? Math.round(kpis.throughput_per_hour) : "—"} hint="orders per sim hour" />
+        <KpiCard
+          label="Throughput"
+          value={kpis ? Math.round(kpis.throughput_per_hour) : "—"}
+          hint="orders per sim hour"
+        />
         <KpiCard
           label="Battery"
           value={`${avgBattery}%`}

@@ -23,7 +23,15 @@ const REFLECT = "#e8eef2";
  * hard hat, safety boots. Walks at the simulator pace with a swing-arm gait; stands idle
  * when blocked. Faces +X like the robots.
  */
-export function Worker({ target, still = false, pose = "walk" }: { target: [number, number, number]; still?: boolean; pose?: "walk" | "work" }) {
+export function Worker({
+  target,
+  still = false,
+  pose = "walk",
+}: {
+  target: [number, number, number];
+  still?: boolean;
+  pose?: "walk" | "work";
+}) {
   const root = useRef<Group>(null);
   const legL = useRef<Group>(null);
   const legR = useRef<Group>(null);

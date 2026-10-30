@@ -1,7 +1,6 @@
 // Mirrors the backend warehouse_state and layout snapshot (TRD 4.2, Backend Schema §11).
 
-export type RobotStatus =
-  | "IDLE" | "MOVING" | "PICKING" | "DELIVERING" | "CHARGING" | "PAUSED" | "FAULT";
+export type RobotStatus = "IDLE" | "MOVING" | "PICKING" | "DELIVERING" | "CHARGING" | "PAUSED" | "FAULT";
 
 export interface Robot {
   robot_id: string;
@@ -319,4 +318,47 @@ export interface CopilotHistoryItem {
   text: string;
   tool_calls: ToolCall[];
   outcome: string;
+}
+
+export type DocType = "manual" | "safety" | "maintenance" | "sop" | "policy";
+
+export interface KnowledgeSource {
+  chunk_id: string;
+  doc_id: string;
+  doc_type: DocType;
+  title: string;
+  section_id: string;
+  heading: string;
+  text: string;
+  score: number;
+}
+
+export interface KnowledgeAnswer {
+  question: string;
+  answer: string;
+  covered: boolean;
+  sources: KnowledgeSource[];
+  generator: string;
+  retriever: string;
+  ms: number;
+}
+
+export interface KnowledgeStatus {
+  loaded: boolean;
+  loading: boolean;
+  error: string | null;
+  documents?: number;
+  chunks?: number;
+  store?: "pgvector" | "memory";
+  chunking?: string;
+  retriever?: string;
+  generator?: string;
+  threshold?: number;
+}
+
+export interface KnowledgeDocument {
+  doc_id: string;
+  title: string;
+  doc_type: DocType;
+  sections: { section_id: string; heading: string }[];
 }

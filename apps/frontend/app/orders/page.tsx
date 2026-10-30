@@ -1,5 +1,6 @@
 "use client";
 
+import { Can } from "@/components/layout/Can";
 import { useEffect, useState } from "react";
 import { Screen } from "@/components/layout/Screen";
 import { NewOrderForm } from "@/components/orders/NewOrderForm";
@@ -24,7 +25,9 @@ export default function OrdersPage() {
             <OrdersTable onResult={setMessage} />
           </div>
           <div className="col-span-4">
-            <NewOrderForm onResult={setMessage} />
+            <Can permission="orders:create">
+              <NewOrderForm onResult={setMessage} />
+            </Can>
           </div>
         </div>
       </div>

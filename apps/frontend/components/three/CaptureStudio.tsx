@@ -100,9 +100,12 @@ function boxSurface(min: Vector3, max: Vector3, matrix?: Matrix4): Vector3[] {
       const xv = lerp(min.x, max.x, v);
       const zv = lerp(min.z, max.z, v);
       pts.push(
-        new Vector3(x, y, min.z), new Vector3(x, y, max.z), // front / back
-        new Vector3(min.x, yy, zv), new Vector3(max.x, yy, zv), // left / right
-        new Vector3(xv, min.y, zz), new Vector3(xv, max.y, zz), // bottom / top
+        new Vector3(x, y, min.z),
+        new Vector3(x, y, max.z), // front / back
+        new Vector3(min.x, yy, zv),
+        new Vector3(max.x, yy, zv), // left / right
+        new Vector3(xv, min.y, zz),
+        new Vector3(xv, max.y, zz), // bottom / top
       ); // fmt: skip
     }
   }

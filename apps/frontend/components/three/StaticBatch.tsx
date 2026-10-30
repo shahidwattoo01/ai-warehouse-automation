@@ -9,11 +9,26 @@ const NO_BATCH = "noBatch";
 
 function materialKey(m: Material): string {
   const a = m as Material & Record<string, unknown>;
-  const hex = (v: unknown) => (v && typeof v === "object" && "getHexString" in v ? (v as { getHexString(): string }).getHexString() : "");
+  const hex = (v: unknown) =>
+    v && typeof v === "object" && "getHexString" in v ? (v as { getHexString(): string }).getHexString() : "";
   const id = (v: unknown) => (v && typeof v === "object" && "uuid" in v ? (v as { uuid: string }).uuid : "");
   return [
-    m.type, hex(a.color), hex(a.emissive), a.emissiveIntensity, a.roughness, a.metalness, a.clearcoat,
-    id(a.map), id(a.emissiveMap), id(a.roughnessMap), m.transparent, m.opacity, m.side, a.toneMapped, a.alphaTest, m.depthWrite,
+    m.type,
+    hex(a.color),
+    hex(a.emissive),
+    a.emissiveIntensity,
+    a.roughness,
+    a.metalness,
+    a.clearcoat,
+    id(a.map),
+    id(a.emissiveMap),
+    id(a.roughnessMap),
+    m.transparent,
+    m.opacity,
+    m.side,
+    a.toneMapped,
+    a.alphaTest,
+    m.depthWrite,
   ].join("|");
 }
 
@@ -42,7 +57,8 @@ export function StaticBatch({ children }: { children: ReactNode }) {
         const g = (mesh.geometry.index ? mesh.geometry.toNonIndexed() : mesh.geometry.clone()).applyMatrix4(
           new Matrix4().multiplyMatrices(toLocal, mesh.matrixWorld),
         );
-        for (const name of Object.keys(g.attributes)) if (!["position", "normal", "uv"].includes(name)) g.deleteAttribute(name);
+        for (const name of Object.keys(g.attributes))
+          if (!["position", "normal", "uv"].includes(name)) g.deleteAttribute(name);
         if (!g.attributes.uv || !g.attributes.normal) return; // unusual geometry: leave it as is
         const key = materialKey(mesh.material as Material);
         const b = buckets.get(key) ?? { material: mesh.material as Material, parts: [], cast: false, receive: false };

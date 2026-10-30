@@ -18,9 +18,36 @@ export interface QualitySettings {
 }
 
 export const QUALITY: Record<Quality, QualitySettings> = {
-  high: { softShadows: true, ambientOcclusion: true, bloom: true, postAA: true, shadowMapSize: 4096, dynamicShadows: true, maxDpr: 1.75, rackDetail: "full" },
-  balanced: { softShadows: false, ambientOcclusion: false, bloom: true, postAA: true, shadowMapSize: 2048, dynamicShadows: true, maxDpr: 1, rackDetail: "full" },
-  low: { softShadows: false, ambientOcclusion: false, bloom: false, postAA: false, shadowMapSize: 2048, dynamicShadows: false, maxDpr: 1, rackDetail: "lite" },
+  high: {
+    softShadows: true,
+    ambientOcclusion: true,
+    bloom: true,
+    postAA: true,
+    shadowMapSize: 4096,
+    dynamicShadows: true,
+    maxDpr: 1.75,
+    rackDetail: "full",
+  },
+  balanced: {
+    softShadows: false,
+    ambientOcclusion: false,
+    bloom: true,
+    postAA: true,
+    shadowMapSize: 2048,
+    dynamicShadows: true,
+    maxDpr: 1,
+    rackDetail: "full",
+  },
+  low: {
+    softShadows: false,
+    ambientOcclusion: false,
+    bloom: false,
+    postAA: false,
+    shadowMapSize: 2048,
+    dynamicShadows: false,
+    maxDpr: 1,
+    rackDetail: "lite",
+  },
 };
 
 const KEY = "warehouse.quality";

@@ -6,9 +6,9 @@
 /* Light = pearl white (default). */
 :root,
 [data-theme="light"] {
-  --canvas: 244 242 237;   /* #F4F2ED pearl */
-  --surface: 252 251 248;  /* #FCFBF8 */
-  --border: 224 220 211;   /* #E0DCD3 */
+  --canvas: 244 242 237; /* #F4F2ED pearl */
+  --surface: 252 251 248; /* #FCFBF8 */
+  --border: 224 220 211; /* #E0DCD3 */
   --ink: 28 30 36;
   --muted: 108 110 120;
   --accent: 37 99 235;
@@ -27,9 +27,9 @@
 
 /* Dark = deep black. */
 [data-theme="dark"] {
-  --canvas: 0 0 0;         /* #000000 */
-  --surface: 12 12 14;     /* #0C0C0E */
-  --border: 38 38 44;      /* #26262C */
+  --canvas: 0 0 0; /* #000000 */
+  --surface: 12 12 14; /* #0C0C0E */
+  --border: 38 38 44; /* #26262C */
   --ink: 236 236 240;
   --muted: 140 140 152;
   --accent: 59 130 246;
@@ -46,9 +46,19 @@
   color-scheme: dark;
 }
 
-html, body { height: 100%; }
-body { @apply bg-canvas text-ink font-sans antialiased; font-size: 14px; }
-body { transition: background-color 0.25s ease, color 0.25s ease; }
+html,
+body {
+  height: 100%;
+}
+body {
+  @apply bg-canvas text-ink font-sans antialiased;
+  font-size: 14px;
+}
+body {
+  transition:
+    background-color 0.25s ease,
+    color 0.25s ease;
+}
 
 @layer components {
   /* Outlined buttons, selects and button-links: pearl finish + hover lift. */
@@ -56,7 +66,11 @@ body { transition: background-color 0.25s ease, color 0.25s ease; }
   a.border,
   select.border {
     box-shadow: var(--btn-shadow);
-    transition: transform 0.15s ease, box-shadow 0.2s ease, border-color 0.2s ease, color 0.2s ease,
+    transition:
+      transform 0.15s ease,
+      box-shadow 0.2s ease,
+      border-color 0.2s ease,
+      color 0.2s ease,
       background-color 0.2s ease;
   }
   button.border:not([class*="bg-accent"]),
@@ -95,11 +109,24 @@ body { transition: background-color 0.25s ease, color 0.25s ease; }
     outline-offset: 2px;
   }
   /* Plain text/icon buttons fade smoothly. */
-  button:not(.border) { transition: color 0.15s ease, background-color 0.15s ease; }
+  button:not(.border) {
+    transition:
+      color 0.15s ease,
+      background-color 0.15s ease;
+  }
 
   /* Cards pick up a soft shadow in the pearl theme. */
-  .rounded-card.bg-surface { box-shadow: var(--card-shadow); }
+  .rounded-card.bg-surface {
+    box-shadow: var(--card-shadow);
+  }
 }
 
-.tabular { font-variant-numeric: tabular-nums; }
-@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+    animation: none !important;
+  }
+}

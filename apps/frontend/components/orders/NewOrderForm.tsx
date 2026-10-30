@@ -50,12 +50,17 @@ export function NewOrderForm({ onResult }: { onResult: (msg: { ok: boolean; text
   }, []);
 
   const byLocation = useMemo(() => new Map(inventory.map((i) => [i.location.toUpperCase(), i])), [inventory]);
-  const resolved = lines.map((l) => (l.location.trim() ? byLocation.get(l.location.trim().toUpperCase()) ?? null : undefined));
+  const resolved = lines.map((l) =>
+    l.location.trim() ? (byLocation.get(l.location.trim().toUpperCase()) ?? null) : undefined,
+  );
   const invalid = resolved.some((r, i) => r === null || (r && r.stock < lines[i].quantity));
   const chosen = resolved.filter((r): r is InventoryItem => !!r);
 
   // Robots sorted for the first chosen rack (or just free first when racks are random).
-  const options = robotOptions(robots, chosen[0] ? { items: [{ product_id: chosen[0].product_id, quantity: 1 }] } : null);
+  const options = robotOptions(
+    robots,
+    chosen[0] ? { items: [{ product_id: chosen[0].product_id, quantity: 1 }] } : null,
+  );
 
   const randomRacks = () => {
     const inStock = inventory.filter((i) => i.stock > 0);
@@ -70,7 +75,10 @@ export function NewOrderForm({ onResult }: { onResult: (msg: { ok: boolean; text
     try {
       const res = await api.orders.create({
         priority,
-        items: chosen.map((c, i) => ({ product_id: c.product_id, quantity: lines.filter((l) => l.location.trim())[i]?.quantity ?? 1 })),
+        items: chosen.map((c, i) => ({
+          product_id: c.product_id,
+          quantity: lines.filter((l) => l.location.trim())[i]?.quantity ?? 1,
+        })),
         robot_id: robotId || null,
       });
       onResult({ ok: true, text: `${res.order_id} created${res.robot_id ? ` and assigned to ${res.robot_id}` : ""}` });
@@ -110,7 +118,11 @@ export function NewOrderForm({ onResult }: { onResult: (msg: { ok: boolean; text
       <fieldset className="mt-4">
         <div className="flex items-center justify-between">
           <legend className="text-xs text-muted">Pick from racks</legend>
-          <button type="button" onClick={randomRacks} className="flex items-center gap-1 text-xs text-muted hover:text-ink">
+          <button
+            type="button"
+            onClick={randomRacks}
+            className="flex items-center gap-1 text-xs text-muted hover:text-ink"
+          >
             <Shuffle size={12} /> Random
           </button>
         </div>
@@ -138,18 +150,31 @@ export function NewOrderForm({ onResult }: { onResult: (msg: { ok: boolean; text
                     min={1}
                     max={20}
                     value={line.quantity}
-                    onChange={(e) => setLines(lines.map((l, j) => (j === i ? { ...l, quantity: Math.max(1, Number(e.target.value) || 1) } : l)))}
+                    onChange={(e) =>
+                      setLines(
+                        lines.map((l, j) =>
+                          j === i ? { ...l, quantity: Math.max(1, Number(e.target.value) || 1) } : l,
+                        ),
+                      )
+                    }
                     aria-label={`Quantity ${i + 1}`}
                     className="w-14 rounded-control border border-border bg-canvas px-2 py-1 text-xs"
                   />
                   {lines.length > 1 && (
-                    <button type="button" onClick={() => setLines(lines.filter((_, j) => j !== i))} aria-label="Remove rack" className="text-muted hover:text-ink">
+                    <button
+                      type="button"
+                      onClick={() => setLines(lines.filter((_, j) => j !== i))}
+                      aria-label="Remove rack"
+                      className="text-muted hover:text-ink"
+                    >
                       <X size={14} />
                     </button>
                   )}
                 </div>
                 {r === null && <p className="mt-0.5 text-[11px] text-danger">No rack {line.location.toUpperCase()}</p>}
-                {r && r.stock < line.quantity && <p className="mt-0.5 text-[11px] text-danger">Only {r.stock} in stock</p>}
+                {r && r.stock < line.quantity && (
+                  <p className="mt-0.5 text-[11px] text-danger">Only {r.stock} in stock</p>
+                )}
                 {r && r.stock >= line.quantity && <p className="mt-0.5 text-[11px] text-muted">{r.stock} in stock</p>}
               </div>
             );
@@ -164,7 +189,9 @@ export function NewOrderForm({ onResult }: { onResult: (msg: { ok: boolean; text
             <Plus size={12} /> Add rack
           </button>
         )}
-        {!chosen.length && <p className="mt-1 text-[11px] text-muted">Leave empty to let the system pick in-stock racks.</p>}
+        {!chosen.length && (
+          <p className="mt-1 text-[11px] text-muted">Leave empty to let the system pick in-stock racks.</p>
+        )}
         {loadError && <p className="mt-1 text-[11px] text-danger">Could not load racks: {loadError}</p>}
       </fieldset>
 
@@ -178,7 +205,8 @@ export function NewOrderForm({ onResult }: { onResult: (msg: { ok: boolean; text
           <option value="">Let the dispatcher choose</option>
           {options.map(({ robot, distance, reason }) => (
             <option key={robot.robot_id} value={robot.robot_id} disabled={!!reason}>
-              {robot.robot_id} — {reason ?? (distance !== null ? `${distance} m from first rack` : "free")} · {Math.round(robot.battery)}%
+              {robot.robot_id} — {reason ?? (distance !== null ? `${distance} m from first rack` : "free")} ·{" "}
+              {Math.round(robot.battery)}%
             </option>
           ))}
         </select>

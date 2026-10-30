@@ -18,7 +18,12 @@ export function Forklift() {
         <meshStandardMaterial color="#2b2f36" roughness={0.6} metalness={0.3} />
       </RoundedBox>
       {/* Wheels */}
-      {[[0.45, 0.5], [0.45, -0.5], [-0.6, 0.48], [-0.6, -0.48]].map(([x, z], i) => (
+      {[
+        [0.45, 0.5],
+        [0.45, -0.5],
+        [-0.6, 0.48],
+        [-0.6, -0.48],
+      ].map(([x, z], i) => (
         <mesh key={i} position={[x, 0.3, z]} rotation-x={Math.PI / 2} castShadow>
           <cylinderGeometry args={[i < 2 ? 0.3 : 0.24, i < 2 ? 0.3 : 0.24, 0.22, 24]} />
           <meshStandardMaterial {...WHEEL} />
@@ -36,7 +41,12 @@ export function Forklift() {
         <meshStandardMaterial color="#111" />
       </mesh>
       {/* Overhead guard */}
-      {[[0.35, 0.5], [0.35, -0.5], [-0.65, 0.5], [-0.65, -0.5]].map(([x, z], i) => (
+      {[
+        [0.35, 0.5],
+        [0.35, -0.5],
+        [-0.65, 0.5],
+        [-0.65, -0.5],
+      ].map(([x, z], i) => (
         <mesh key={i} position={[x, 1.55, z]} rotation-z={i < 2 ? -0.08 : 0} castShadow>
           <boxGeometry args={[0.06, 1.3, 0.06]} />
           <meshStandardMaterial color="#1f1f1f" metalness={0.5} roughness={0.5} />
@@ -111,7 +121,14 @@ export function Pallet({ load = true, layers = 2 }: { load?: boolean; layers?: n
           )}
           <mesh position={[0, (ch * layers) / 2, 0]}>
             <boxGeometry args={[0.79, ch * layers + 0.01, 1.2]} />
-            <meshPhysicalMaterial color="#e8f1f8" transparent opacity={0.2} roughness={0.1} clearcoat={1} depthWrite={false} />
+            <meshPhysicalMaterial
+              color="#e8f1f8"
+              transparent
+              opacity={0.2}
+              roughness={0.1}
+              clearcoat={1}
+              depthWrite={false}
+            />
           </mesh>
         </group>
       )}
@@ -214,11 +231,13 @@ export function Props({ width, height }: { width: number; height: number }) {
         <PalletJack />
       </group>
       {/* Bollards protecting the dock door frames */}
-      {doorXs(width).flatMap((d) => [d - 1.9, d + 1.9]).map((x) => (
-        <group key={x} position={[x, 0, -height / 2 - 0.3]}>
-          <Bollard />
-        </group>
-      ))}
+      {doorXs(width)
+        .flatMap((d) => [d - 1.9, d + 1.9])
+        .map((x) => (
+          <group key={x} position={[x, 0, -height / 2 - 0.3]}>
+            <Bollard />
+          </group>
+        ))}
       <group position={[width / 2 + 1.5, 0, south]}>
         <Pallet load layers={3} />
       </group>

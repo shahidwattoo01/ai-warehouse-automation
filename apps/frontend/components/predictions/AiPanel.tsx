@@ -18,18 +18,27 @@ function Card({ title, children, foot }: { title: string; children: React.ReactN
 
 /** Forecast vs actual orders for the last simulated hours (bars = actual, line marks = forecast). */
 function DemandChart({ history }: { history: Predictions["demand"]["history"] }) {
-  if (!history.length) return <div className="mt-3 text-xs text-muted">The chart fills in as simulated hours pass.</div>;
+  if (!history.length)
+    return <div className="mt-3 text-xs text-muted">The chart fills in as simulated hours pass.</div>;
   const max = Math.max(1, ...history.flatMap((h) => [h.actual, h.forecast ?? 0]));
   const w = 100 / history.length;
   return (
-    <svg viewBox="0 0 100 40" className="mt-2 h-16 w-full" preserveAspectRatio="none" role="img" aria-label="Forecast versus actual orders per hour">
+    <svg
+      viewBox="0 0 100 40"
+      className="mt-2 h-16 w-full"
+      preserveAspectRatio="none"
+      role="img"
+      aria-label="Forecast versus actual orders per hour"
+    >
       {history.map((h, i) => {
         const ah = (h.actual / max) * 38;
         const fy = 40 - ((h.forecast ?? 0) / max) * 38;
         return (
           <g key={h.hour}>
             <rect x={i * w + w * 0.15} y={40 - ah} width={w * 0.7} height={ah} className="fill-accent/40" />
-            {h.forecast != null && <rect x={i * w + w * 0.05} y={fy - 0.6} width={w * 0.9} height={1.2} className="fill-ink" />}
+            {h.forecast != null && (
+              <rect x={i * w + w * 0.05} y={fy - 0.6} width={w * 0.9} height={1.2} className="fill-ink" />
+            )}
           </g>
         );
       })}
@@ -150,7 +159,9 @@ export function AiPanel() {
               <li key={id} className="flex justify-between">
                 <span className="font-mono">{id}</span>
                 <span className="tabular text-muted">
-                  {(o.eta_tick ?? 0) - time > 0 ? `in ${simDuration((o.eta_tick ?? 0) - time, secondsPerTick)}` : "any moment"}
+                  {(o.eta_tick ?? 0) - time > 0
+                    ? `in ${simDuration((o.eta_tick ?? 0) - time, secondsPerTick)}`
+                    : "any moment"}
                 </span>
               </li>
             ))}
