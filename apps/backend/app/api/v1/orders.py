@@ -9,6 +9,7 @@ from __future__ import annotations
 
 from fastapi import APIRouter, HTTPException
 
+from app.core.auth import need
 from app.schemas.simulation import AssignOrderRequest, CreateOrderRequest
 from app.services.simulator import simulator
 from simulation.environment.engine import Command
@@ -29,14 +30,14 @@ def _error(status: int, code: str, message: str) -> HTTPException:
     return HTTPException(status, detail={"code": code, "message": message})
 
 
-@router.get("")
+@router.get("", dependencies=[need("dashboard:view")])
 async def list_orders() -> list[dict]:
     """List orders (pending first, then in progress, then finished; oldest first within each)."""
     orders = [o.to_dict() for o in simulator.engine.orders.values()]
     return sorted(orders, key=lambda o: (STATUS_ORDER.get(o["status"], 9), o["order_time"]))
 
 
-@router.post("", status_code=202)
+@router.post("", status_code=202, dependencies=[need("orders:create")])
 async def create_order(body: CreateOrderRequest) -> dict:
     """Create an order as an operator. With no items, random in-stock products are picked."""
     engine = simulator.engine
@@ -65,7 +66,7 @@ async def create_order(body: CreateOrderRequest) -> dict:
     return {"queued": "create_order", "order_id": order_id, "robot_id": body.robot_id}
 
 
-@router.post("/{order_id}/assign", status_code=202)
+@router.post("/{order_id}/assign", status_code=202, dependencies=[need("orders:assign")])
 async def assign_order(order_id: str, body: AssignOrderRequest) -> dict:
     """Assign a waiting order to a specific robot (manual dispatch)."""
     engine = simulator.engine

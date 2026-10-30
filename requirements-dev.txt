@@ -12,7 +12,6 @@ ipykernel==7.4.0         # runs the notebooks
 nbconvert==7.17.2        # executes notebooks from the command line
 nbformat==5.11.1
 matplotlib==3.11.2       # notebook charts, scripts/run_experiments.py figures
-reportlab==5.0.1         # PDF reports (scripts/build_project_report.py, RAG documents)
 
 # --- Data tooling ---
 playwright==1.63.0       # headless browser for the camera dataset (scripts/capture_frames.py)

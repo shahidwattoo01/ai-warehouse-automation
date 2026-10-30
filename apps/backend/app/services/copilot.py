@@ -23,6 +23,7 @@ from collections import deque
 from pathlib import Path
 
 from ai.nlp.commands import INTENTS
+from app.services.knowledge import knowledge
 from simulation.environment.engine import Command, SimulationEngine
 from simulation.events.events import Event
 
@@ -175,7 +176,7 @@ class Copilot:
                     )
         return out
 
-    async def chat(self, text: str) -> dict:
+    async def chat(self, text: str, user: str = "system") -> dict:
         """Understand a message; answer read-only commands, propose write commands."""
         result = await self.parse(text)
         reply: dict = {"understanding": result, "problems": [], "action": None, "answer": None}
@@ -192,6 +193,7 @@ class Copilot:
                 "text": text,
                 "tool_calls": result["tool_calls"],
                 "created": time.time(),
+                "asked_by": user,
             }
             summary = describe(result["tool_calls"])
             unsure = result["confidence"] < SURE_CONFIDENCE
@@ -203,12 +205,20 @@ class Copilot:
                 else f"I will {summary}. Approve?"
             )
         else:
-            reply["answer"], reply["data"] = self.run_read(result["tool_calls"])
-            self._log(text, result["tool_calls"], "answered")
+            knowledge_answer = None
+            for call in result["tool_calls"]:
+                if call["name"] == "search_knowledge":  # ~1 s of CPU: off the event loop
+                    knowledge_answer = await knowledge.ask(call["arguments"]["query"])
+            reply["answer"], reply["data"] = self.run_read(result["tool_calls"], knowledge_answer)
+            self._log(text, result["tool_calls"], "answered", user)
         return reply
 
     # ----- approval --------------------------------------------------------------------------
-    def approve(self, action_id: str) -> dict:
+    def pending(self, action_id: str) -> dict | None:
+        self._expire()
+        return self.actions.get(action_id)
+
+    def approve(self, action_id: str, user: str = "system") -> dict:
         self._expire()
         action = self.actions.pop(action_id, None)
         if action is None:
@@ -218,13 +228,21 @@ class Copilot:
         if problems:
             return {"ok": False, "answer": " ".join(problems)}
         answer = self.run_write(action["tool_calls"])
-        self._log(action["text"], action["tool_calls"], "approved and executed")
+        self._log(
+            action["text"],
+            action["tool_calls"],
+            "approved and executed",
+            action.get("asked_by"),
+            user,
+        )
         return {"ok": True, "answer": answer}
 
-    def reject(self, action_id: str) -> dict:
+    def reject(self, action_id: str, user: str = "system") -> dict:
         action = self.actions.pop(action_id, None)
         if action:
-            self._log(action["text"], action["tool_calls"], "rejected")
+            self._log(
+                action["text"], action["tool_calls"], "rejected", action.get("asked_by"), user
+            )
         return {"ok": True, "answer": "Cancelled, nothing was changed."}
 
     def _expire(self) -> None:
@@ -232,9 +250,18 @@ class Copilot:
         for key in [k for k, a in self.actions.items() if now - a["created"] > ACTION_TTL_S]:
             del self.actions[key]
 
-    def _log(self, text: str, calls: list[dict], outcome: str) -> None:
+    def _log(
+        self, text: str, calls: list[dict], outcome: str, asked_by=None, decided_by=None
+    ) -> None:
         self.history.appendleft(
-            {"tick": self.engine.time, "text": text, "tool_calls": calls, "outcome": outcome}
+            {
+                "tick": self.engine.time,
+                "text": text,
+                "tool_calls": calls,
+                "outcome": outcome,
+                "asked_by": asked_by,
+                "decided_by": decided_by,
+            }
         )
 
     # ----- tools -----------------------------------------------------------------------------
@@ -279,7 +306,7 @@ class Copilot:
             return "Queued: " + "; ".join(done) + ". It takes effect when the simulation runs."
         return "Done: " + "; ".join(done) + "."
 
-    def run_read(self, calls: list[dict]) -> tuple[str, dict]:
+    def run_read(self, calls: list[dict], knowledge_answer: dict | None = None) -> tuple[str, dict]:
         eng = self.engine
         answers, data = [], {}
         for call in calls:
@@ -332,11 +359,9 @@ class Copilot:
                 )
             elif name == "calculate_route":
                 answers.append(self._route_answer(a))
-            elif name == "search_knowledge":
-                answers.append(
-                    "Answers from the warehouse manuals and SOPs arrive with the knowledge "
-                    "base (Phase 7, RAG)."
-                )
+            elif name == "search_knowledge" and knowledge_answer is not None:
+                answers.append(knowledge_answer["answer"])
+                data["knowledge"] = knowledge_answer
         return " ".join(answers), data
 
     def _route_answer(self, a: dict) -> str:

@@ -30,13 +30,13 @@ async def lifespan(_: FastAPI):
 settings = get_settings()
 app = FastAPI(title=settings.app_name, version="0.1.0", lifespan=lifespan)
 # Order matters: the origin check runs first, then CORS answers preflights for allowed origins.
-# No cookies or auth headers are used, so credentials stay off.
+# Credentials are allowed only for the listed origins (never "*").
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_list,
-    allow_credentials=False,
+    allow_credentials=True,  # the refresh-token cookie (httpOnly) is sent to /auth
     allow_methods=["GET", "POST", "PUT"],
-    allow_headers=["Content-Type"],
+    allow_headers=["Content-Type", "Authorization"],
 )
 app.add_middleware(OriginCheckMiddleware, allowed_origins=settings.cors_list)
 app.include_router(api_router, prefix=settings.api_prefix)

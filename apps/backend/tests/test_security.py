@@ -39,8 +39,17 @@ def test_stream_refuses_other_sites(client):
     assert closed.value.code == 1008
 
 
-def test_stream_sends_layout_then_state_without_inventory(client):
+def test_stream_needs_a_token_as_its_first_message(client):
+    with pytest.raises(WebSocketDisconnect) as closed:
+        with client.websocket_connect("/api/v1/simulation/stream", headers=OURS) as ws:
+            ws.send_json({"type": "auth", "token": "not-a-token"})
+            ws.receive_text()
+    assert closed.value.code == 4401
+
+
+def test_stream_sends_layout_then_state_without_inventory(client, ws_token):
     with client.websocket_connect("/api/v1/simulation/stream", headers=OURS) as ws:
+        ws.send_json({"type": "auth", "token": ws_token})
         layout = ws.receive_json()
         tick = ws.receive_json()
     assert layout["type"] == "layout" and layout["layout"]["width"] > 0

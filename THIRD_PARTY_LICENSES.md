@@ -36,6 +36,10 @@ advice: for commercial use, have the licences reviewed.)
 | torch, torchvision (PyTorch) | BSD-3-Clause | |
 | opencv-python (installed with ultralytics) | Apache-2.0 | |
 | transformers, tokenizers, safetensors, huggingface-hub (Hugging Face) | Apache-2.0 | Phase 6 command model |
+| sentence-transformers | Apache-2.0 | Phase 7 embeddings and reranker |
+| PyJWT, argon2-cffi | MIT | Login: access tokens and password hashing |
+| pypdf | BSD-3-Clause | Phase 7 text extraction from the document PDFs |
+| anthropic (Anthropic Python SDK) | Apache-2.0 | Optional Claude-written answers; API use is billed per request |
 
 Development and reporting only (not part of the running service): pytest (MIT), ruff (MIT),
 pip-audit (Apache-2.0), jupyter / nbconvert / ipykernel (BSD-3-Clause), matplotlib (PSF-based),
@@ -69,3 +73,8 @@ reportlab (BSD-3-Clause), playwright (Apache-2.0).
 * **DistilBERT** (`distilbert-base-uncased`, Hugging Face): Apache-2.0. The fine-tuned copy in
   `models/nlp_distilbert_v1/` may be used and redistributed under the same terms (keep the licence
   notice). It was pretrained on English Wikipedia and BookCorpus.
+* **all-MiniLM-L6-v2** (embeddings) and **ms-marco-MiniLM-L6-v2** (cross-encoder reranker),
+  sentence-transformers / Hugging Face: Apache-2.0. Downloaded once to the Hugging Face cache.
+* **Warehouse documents** (`data/documents/`): written for this project; no third-party text.
+* **Claude** (optional answer writer): a paid API service under Anthropic's commercial terms; no
+  model weights are shipped. Off unless `LLM_PROVIDER=anthropic` and a key are configured.

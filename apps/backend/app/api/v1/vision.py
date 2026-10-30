@@ -9,6 +9,7 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
 from ai.computer_vision.live import detector
+from app.core.auth import need
 
 router = APIRouter(prefix="/vision", tags=["vision"])
 
@@ -21,7 +22,7 @@ class DetectRequest(BaseModel):
     )
 
 
-@router.get("/status")
+@router.get("/status", dependencies=[need("dashboard:view")])
 def status() -> dict:
     """Whether the detector is available, its classes, thresholds and test scores. Also starts
     loading the model in the background, so the first detection does not wait for it."""
@@ -29,7 +30,7 @@ def status() -> dict:
     return detector.status()
 
 
-@router.post("/detect")
+@router.post("/detect", dependencies=[need("vision:use")])
 def detect(body: DetectRequest) -> dict:
     """Detect robots, workers, shelves, dropped parcels, obstacles and closed-aisle barriers in
     one camera frame. Runs on the CPU (about 0.5-1 s per 640 x 480 frame); safety detections are

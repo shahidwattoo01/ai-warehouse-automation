@@ -5,6 +5,7 @@ from fastapi import APIRouter
 from app.api.v1 import (
     agents,
     analytics,
+    auth,
     copilot,
     inventory,
     navigation,
@@ -15,9 +16,12 @@ from app.api.v1 import (
     simulation,
     tools,
     vision,
+    wms,
 )
 
 api_router = APIRouter()
+api_router.include_router(auth.router)
+api_router.include_router(auth.users_router)
 api_router.include_router(simulation.router)
 api_router.include_router(robots.router)
 api_router.include_router(orders.router)
@@ -30,3 +34,4 @@ api_router.include_router(agents.router)
 api_router.include_router(tools.router)
 api_router.include_router(copilot.router)
 api_router.include_router(analytics.router)
+api_router.include_router(wms.router)

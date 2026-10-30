@@ -8,12 +8,14 @@ from pathlib import Path
 import pandas as pd
 from fastapi import APIRouter, HTTPException
 
+from app.core.auth import need
+
 router = APIRouter(prefix="/analytics", tags=["analytics"])
 
 REPORT = Path(__file__).resolve().parents[5] / "evaluation" / "reports" / "phase4"
 
 
-@router.get("/experiments")
+@router.get("/experiments", dependencies=[need("analytics:view")])
 def experiments() -> dict:
     """Phase 4 results written by scripts/run_experiments.py: per-experiment means and spread,
     and the paired change vs the E2 baseline."""

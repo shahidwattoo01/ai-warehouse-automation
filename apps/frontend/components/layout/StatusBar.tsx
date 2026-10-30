@@ -19,12 +19,19 @@ export function StatusBar() {
     <div className="flex h-8 items-center gap-6 border-b border-border bg-surface/60 px-6 text-xs text-muted">
       {!connected && <span className="text-warning">Reconnecting…</span>}
       <span>
-        Robots <b className="tabular text-ink">{robots.filter(isActive).length}/{robots.length}</b> active
+        Robots{" "}
+        <b className="tabular text-ink">
+          {robots.filter(isActive).length}/{robots.length}
+        </b>{" "}
+        active
       </span>
       <span>
         Orders <b className="tabular text-ink">{pending}</b> pending
       </span>
-      <span className={alerts ? "text-danger" : ""} title="Faulted, paused, below 20% battery, or flagged abnormal by the anomaly model">
+      <span
+        className={alerts ? "text-danger" : ""}
+        title="Faulted, paused, below 20% battery, or flagged abnormal by the anomaly model"
+      >
         Alerts <b className="tabular">{alerts}</b>
       </span>
       <span className="ml-auto font-mono">

@@ -2,6 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import { useEffect } from "react";
+import { useAuth } from "@/lib/auth";
 import { useSim } from "@/lib/store";
 
 /**
@@ -11,6 +12,8 @@ import { useSim } from "@/lib/store";
 export function SimProvider({ children }: { children: React.ReactNode }) {
   const connect = useSim((s) => s.connect);
   const capture = usePathname()?.startsWith("/capture") ?? false;
-  useEffect(() => (capture ? undefined : connect()), [connect, capture]);
+  const loggedIn = useAuth((s) => s.status === "authenticated");
+  // The stream needs a logged-in user: it authenticates with the access token.
+  useEffect(() => (capture || !loggedIn ? undefined : connect()), [connect, capture, loggedIn]);
   return <>{children}</>;
 }

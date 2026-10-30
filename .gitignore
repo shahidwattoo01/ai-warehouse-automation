@@ -35,3 +35,6 @@ evaluation/reports/*
 Thumbs.db
 .vscode/
 .idea/
+
+# Development test users (created by scripts/create_dev_users.py; never commit)
+dev_users.local.json

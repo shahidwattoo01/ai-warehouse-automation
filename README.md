@@ -92,6 +92,10 @@ Trained models are not in Git (see [`models/README.md`](models/README.md)): copy
 
 ![Copilot: what the model understood, and actions waiting for approval](docs/images/copilot.png)
 
+![Knowledge: an answer from the SOPs with its sources and the cited section](docs/images/knowledge.png)
+
+![Inventory (WMS): items by location, lot and license plate, GS1 barcode, reorder settings and the ledger](docs/images/inventory_item.png)
+
 ## Build phases and results
 
 | # | Phase | Status | Result (held-out test data unless noted) |
@@ -102,7 +106,7 @@ Trained models are not in Git (see [`models/README.md`](models/README.md)): copy
 | 4 | Optimisation | ✅ | Best strategy E4d (Hungarian on predicted ETAs): −21 % delivery time, −40 % late orders, 5/5 days |
 | 5 | Deep learning + vision | ✅ | LSTM faults F1 0.835 (14/14 days) · demand networks MAE 7.42 · YOLO11s mAP@0.5 0.908 · Vision page |
 | 6 | NLP + Transformers | ✅ | Copilot commands: DistilBERT exact tool call 0.807 vs 0.725 TF-IDF · approval-gated actions · Copilot page |
-| 7 | RAG | ⏳ | Answers from warehouse manuals with sources |
+| 7 | RAG | ✅ | Knowledge assistant: right section in top 3 for 96 % of test questions, first citation right 87 % · Knowledge page |
 | 8 | Tools + agents | ⏳ | Copilot that plans and executes approved actions |
 | 9 | Multi-agent + RL | ⏳ | RL navigation compared with A\* |
 | 10 | Integration | ⏳ | All layers connected end to end |
@@ -110,9 +114,21 @@ Trained models are not in Git (see [`models/README.md`](models/README.md)): copy
 | 12 | Finalization | ⏳ | Deployment, final report, presentation |
 
 Details: [`docs/phase4_optimization.md`](docs/phase4_optimization.md),
-[`docs/phase5_deep_learning_vision.md`](docs/phase5_deep_learning_vision.md), [`docs/phase6_nlp.md`](docs/phase6_nlp.md), the beginner's
+[`docs/phase5_deep_learning_vision.md`](docs/phase5_deep_learning_vision.md), [`docs/phase6_nlp.md`](docs/phase6_nlp.md), [`docs/phase7_rag.md`](docs/phase7_rag.md), inventory management [`docs/wms_inventory.md`](docs/wms_inventory.md), the beginner's
 guide [`docs/phase4_phase5_explained.md`](docs/phase4_phase5_explained.md), and the main report
 [`reports/Project_Progress_Report.pdf`](reports/Project_Progress_Report.pdf) (see `reports/README.md`).
+
+## Users and login
+
+Everyone logs in with an account; roles (administrator, supervisor, operator, inventory clerk,
+viewer) decide what each person can see and do. First admin:
+
+```bash
+cd apps/backend && alembic upgrade head
+python scripts/create_user.py --username <you> --name "<Your Name>" --role admin
+```
+
+Details: [`docs/authentication.md`](docs/authentication.md).
 
 ## Training
 
@@ -122,7 +138,7 @@ runs a notebook end to end and checks the model it writes:
 ```bash
 python scripts/generate_data.py            # dataset v3 -> data/processed/
 python scripts/train.py --list             # models, notebooks, current test results
-python scripts/train.py --model eta        # or: --phase 3, --model anomaly_lstm, --phase 6, ...
+python scripts/train.py --model eta        # or: --phase 3, --model anomaly_lstm, --phase 6, --model rag, ...
 python scripts/register_model.py --db      # show models / register them in model_versions
 ```
 

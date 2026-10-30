@@ -23,7 +23,10 @@ export function StrategySelect() {
 
   if (!Object.keys(presets).length) return null;
   return (
-    <label className="flex items-center gap-1.5 text-xs text-muted" title={current ? presets[current]?.description : undefined}>
+    <label
+      className="flex items-center gap-1.5 text-xs text-muted"
+      title={current ? presets[current]?.description : undefined}
+    >
       Strategy
       <select
         aria-label="Decision strategy"

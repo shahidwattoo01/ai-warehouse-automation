@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from fastapi import APIRouter, HTTPException
 
+from app.core.auth import need
 from app.services.simulator import simulator
 from simulation.environment.engine import Command
 from simulation.warehouse.entities import Robot
@@ -24,24 +25,24 @@ def _describe(robot: Robot) -> dict:
     return {**robot.to_dict(), **simulator.engine.controller.activity(robot)}
 
 
-@router.get("")
+@router.get("", dependencies=[need("dashboard:view")])
 async def list_robots() -> list[dict]:
     return [_describe(r) for r in simulator.engine.robots.values()]
 
 
-@router.get("/{robot_id}")
+@router.get("/{robot_id}", dependencies=[need("dashboard:view")])
 async def get_robot(robot_id: str) -> dict:
     return _describe(_robot(robot_id))
 
 
-@router.post("/{robot_id}/pause", status_code=202)
+@router.post("/{robot_id}/pause", status_code=202, dependencies=[need("robots:command")])
 async def pause_robot(robot_id: str) -> dict:
     _robot(robot_id)
     simulator.engine.submit(Command("pause_robot", {"robot_id": robot_id}))
     return {"queued": "pause_robot", "robot_id": robot_id}
 
 
-@router.post("/{robot_id}/resume", status_code=202)
+@router.post("/{robot_id}/resume", status_code=202, dependencies=[need("robots:command")])
 async def resume_robot(robot_id: str) -> dict:
     _robot(robot_id)
     simulator.engine.submit(Command("resume_robot", {"robot_id": robot_id}))

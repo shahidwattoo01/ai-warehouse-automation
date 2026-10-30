@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { SimProvider } from "@/components/layout/SimProvider";
-import { Sidebar } from "@/components/layout/Sidebar";
+import { AuthGate } from "@/components/layout/AuthGate";
 import { THEME_BOOT_SCRIPT } from "@/lib/theme";
 
 export const metadata: Metadata = {
@@ -17,10 +17,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body>
         <SimProvider>
-          <div className="flex h-screen overflow-hidden">
-            <Sidebar />
-            <main className="flex min-w-0 flex-1 flex-col">{children}</main>
-          </div>
+          <AuthGate>{children}</AuthGate>
         </SimProvider>
       </body>
     </html>

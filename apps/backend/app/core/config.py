@@ -25,6 +25,20 @@ class Settings(BaseSettings):
     # Record interactive runs to PostgreSQL (app/database/schema.sql); needs a migrated DB.
     persist_runs: bool = False
     sim_tick_hz: float = 2.0  # 1 cell per tick -> 2 m/s, a realistic AMR cruise speed
+    # Inventory: "wms" (receiving, lots, allocation, replenishment, counts; wms/) or "simple"
+    # (one stock number per bay, the model behind dataset v3 and the Phase 4 experiments).
+    inventory_model: str = "wms"
+
+    # Authentication (JWT access tokens + rotating refresh tokens; app/core/auth.py).
+    # Set JWT_SECRET in .env (python -c "import secrets; print(secrets.token_urlsafe(48))").
+    # Empty: a random secret is made at start-up, so everyone logs in again after a restart.
+    jwt_secret: str = ""
+    access_token_minutes: int = 15
+    refresh_token_days: int = 7
+    login_max_failures: int = 5  # failed logins in a row before the account is locked
+    lockout_minutes: int = 15
+    cookie_secure: bool = False  # true behind HTTPS (backlog PR-02): cookies only over TLS
+    auth_store: str = "sql"  # sql (users table) | memory (tests)
 
     llm_provider: str = ""
     llm_model: str = ""

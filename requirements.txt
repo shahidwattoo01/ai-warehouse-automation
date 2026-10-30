@@ -36,7 +36,19 @@ tokenizers==0.23.3
 safetensors==0.8.0
 huggingface-hub==2.2.0   # downloads distilbert-base-uncased once, then works offline
 
+# --- RAG: the knowledge assistant (Phase 7) ---
+pypdf==6.20.0                # text from the document PDFs
+sentence-transformers==6.2.0 # MiniLM embeddings and the cross-encoder reranker
+anthropic==2.3.0             # optional: Claude-written answers (LLM_PROVIDER=anthropic)
+
+# --- Users and login (app/core/auth.py) ---
+pyjwt==2.15.1                # JWT access tokens (HS256)
+argon2-cffi==25.1.0          # Argon2id password hashing
+argon2-cffi-bindings==26.1.0
+
+# --- Warehouse management (wms/) ---
+reportlab==5.0.1             # GS1 / Code 128 / EAN-13 labels (PDF) and screen barcodes (SVG)
+
 # --- Added when their phase starts (not used by the code yet, so not installed) ---
-# pypdf, pgvector                       Phase 7 RAG
 # langgraph, langchain-core             Phase 8 agents
 # gymnasium                             Phase 9 reinforcement learning

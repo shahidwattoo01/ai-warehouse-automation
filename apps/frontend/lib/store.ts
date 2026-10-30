@@ -1,6 +1,7 @@
 "use client";
 
 import { create } from "zustand";
+import { refreshSession, useAuth } from "./auth";
 import { initialQuality, type Quality, saveQuality } from "./quality";
 import type { LayoutSnapshot, Predictions, Strategy, StreamMessage, WarehouseState } from "./types";
 
@@ -44,18 +45,22 @@ export const useSim = create<SimStore>((set, get) => ({
     let delay = 1000; // reconnect backoff: 1 s, doubling up to 10 s
 
     const open = () => {
-      ws = new WebSocket(WS_URL);
-      ws.onopen = () => {
+      const socket = new WebSocket(WS_URL);
+      ws = socket;
+      socket.onopen = () => {
         delay = 1000;
+        // Authenticate with the first message (browsers cannot add headers to a WebSocket).
+        socket.send(JSON.stringify({ type: "auth", token: useAuth.getState().token }));
         set({ connected: true });
       };
-      ws.onclose = () => {
+      socket.onclose = async (e) => {
         set({ connected: false });
         if (closed) return;
+        if (e.code === 4401 && !(await refreshSession())) return; // logged out: stop retrying
         retry = setTimeout(open, delay); // App Flow §10: auto-reconnect
         delay = Math.min(delay * 2, 10_000);
       };
-      ws.onmessage = (e) => {
+      socket.onmessage = (e) => {
         let msg: StreamMessage;
         try {
           msg = JSON.parse(e.data);

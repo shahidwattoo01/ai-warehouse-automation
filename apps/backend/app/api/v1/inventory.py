@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from fastapi import APIRouter, HTTPException
 
+from app.core.auth import need
 from app.services.simulator import simulator
 
 router = APIRouter(prefix="/inventory", tags=["inventory"])
@@ -26,13 +27,13 @@ def _item(product_id: str) -> dict:
     }
 
 
-@router.get("")
+@router.get("", dependencies=[need("wms:view")])
 async def list_inventory() -> list[dict]:
     """Every product with its rack location and stock (order forms, the copilot)."""
     return [_item(p) for p in sorted(simulator.engine.inventory.face)]
 
 
-@router.get("/{product_id}")
+@router.get("/{product_id}", dependencies=[need("wms:view")])
 async def get_inventory(product_id: str) -> dict:
     """Stock and shelf location of one product."""
     if product_id not in simulator.engine.inventory:

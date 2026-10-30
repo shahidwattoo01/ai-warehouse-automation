@@ -9,6 +9,7 @@ testpaths = ["tests", "apps/backend/tests"]
 pythonpath = [".", "apps/backend"]
 # Both test folders are packages named "tests"; importlib mode keeps them apart.
 addopts = "--import-mode=importlib"
+markers = ["real_auth: log in for real instead of the default test administrator"]
 
 [tool.ruff]
 line-length = 100
