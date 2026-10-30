@@ -112,6 +112,19 @@ SQL_UPDATE_STOCK = text("""
 UPDATE inventory SET stock = :stock, updated_tick = :tick
 WHERE run_id = :run_id AND product_id = :product_id""")
 
+SQL_INSERT_WMS_TXNS = text("""
+INSERT INTO wms_transactions (run_id, txn_id, tick, type, sku, qty, from_loc, to_loc, lot, lpn,
+                              status, reason, ref, user_name, serials)
+VALUES (:run_id, :txn_id, :tick, :type, :sku, :qty, :from_loc, :to_loc, :lot, :lpn, :status,
+        :reason, :ref, :user, :serials)
+ON CONFLICT DO NOTHING""")
+
+SQL_UPSERT_WMS_STOCK = text("""
+INSERT INTO wms_stock (run_id, sku, location, lot, status, lpn, qty, updated_tick)
+VALUES (:run_id, :sku, :location, :lot, :status, :lpn, :qty, :tick)
+ON CONFLICT (run_id, sku, location, lot, status, lpn) DO UPDATE
+SET qty = EXCLUDED.qty, updated_tick = EXCLUDED.updated_tick""")
+
 
 @dataclass
 class Batch:
@@ -124,6 +137,8 @@ class Batch:
     stock: dict[str, dict] = field(default_factory=dict)  # latest row per product (upsert)
     predictions: list[dict] = field(default_factory=list)  # finished model predictions
     alerts: list[dict] = field(default_factory=list)
+    wms_txns: list[dict] = field(default_factory=list)  # WMS ledger lines (inventory_model: wms)
+    wms_stock: dict[tuple, dict] = field(default_factory=dict)  # latest balance per stock key
 
     def empty(self) -> bool:
         return not (
@@ -136,6 +151,8 @@ class Batch:
             or self.stock
             or self.predictions
             or self.alerts
+            or self.wms_txns
+            or self.wms_stock
         )
 
 
@@ -194,6 +211,7 @@ class RunStore:
                     ],
                 )
             self._batch, self._known_orders, self._task_ids = Batch(), set(), {}
+            self._collect_wms(engine, everything=True)  # opening WMS balances of this run
             log.info("Recording simulation run %s to the database", self.run_id)
         except Exception as exc:  # database down, not migrated, or seeded with another layout
             self._disable(exc)
@@ -271,6 +289,7 @@ class RunStore:
                     "payload": json.dumps(e.payload, default=str),
                 }
             )
+        self._collect_wms(engine)
         if tick % STATUS_EVERY == 0:
             for r in engine.robots.values():
                 moves = engine.controller.recent_moves.get(r.robot_id) or [0]
@@ -289,6 +308,48 @@ class RunStore:
                         "temperature": round(r.temperature, 2),
                     }
                 )
+
+    def _collect_wms(self, engine: SimulationEngine, everything: bool = False) -> None:
+        """New WMS ledger lines, and the current balance of every stock row they touched
+        (everything=True: all rows, the opening balance of a run)."""
+        wms = getattr(engine.inventory, "wms", None)
+        if wms is None:
+            return
+        b, run, inv = self._batch, self.run_id, wms.inv
+        touched: set[tuple[str, str]] = set()
+        for t in inv.take_new_transactions():
+            b.wms_txns.append(
+                {
+                    "run_id": run,
+                    **{k: v for k, v in t.to_dict().items() if k != "txn_id"},
+                    "txn_id": t.txn_id,
+                }
+            )
+            touched.update({(t.sku, t.from_loc), (t.sku, t.to_loc)})
+        keys = (
+            list(inv.stock)
+            if everything
+            else [
+                k
+                for sku, loc in touched
+                if loc
+                for k in inv._by_sku.get(sku, ())
+                if k.location == loc
+            ]
+        )
+        for k in keys:
+            if inv.locations.get(k.location) and inv.locations[k.location].type.value == "ROBOT":
+                continue
+            b.wms_stock[(k.sku, k.location, k.lot, k.status.value, k.lpn or "")] = {
+                "run_id": run,
+                "sku": k.sku,
+                "location": k.location,
+                "lot": k.lot,
+                "status": k.status.value,
+                "lpn": k.lpn or "",
+                "qty": inv.stock.get(k, 0),
+                "tick": inv.tick,
+            }
 
     @staticmethod
     def _order_of(engine: SimulationEngine, e: Event) -> str | None:
@@ -376,6 +437,8 @@ class RunStore:
             (SQL_UPDATE_STOCK, list(b.stock.values())),
             (SQL_INSERT_PREDICTIONS, b.predictions),
             (SQL_INSERT_ALERTS, b.alerts),
+            (SQL_INSERT_WMS_TXNS, b.wms_txns),
+            (SQL_UPSERT_WMS_STOCK, list(b.wms_stock.values())),
         ]
         try:
             with self._lock, self.db.begin() as conn:

@@ -192,3 +192,36 @@ def test_activating_a_new_model_version_retires_the_old_one(db_url):
     finally:
         with engine.begin() as conn:
             conn.execute(text("DELETE FROM model_versions WHERE model_name = :n"), {"n": name})
+
+
+def test_the_wms_ledger_and_balances_are_recorded(db_url):
+    sim = SimulationEngine(seed=7, overrides={"inventory_model": "wms"})
+    store = RunStore(db_url)
+    store.start_run(sim)
+    assert store.enabled and store.run_id
+    run_id = store.run_id
+    try:
+        sim.start()
+        for tick in range(700):  # past the first hour: counts and purchasing run
+            store.collect(sim, sim.tick())
+            if tick % 100 == 99:
+                store.flush()
+        store.end_run(sim)
+        assert store.enabled, "a write failed and switched recording off"
+        inv = sim.inventory.wms.inv
+        with create_engine(db_url).connect() as conn:
+            txns = conn.execute(
+                text("SELECT type, count(*) FROM wms_transactions WHERE run_id = :r GROUP BY type"),
+                {"r": run_id},
+            ).all()
+            db_units = conn.execute(
+                text("SELECT coalesce(sum(qty), 0) FROM wms_stock WHERE run_id = :r"), {"r": run_id}
+            ).scalar()
+        by_type = dict(txns)
+        assert sum(by_type.values()) == len(inv.ledger)
+        assert by_type.get("PICK", 0) > 0 and by_type.get("SHIP", 0) > 0
+        on_robots = sum(q for k, q in inv.stock.items() if k.location.startswith("ROBOT:"))
+        assert db_units == sum(inv.stock.values()) - on_robots  # balances match the WMS
+    finally:
+        with create_engine(db_url).begin() as conn:
+            conn.execute(text("DELETE FROM simulation_runs WHERE run_id = :r"), {"r": run_id})

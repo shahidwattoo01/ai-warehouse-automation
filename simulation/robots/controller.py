@@ -394,8 +394,9 @@ class RobotController:
 
     def _finish_pick(self, robot: Robot, task: Task, order: Order) -> None:
         eng = self.engine
-        item = order.items[len(order.items) - len(task.stops)]
-        eng.inventory.take(item.product_id, item.quantity)
+        line = len(order.items) - len(task.stops)
+        item = order.items[line]
+        eng.inventory.picked(order, line, robot.robot_id)
         robot.load += 1
         robot.battery = max(0.0, robot.battery - eng.config["battery"]["drain_per_item"])
         eng.events.emit(
@@ -414,6 +415,7 @@ class RobotController:
         eng = self.engine
         order.status = OrderStatus.DELIVERED if eng.time <= order.deadline else OrderStatus.LATE
         order.delivered_at = eng.time
+        eng.inventory.shipped(order, robot.robot_id, order.destination)
         robot.load = 0
         robot.current_task = None
         m = task.metrics

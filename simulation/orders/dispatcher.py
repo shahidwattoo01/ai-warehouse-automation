@@ -37,7 +37,11 @@ class Dispatcher:
                 ctl.send_to_charger(robot)
 
         waiting = sorted(
-            (o for o in eng.orders.values() if o.status == OrderStatus.PENDING),
+            (
+                o
+                for o in eng.orders.values()
+                if o.status == OrderStatus.PENDING and eng.inventory.releasable(o.order_id)
+            ),
             key=lambda o: (PRIORITY_RANK[o.priority], o.order_time),
         )
         closed = eng.layout.grid.closed
@@ -95,6 +99,8 @@ class Dispatcher:
             reason = f"{order_id} is already {order.status.value.lower()}"
         elif self.needs_closed_cell(order):
             reason = f"{order_id} needs a rack in a closed aisle"
+        elif not eng.inventory.releasable(order_id):
+            reason = f"{order_id} is waiting for stock to be replenished"
         else:
             reason = eng.controller.unavailable_reason(robot)
         if reason:

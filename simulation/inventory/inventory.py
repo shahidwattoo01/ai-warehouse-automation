@@ -68,6 +68,25 @@ class Inventory:
                 del self._restock_due[product_id]
                 on_restock(product_id, added)
 
+    # Order hooks: the WMS model (simulation/inventory/wms_stock.py) allocates, picks and ships
+    # through its ledger; this simple model only takes stock off the bay when a robot picks.
+    def order_created(self, order) -> None:
+        pass
+
+    def releasable(self, order_id: str) -> bool:
+        return True
+
+    def picked(self, order, line: int, robot_id: str) -> tuple[int, int]:
+        item = order.items[line]
+        self.take(item.product_id, item.quantity)
+        return item.quantity, 0
+
+    def shipped(self, order, robot_id: str, station: str) -> None:
+        pass
+
+    def cancelled(self, order_id: str) -> None:
+        pass
+
     @staticmethod
     def location(product_id: str) -> str:
         """Rack location label, e.g. "A-05-12" (zone A, row y=5, bay x=12)."""

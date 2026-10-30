@@ -47,7 +47,12 @@ class OrderGenerator:
             return None
         lo, hi = self.cfg["items_per_order"]
         count = min(len(in_stock), self.rng.randint(lo, hi))
-        products = self.rng.sample(in_stock, count)
+        weights = getattr(inventory, "weights", None)  # WMS model: popular items more often
+        products = (
+            self._weighted(in_stock, count, weights)
+            if weights
+            else self.rng.sample(in_stock, count)
+        )
         return Order(
             order_id=self.next_id(),
             items=[OrderItem(p, self.rng.randint(1, 3)) for p in products],
@@ -55,6 +60,16 @@ class OrderGenerator:
             order_time=time,
             deadline=self._deadline(time, priority),
         )
+
+    def _weighted(self, candidates: list[str], count: int, weights: dict[str, float]) -> list[str]:
+        """`count` different products, each drawn with probability proportional to its weight."""
+        chosen: list[str] = []
+        pool = list(candidates)
+        for _ in range(count):
+            pick = self.rng.choices(pool, weights=[weights[p] for p in pool])[0]
+            chosen.append(pick)
+            pool.remove(pick)
+        return chosen
 
     def operator_order(
         self,

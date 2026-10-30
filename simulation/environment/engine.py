@@ -98,7 +98,18 @@ class SimulationEngine:
         self._commands: list[Command] = []
 
         # Construction order matters: each part draws from self.rng in turn.
-        self.inventory = Inventory(self.layout, self.stream("inventory"))
+        if self.config.get("inventory_model", "simple") == "wms":
+            from simulation.inventory.wms_stock import WmsStock
+
+            self.inventory = WmsStock(
+                self.layout,
+                self.seed,
+                self.config.get("ticks_per_hour", 3600),
+                self.config.get("wms"),
+                self.config.get("orders"),
+            )
+        else:
+            self.inventory = Inventory(self.layout, self.stream("inventory"))
         self.controller = RobotController(self)
         self._spawn_robots()
         self.workers = Workers(self)
@@ -227,6 +238,7 @@ class SimulationEngine:
 
     def _add_order(self, order: Order) -> None:
         self.orders[order.order_id] = order
+        self.inventory.order_created(order)  # WMS model: allocate the stock now
         payload = {"priority": order.priority.value, "source": order.source}
         self.events.emit(Event(self.time, EventType.ORDER_CREATED, order.order_id, payload))
 

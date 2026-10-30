@@ -12,7 +12,7 @@ const LOW_STOCK = 10; // the simulator reorders a bay below this
 const PAGE_SIZE = 100;
 
 /** Products, rack locations and live stock (project map §4 Layer 1 entities, §22 dashboard). */
-export default function InventoryPage() {
+export function SimpleInventory() {
   const [items, setItems] = useState<InventoryItem[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [query, setQuery] = useState("");
@@ -57,9 +57,18 @@ export default function InventoryPage() {
   return (
     <Screen title="Inventory">
       <div className="grid grid-cols-4 gap-4">
-        <KpiCard label="Products (rack bays)" value={items.length.toLocaleString()} hint={`${categories.length} categories`} />
+        <KpiCard
+          label="Products (rack bays)"
+          value={items.length.toLocaleString()}
+          hint={`${categories.length} categories`}
+        />
         <KpiCard label="Units in stock" value={units.toLocaleString()} />
-        <KpiCard label="Low stock" value={low} hint={`below ${LOW_STOCK} units`} tone={low > 0 ? "warning" : "normal"} />
+        <KpiCard
+          label="Low stock"
+          value={low}
+          hint={`below ${LOW_STOCK} units`}
+          tone={low > 0 ? "warning" : "normal"}
+        />
         <KpiCard label="Replenishment on the way" value={restocking} />
       </div>
 
@@ -120,7 +129,9 @@ export default function InventoryPage() {
                 <td className="py-1.5 pr-3">{i.name}</td>
                 <td className="py-1.5 pr-3 text-muted">{i.category}</td>
                 <td className="tabular py-1.5 pr-3 text-right">{i.weight_kg.toFixed(2)}</td>
-                <td className={`tabular py-1.5 pr-3 text-right ${i.stock < LOW_STOCK ? "text-danger" : ""}`}>{i.stock}</td>
+                <td className={`tabular py-1.5 pr-3 text-right ${i.stock < LOW_STOCK ? "text-danger" : ""}`}>
+                  {i.stock}
+                </td>
                 <td className="py-1.5 text-muted">{i.restocking ? "On the way" : "—"}</td>
               </tr>
             ))}
