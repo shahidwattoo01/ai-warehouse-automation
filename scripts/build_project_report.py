@@ -12,6 +12,7 @@ Reads only generated results, so it can be rebuilt whenever they change:
     models/*_report.json                 Layer 3 model test scores (notebooks/01-05)
     models/anomaly_dl_v1_report.json, demand_dl_v1_report.json, vision_yolo_v1/   Layer 5 (07-09)
     models/nlp_distilbert_v1/report.json                                           Layer 6 (10-11)
+    models/rag_v1.json                                                             Layer 7 (12)
     evaluation/reports/phase4/runs.csv   Layer 4 experiments (scripts/run_experiments.py)
     evaluation/reports/phase4/figures/   charts
     configs/experiments/*.yaml           strategy definitions
@@ -358,6 +359,102 @@ def layer6_section() -> list:
     return out
 
 
+def layer7_section() -> list:
+    """Section 13: Phase 7 knowledge assistant (RAG), from notebooks/12_rag.ipynb."""
+    out = [PageBreak(), p("13. Layer 7 — Knowledge assistant: RAG (Phase 7)", H2)]
+    out += [p("Operators ask about procedures and rules; the answer comes from the six warehouse documents (120 "
+              "numbered sections), never from a model's memory. The assistant <b>retrieves</b> the 3 best sections, "
+              "checks that the best one is relevant enough (otherwise it says the documents do not cover the question "
+              "and shows the closest passages) and <b>answers</b> by quoting the best section with its id. All choices "
+              "were made on 38 development questions; 56 test questions were scored once.", NOTE)]  # fmt: skip
+    r = json.loads((MODELS / "rag_v1.json").read_text(encoding="utf-8"))
+    rows = [["Chunking", "Retriever", "hit@3", "all@3", "MRR", "cite@1", "Words read"]]
+    names = {
+        "bm25": "BM25",
+        "dense": "Dense (MiniLM)",
+        "hybrid": "Hybrid (RRF)",
+        "rerank": "Hybrid + rerank",
+    }
+    grid = sorted(
+        r["development_grid"],
+        key=lambda g: (g["chunking"] != "section", g["chunking"], g["retriever"]),
+    )
+    chosen = 0
+    for g in grid:
+        if (
+            g["chunking"] == r["settings"]["chunking"]
+            and g["retriever"] == r["settings"]["retriever"]
+        ):
+            chosen = len(rows)
+        rows.append([g["chunking"], names.get(g["retriever"], g["retriever"]), f"{g['hit@3']:.3f}",
+                     f"{g['all@3']:.3f}", f"{g['MRR']:.3f}", f"{g['cite@1']:.3f}", str(g["words_read"])])  # fmt: skip
+    out += [p("Which chunking and retriever? (development questions, top 3 passages)", H3),
+            table(rows, [34, 34, 22, 22, 22, 22, 24], highlight={chosen: "#E3F4EA"})]  # fmt: skip
+    rows = [["Test (52 answerable questions)", "hit@3", "all@3", "MRR", "cite@1", "ms / question"]]
+    for t in r["test_retrieval"]:
+        rows.append([t["setup"], f"{t['hit@3']:.3f}", f"{t['all@3']:.3f}", f"{t['MRR']:.3f}",
+                     f"{t['cite@1']:.3f}", f"{t['ms_per_question']:.0f}"])  # fmt: skip
+    out += [
+        Spacer(1, 4),
+        p("Retrieval on test", H3),
+        table(rows, [60, 24, 24, 24, 24, 30], highlight={1: "#E3F4EA"}),
+    ]
+    rows = [["Answer writer (test)", "Covered decision right", "Cites a right section", "Token F1"]]
+    for name, a in r["test_answers"].items():
+        rows.append([name, f"{a['covered_decision_right']:.3f}", f"{a['cites_a_right_section']:.3f}",
+                     f"{a['answer_token_F1']:.3f}"])  # fmt: skip
+    nc = r["not_covered"]
+    out += [Spacer(1, 4), p("Answers and the not-covered decision", H3), table(rows, [60, 40, 40, 30]),
+            p(f"<b>hit@3</b>: a right section among the 3 retrieved; <b>cite@1</b>: the first one (the main citation) "
+              "is right; <b>MRR</b>: 1 / rank of the first right passage. Sections beat fixed word windows on "
+              "citations (a 120-word window spans ~4 sections), and the cross-encoder puts the right section first "
+              f"more often. Not covered (threshold {nc['threshold']}): {nc['unanswerable_refused']} unanswerable test "
+              f"questions refused, but also {nc['answerable_wrongly_refused']} answerable ones. Extractive answers "
+              "cannot invent facts and cite exactly; they cannot combine or rephrase sections (token F1 measures word "
+              "overlap with the reference answer). Claude can write the answers from the same sections when an API "
+              "key is configured (off by default).", NOTE)]  # fmt: skip
+    shot = ROOT / "docs" / "images" / "knowledge.png"
+    if shot.exists():
+        out += [PageBreak(), p("The Knowledge page", H3), Image(str(shot), width=240 * mm, height=150 * mm),
+                p("An answer quoted from SOP-04 with its citation, the three retrieved sources with their reranker "
+                  "scores, the cited section opened in the viewer, and the document browser.", NOTE)]  # fmt: skip
+    return out
+
+
+def backlog_section() -> list:
+    """Section 16: what separates the project from professional warehouse software, and the
+    phase that will close each gap (reports/professional_backlog.yaml)."""
+    items = yaml.safe_load((REPORTS / "professional_backlog.yaml").read_text(encoding="utf-8"))[
+        "items"
+    ]
+    done = sum(i["status"] == "done" for i in items)
+    partial = sum(i["status"] == "partial" for i in items)
+    out = [PageBreak(), p("16. Professional-readiness backlog", H2)]
+    out += [p("Compared with professional warehouse software (WMS such as Manhattan, Blue Yonder or SAP EWM; robot "
+              "fleet managers such as Locus, GreyOrange or Geek+), the platform is strongest in its AI and decision "
+              "layer and simplified or missing in warehouse processes, integration, users and operations. Every gap "
+              "below is planned into a remaining phase and is to be implemented before the project is final. "
+              f"<b>{done} of {len(items)} done, {partial} partly done.</b>", NOTE)]  # fmt: skip
+    by_phase: dict[int, int] = {}
+    for i in items:
+        by_phase[i["phase"]] = by_phase.get(i["phase"], 0) + 1
+    out += [p("Items per phase: " + " · ".join(f"Phase {k}: {v}" for k, v in sorted(by_phase.items()))
+              + ". Priority: high = expected by any real customer, medium = needed for a credible pilot, low = "
+              "completes the picture. Effort: S days, M 1-2 weeks, L several weeks.", NOTE), Spacer(1, 4)]  # fmt: skip
+    rank = {"high": 0, "medium": 1, "low": 2}
+    rows = [
+        ["ID", "Area", "Gap today", "What will be built", "Phase", "Priority", "Effort", "Status"]
+    ]
+    highlight = {}
+    for i in sorted(items, key=lambda i: (i["phase"], rank[i["priority"]], i["id"])):
+        if i["status"] in ("done", "partial"):
+            highlight[len(rows)] = "#E3F4EA" if i["status"] == "done" else "#FFF4D6"
+        rows.append([i["id"], i["area"], i["gap"], i["build"], str(i["phase"]), i["priority"], i["effort"],
+                     i["status"] + (f" ({i['evidence']})" if i.get("evidence") else "")])  # fmt: skip
+    out += [table(rows, [14, 20, 55, 110, 12, 16, 12, 18], highlight=highlight)]
+    return out
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument(
@@ -395,7 +492,7 @@ def main() -> None:
         p("Warehouse AI Platform — Project Progress Report", H1),
         p(
             f"Phases 1–{done[-1]['id']} complete · Baseline vs Layer 3 (Classical ML) vs Layer 4 (Optimisation) "
-            "vs Layer 5 (Deep learning + vision) · Layer 6 (operator commands) · "
+            "vs Layer 5 (Deep learning + vision) · Layer 6 (operator commands) · Layer 7 (knowledge assistant) · "
             f"simulated 80 × 50 m warehouse, 40 AMRs · built {date.today():%d %B %Y}",
             NOTE,
         ),
@@ -440,7 +537,10 @@ def main() -> None:
             "peaks); the <b>YOLO11s</b> detector reaches mAP@0.5 0.908 on held-out camera images. Details in section 11. "
             "<b>Layer 6</b> (Phase 6) adds the operator copilot: a fine-tuned <b>DistilBERT</b> turns 80.7 % of commands "
             "phrased in new ways into exactly the right action (TF-IDF 72.5 %, keyword rules 65.6 %); every action "
-            "that changes the warehouse needs the operator's approval. Details in section 12."
+            "that changes the warehouse needs the operator's approval. Details in section 12. "
+            "<b>Layer 7</b> (Phase 7) adds the knowledge assistant: for 96 % of test questions the right document "
+            "section is among the 3 retrieved, and the first citation is right for 87 %; questions the documents do "
+            "not cover get a refusal instead of a guess. Details in section 13."
         ),
         Spacer(1, 6),
     ]
@@ -503,6 +603,10 @@ def main() -> None:
         ["BIO tags", "One label per word: B- begins an entity, I- continues it, O is outside; turns entity finding into word classification."],
         ["Exact tool call", "The command is completely right: intent, every entity value and the resulting action all match."],
         ["DistilBERT / fine-tuning", "A 66 M-parameter Transformer pretrained on English text, then trained a little further on our commands."],
+        ["RAG / chunk", "Retrieval-augmented generation: find the passages (chunks) that answer a question, then answer from them only."],
+        ["Embedding / BM25", "Meaning search with vectors of 384 numbers / keyword search weighting rare words; combined by Reciprocal Rank Fusion."],
+        ["Cross-encoder (reranker)", "A model that reads question and passage together and scores the pair; used to re-order the best candidates."],
+        ["hit@k / MRR / cite@1", "Right passage among the top k / 1 ÷ rank of the first right passage / the first passage is a right citation."],
     ]  # fmt: skip
     story += [table(gloss, [45, 214])]
 
@@ -721,7 +825,8 @@ def main() -> None:
     # ===== 10. Interpretation & limits ==========================================================
     story += layer5_section()
     story += layer6_section()
-    story += [PageBreak(), p("13. Interpretation", H2)]
+    story += layer7_section()
+    story += [PageBreak(), p("14. Interpretation", H2)]
     for text in (
         f"<b>Why {BEST} wins.</b> At peak hours the fleet is overloaded: in the baseline more than half of an order's "
         f"completion time ({b.avg_queue_ticks:.0f} of {b.avg_completion_ticks:.0f} ticks) is waiting for a robot. Matching all "
@@ -742,9 +847,13 @@ def main() -> None:
         "<b>Layer 6: the model understands, rules act.</b> The Transformer wins because it reads words in context "
         "(it fixed 164 test messages TF-IDF got wrong, broke 41); the entities were already solved by both. Keeping "
         "the action deterministic, checked and approved makes the remaining 19 % of errors visible instead of harmful.",
+        "<b>Layer 7: find it, cite it, or say so.</b> Cutting documents along their own sections and re-reading the "
+        "candidates with a cross-encoder matter more than the search method: they decide whether the first citation "
+        'is right. Saying "not covered" is the hardest part: retrieval scores of answerable and unanswerable '
+        "questions overlap, so the threshold trades refusals of real questions against guesses.",
     ):
         story += [p(text), Spacer(1, 4)]
-    story += [p("14. Validity and limitations", H2)]
+    story += [p("15. Validity and limitations", H2)]
     for text in (
         "Paired design with common random numbers: every strategy faced identical orders, faults and hazards; "
         f"{BEST} improved completion time and late % on all 5 days.",
@@ -760,17 +869,20 @@ def main() -> None:
         "its own data, and the detector needs domain randomisation and labelled real footage (sim-to-real gap).",
         "Layer 6 commands are template-generated English; real operators' phrasing must be collected and labelled "
         "before the accuracy figures apply to a real site.",
+        "Layer 7 is evaluated on 94 questions about documents written for this simulator; real manuals (scans, "
+        "figures, versions, contradictions) and real operators' questions need their own evaluation set.",
         "Ultralytics YOLO is AGPL-3.0 (see THIRD_PARTY_LICENSES.md).",
     ):
         story += [p("• " + text), Spacer(1, 2)]
     story += [
         Spacer(1, 6),
         p(
-            "Sources: models/*_report.json, models/vision_yolo_v1/evaluation.json, models/nlp_distilbert_v1/report.json, evaluation/reports/phase4/runs.csv, "
+            "Sources: models/*_report.json, models/vision_yolo_v1/evaluation.json, models/nlp_distilbert_v1/report.json, models/rag_v1.json, evaluation/reports/phase4/runs.csv, "
             "vs_baseline.csv, manifest.json, configs/experiments/*.yaml. Rebuild: python scripts/build_project_report.py",
             NOTE,
         ),
     ]
+    story += backlog_section()
 
     OUT.parent.mkdir(parents=True, exist_ok=True)
     doc = SimpleDocTemplate(str(OUT), pagesize=landscape(A4), leftMargin=15 * mm, rightMargin=15 * mm,

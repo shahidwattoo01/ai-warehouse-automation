@@ -20,8 +20,10 @@
 10. Charts
 11. Layer 5: deep learning (faults, demand) and the object detector, with the Vision page
 12. Layer 6: operator commands (rules, TF-IDF, DistilBERT) and the Copilot
-13. Interpretation
-14. Validity and limitations
+13. Layer 7: the knowledge assistant (RAG) and the Knowledge page
+14. Interpretation
+15. Validity and limitations
+16. Professional-readiness backlog: every gap to professional warehouse software, with the phase that closes it (`professional_backlog.yaml`)
 
 ## Updating at the end of a phase
 

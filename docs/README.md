@@ -16,11 +16,14 @@
 | [phase4_optimization.md](phase4_optimization.md) | Phase 4: routing, assignment, positioning, charging; experiment design and results |
 | [phase5_deep_learning_vision.md](phase5_deep_learning_vision.md) | Phase 5: deep learning for faults and demand, the YOLO detector, live integration, results |
 | [phase6_nlp.md](phase6_nlp.md) | Phase 6: operator commands — dataset, baselines, DistilBERT, the Copilot and its approval step |
+| [phase7_rag.md](phase7_rag.md) | Phase 7: the knowledge assistant — chunking, hybrid retrieval and reranking, not-covered, the Knowledge page |
+| [wms_inventory.md](wms_inventory.md) | Inventory management (WMS): GS1 barcodes, lots and expiry, receiving and putaway, allocation, replenishment, purchasing, cycle counts, the ledger |
+| [authentication.md](authentication.md) | Users, roles and login: the permission table, how tokens work, setting up the first admin |
 | [phase4_phase5_explained.md](phase4_phase5_explained.md) | Beginner's guide: every technique of Phases 4-5, how it works, why, and where the code is |
 | [phase3_role_and_roadmap.md](phase3_role_and_roadmap.md) | Phase 3 role and the roadmap of all phases |
 | [class_overview.md](class_overview.md) | Technical overview and dataset v3 |
 | [model_cards/](model_cards/README.md) | One card per model: use, data, test results, limitations |
-| [adr/](adr/) | Architecture decision records (001 3D rendering · 002 LSTM live · 003 demand default · 004 detector process · 005 safety thresholds · 006 copilot approvals) |
+| [adr/](adr/) | Architecture decision records (001 3D rendering · 002 LSTM live · 003 demand default · 004 detector process · 005 safety thresholds · 006 copilot approvals · 007 RAG design · 008 WMS ledger · 009 login and roles) |
 
 The main progress report (phase by phase, with KPIs) is `reports/Project_Progress_Report.pdf`;
 security and licences: [SECURITY.md](../SECURITY.md), [THIRD_PARTY_LICENSES.md](../THIRD_PARTY_LICENSES.md).

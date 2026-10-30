@@ -1,0 +1,298 @@
+# Professional-readiness backlog: everything between this project and real warehouse software
+# (comparison of 24 Oct 2026, extended by the audit of 30 Oct 2026). Every item is planned into a remaining phase and must be done
+# before the project is final. Rendered as its own page in the progress report
+# (scripts/build_project_report.py); set `status: done` and `evidence:` when an item is finished.
+#
+# priority: high = expected by any real customer · medium = needed for a credible pilot ·
+#           low = completes the picture
+# effort:   S (days) · M (1-2 weeks) · L (several weeks)
+
+items:
+  # ----- Users and security ---------------------------------------------------------------
+  - id: PR-01
+    area: Security
+    gap: No login; anyone who can open the app controls the warehouse
+    build: Login, roles (operator, supervisor, admin) with permissions per action; every approval and command recorded with the user who made it
+    phase: 10
+    priority: high
+    effort: M
+    status: done
+    evidence: "JWT access + rotating refresh tokens, 5 roles / 18 permissions on every endpoint, user admin page, login audit; docs/authentication.md"
+  - id: PR-02
+    area: Security
+    gap: Local-only hardening
+    build: HTTPS, rate limiting, secrets from a vault / environment only, security headers, session expiry
+    phase: 12
+    priority: high
+    effort: S
+    status: planned
+
+  # ----- Fleet and execution --------------------------------------------------------------
+  - id: PR-03
+    area: Fleet
+    gap: A robot carries one order per trip
+    build: Batch picking (several orders per trip, tote capacity), batching rules compared in the experiments
+    phase: 9
+    priority: high
+    effort: M
+    status: planned
+  - id: PR-04
+    area: Fleet
+    gap: No time-based traffic control
+    build: Path reservation over time (no head-on meetings), deadlock detection and recovery, intersection rules
+    phase: 9
+    priority: high
+    effort: M
+    status: planned
+  - id: PR-05
+    area: Fleet
+    gap: Robots move cell by cell without physics
+    build: Acceleration, braking and turning times, finer positions; travel times calibrated to a real AMR data sheet
+    phase: 9
+    priority: medium
+    effort: M
+    status: planned
+  - id: PR-06
+    area: Fleet
+    gap: One layout and fleet size
+    build: Scale runs with 100+ robots and a second layout; performance limits documented
+    phase: 11
+    priority: medium
+    effort: M
+    status: planned
+
+  # ----- Warehouse processes (WMS) -------------------------------------------------------
+  - id: PR-07
+    area: WMS
+    gap: Stock appears by automatic replenishment only
+    build: Receiving at dock doors (advance shipping notices, checking, discrepancies) and putaway rules to rack locations
+    phase: 10
+    priority: high
+    effort: L
+    status: done
+    evidence: "wms/ receiving by ASN at dock doors, damage to quarantine, directed putaway; docs/wms_inventory.md"
+  - id: PR-08
+    area: WMS
+    gap: Orders end at the packing station
+    build: Packing workflow, shipping labels, carrier cut-off times driving order deadlines, wave planning, dispatch confirmation
+    phase: 10
+    priority: high
+    effort: L
+    status: planned
+  - id: PR-09
+    area: WMS
+    gap: Simple stock per bay
+    build: Lots and expiry dates (FEFO), serial numbers, cycle counting with discrepancies, stock adjustments with reasons
+    phase: 10
+    priority: medium
+    effort: M
+    status: done
+    evidence: "lots + FEFO expiry, serial numbers, blind ABC cycle counts with recount and approval, reason codes"
+  - id: PR-10
+    area: WMS
+    gap: No slotting
+    build: Slotting optimisation (fast movers near packing) using the demand forecasts, measured in the experiments
+    phase: 9
+    priority: medium
+    effort: M
+    status: planned
+  - id: PR-11
+    area: WMS
+    gap: No returns
+    build: "Returns: receive, inspect, restock or scrap, with reasons"
+    phase: 10
+    priority: low
+    effort: S
+    status: partial
+    evidence: "RMA receipt on QC hold, restock or scrap; an inspection screen is still missing"
+
+  # ----- Integration ----------------------------------------------------------------------
+  - id: PR-12
+    area: Integration
+    gap: Robots are controlled inside the simulator only
+    build: VDA 5050 interface over MQTT (orders, instant actions, state messages); the simulated robots act as VDA 5050 vehicles
+    phase: 10
+    priority: high
+    effort: M
+    status: planned
+  - id: PR-13
+    area: Integration
+    gap: No business system connection
+    build: ERP connector (order import, stock and shipment sync over REST/webhooks) with a mock ERP
+    phase: 10
+    priority: high
+    effort: M
+    status: planned
+  - id: PR-14
+    area: Integration
+    gap: No scanning
+    build: Barcode / RFID scan events from simulated handhelds at receiving, picking and packing
+    phase: 10
+    priority: medium
+    effort: S
+    status: done
+    evidence: "GS1 scan parser, keyboard-wedge and camera scanning, printable GS1 labels"
+  - id: PR-15
+    area: Integration
+    gap: Events stay inside one process
+    build: Message bus (MQTT or Kafka) for robot, order and alert events; other systems can subscribe
+    phase: 10
+    priority: medium
+    effort: M
+    status: planned
+
+  # ----- Operations ------------------------------------------------------------------------
+  - id: PR-16
+    area: Operations
+    gap: No production monitoring
+    build: Health and readiness checks, structured logs, metrics (Prometheus) and dashboards (Grafana), alert rules
+    phase: 12
+    priority: high
+    effort: M
+    status: planned
+  - id: PR-17
+    area: Operations
+    gap: Single process, no recovery
+    build: Restart recovery of the warehouse state, database backups and restore test, stateless API behind a load balancer
+    phase: 12
+    priority: high
+    effort: M
+    status: planned
+  - id: PR-18
+    area: Operations
+    gap: No load testing
+    build: Load and soak tests (API, live stream, many browser clients), response-time targets
+    phase: 11
+    priority: medium
+    effort: S
+    status: planned
+  - id: PR-19
+    area: Operations
+    gap: Models are trained once
+    build: "MLOps: drift monitoring of live predictions against outcomes, retraining trigger, model versions promoted after tests"
+    phase: 11
+    priority: medium
+    effort: M
+    status: planned
+
+  # ----- AI realism -------------------------------------------------------------------------
+  - id: PR-20
+    area: AI
+    gap: Results come from simulator data only
+    build: Sim-to-real plan; domain randomisation for the vision data; adapters for real telemetry and order history
+    phase: 11
+    priority: medium
+    effort: M
+    status: planned
+  - id: PR-21
+    area: AI
+    gap: Copilot understands fixed English commands only
+    build: Agent planning beyond the 17 intents, Urdu and English, voice input, a loop that collects and labels real operator phrasing
+    phase: 8
+    priority: medium
+    effort: L
+    status: planned
+  - id: PR-22
+    area: AI
+    gap: Knowledge base is six fixed, clean documents
+    build: Upload and version new documents in the app, OCR for scanned PDFs, LLM-written answers with citations, an evaluation set per site
+    phase: 8
+    priority: medium
+    effort: M
+    status: planned
+
+  # ----- Safety and compliance -------------------------------------------------------------
+  - id: PR-23
+    area: Safety
+    gap: Safety only in the simulation and the vision thresholds
+    build: Software emergency stop for the whole fleet, slow zones near people, a safety event log; documented hand-off to certified robot safety (ISO 3691-4, ANSI/RIA R15.08), which lives in the robot hardware
+    phase: 10
+    priority: high
+    effort: M
+    status: planned
+  - id: PR-24
+    area: Compliance
+    gap: Licence not decided
+    build: LICENSE file chosen by the owner; YOLO AGPL-3.0 decision (licence or permissive detector)
+    phase: 12
+    priority: high
+    effort: S
+    status: planned
+
+  # ----- added 28 Oct 2026 with the inventory review ---------------------------------------
+  - id: PR-25
+    area: WMS
+    gap: Stock was taken only at pick time, so the same unit could be promised twice
+    build: Allocation at order creation (FEFO / FIFO), available to promise, short-pick exceptions
+    phase: 10
+    priority: high
+    effort: M
+    status: done
+    evidence: "wms/inventory.py allocate / pick; orders released only when fully allocated"
+  - id: PR-26
+    area: WMS
+    gap: Fixed reorder point of 10 units for every item
+    build: Reorder point from learned demand per SKU over the supplier lead time plus safety stock; purchase orders in whole plates
+    phase: 10
+    priority: medium
+    effort: S
+    status: done
+    evidence: "wms/warehouse.py reorder_point / _plan_purchases"
+  - id: PR-27
+    area: AI
+    gap: Knowledge base still describes the simple stock rules
+    build: Update inventory_policies.md and the evaluation questions for the WMS, rebuild the knowledge base and re-run notebook 12
+    phase: 10
+    priority: medium
+    effort: S
+    status: planned
+
+  # ----- added 30 Oct 2026 with the full project audit -------------------------------------
+  - id: PR-28
+    area: WMS
+    gap: "Orders are only a priority, a deadline and lines: no customers, addresses, cancellations or backorders"
+    build: "Order management: customers and ship-to addresses, order holds and cancellation (releasing allocations), partial shipment and backorders, order status history"
+    phase: 10
+    priority: high
+    effort: M
+    status: planned
+  - id: PR-29
+    area: WMS
+    gap: Floor staff have no handheld screens; every page is built for the control room
+    build: "Mobile RF-style screens (receive, put away, pick, count, move) with one scan-and-confirm step per screen, usable on a phone or handheld"
+    phase: 10
+    priority: medium
+    effort: M
+    status: planned
+  - id: PR-30
+    area: Integration
+    gap: Labels print only as PDF and nothing can be exported
+    build: "ZPL output for industrial label printers (Zebra), CSV / PDF exports of stock, counts, transactions and shipments"
+    phase: 10
+    priority: medium
+    effort: S
+    status: planned
+  - id: PR-31
+    area: Operations
+    gap: The simulated associates have no productivity standards
+    build: "Labour management: engineered time standards per task, rates per person and shift, performance against standard, shift handover report"
+    phase: 11
+    priority: low
+    effort: M
+    status: planned
+  - id: PR-32
+    area: Operations
+    gap: Stock-outs, faults and count differences only appear on screen
+    build: "Alert centre: rules per event, email / push notifications, acknowledge and escalate, who acknowledged and when"
+    phase: 10
+    priority: medium
+    effort: S
+    status: planned
+  - id: PR-33
+    area: WMS
+    gap: One warehouse and one stock owner are assumed everywhere
+    build: "Several sites and clients (3PL): stock, orders and users separated per client and site, reports per client"
+    phase: 12
+    priority: low
+    effort: L
+    status: planned

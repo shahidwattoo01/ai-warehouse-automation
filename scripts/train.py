@@ -5,6 +5,7 @@
     python scripts/train.py --model anomaly_lstm   # Phase 5 LSTM (about 15 min on a laptop CPU)
     python scripts/train.py --phase 3              # all Phase 3 models, in order
     python scripts/train.py --phase 6              # NLP baselines, then DistilBERT (~1 h on CPU)
+    python scripts/train.py --model rag            # RAG settings and evaluation (~5 min)
     python scripts/train.py --model eta --no-save  # run it, but do not overwrite the notebook
 
 The notebooks are the single source of the training code (they explain every step), so this
@@ -75,12 +76,15 @@ PIPELINES: dict[str, tuple[int, str, list[str], str]] = {
         ["nlp_distilbert_v1/heads.pt", "nlp_distilbert_v1/report.json"],
         "nlp_dl",
     ),
+    "rag": (7, "12_rag.ipynb", ["rag_v1.json"], "rag"),
 }
 NLP_DATA = ROOT / "data" / "processed" / "nlp" / "commands.jsonl"
+RAG_DATA = ROOT / "data" / "processed" / "rag" / "questions.jsonl"
 NEEDS = {  # inputs that must exist before a notebook can run
     "vision": [MODELS / "vision_yolo_v1" / "best.pt"],
     "nlp_baselines": [NLP_DATA],
     "nlp_distilbert": [NLP_DATA, MODELS / "nlp_tfidf_v1.joblib"],
+    "rag": [RAG_DATA, ROOT / "data" / "documents" / "pdf" / "sops.pdf"],
 }
 DATASET = ROOT / "data" / "processed" / "classical_ml"
 
@@ -125,6 +129,13 @@ def headline(kind: str) -> str:
                 for k, v in s.items()
                 if k.endswith("| test")
             )
+        if kind == "rag":
+            r = load("rag_v1.json")
+            t = r["test_retrieval"][0]
+            return (
+                f"test hit@3 {t['hit@3']}, MRR {t['MRR']}, cite@1 {t['cite@1']}; "
+                f"unanswerable refused {r['not_covered']['unanswerable_refused']}"
+            )
         if kind == "nlp_dl":
             t = load("nlp_distilbert_v1/report.json")["test"]
             return " · ".join(
@@ -147,6 +158,8 @@ def run(name: str, save: bool) -> bool:
         print(f"✗ {name}: missing input {missing[0].relative_to(ROOT)}")
         if name.startswith("nlp"):
             print("  Generate the commands first: python scripts/generate_nlp_data.py")
+        elif name == "rag":
+            print("  Build the knowledge base first: python scripts/build_knowledge_base.py")
         elif name == "vision":
             print("  Train the detector on Colab first (notebooks/cloud/train_yolo_colab.ipynb).")
         else:
@@ -183,7 +196,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument("--model", choices=sorted(PIPELINES))
-    group.add_argument("--phase", type=int, choices=[3, 5, 6])
+    group.add_argument("--phase", type=int, choices=[3, 5, 6, 7])
     group.add_argument("--list", action="store_true", help="show the models and exit")
     parser.add_argument("--no-save", action="store_true", help="do not overwrite the notebook")
     args = parser.parse_args()
