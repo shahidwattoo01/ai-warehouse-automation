@@ -247,7 +247,8 @@ items:
     phase: 10
     priority: medium
     effort: S
-    status: planned
+    status: done
+    evidence: "Knowledge base v2: inventory policies rewritten for the WMS, shipping policies added, emergency stop / slow zones / safety log and SOP-11/12; 119 questions; notebook 12 re-run (test hit@3 0.970, cite@1 0.851, 4 of 4 unanswerable refused)"
 
   # ----- added 30 Oct 2026 with the full project audit -------------------------------------
   - id: PR-28

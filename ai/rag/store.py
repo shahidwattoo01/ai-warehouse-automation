@@ -3,7 +3,7 @@
     python scripts/ingest_documents.py --db      # PDFs -> chunks -> embeddings -> warehouse_docs
 
 Search uses pgvector's cosine distance operator (`<=>`) with the HNSW index, so it scales to
-thousands of documents; for the ~120 chunks here it returns the same ranking as the in-memory
+thousands of documents; for the ~180 chunks here it returns the same ranking as the in-memory
 search (a test checks this where pgvector is available).
 """
 

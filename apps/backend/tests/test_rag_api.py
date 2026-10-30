@@ -38,9 +38,12 @@ def client(chunks):
     knowledge.kb = original
 
 
-def test_status_describes_the_loaded_knowledge_base(client):
+def test_status_describes_the_loaded_knowledge_base(client, chunks):
+    from ai.rag.ingest import DOC_ORDER
+
     body = client.get(f"{API}/status").json()
-    assert body["loaded"] and body["documents"] == 6 and body["chunks"] == 120
+    assert body["loaded"] and body["documents"] == len(DOC_ORDER) == 7
+    assert body["chunks"] == len(chunks) > 170
     assert body["store"] == "memory" and body["generator"].startswith("extractive")
 
 
@@ -63,10 +66,11 @@ def test_input_is_validated(client):
     assert bad_type.status_code == 422
 
 
-def test_document_and_section_viewer(client):
+def test_document_and_section_viewer(client, chunks):
     docs = client.get(f"{API}/documents").json()
     assert [d["doc_id"] for d in docs][0] == "warehouse_manual"
-    assert sum(len(d["sections"]) for d in docs) == 120
+    assert docs[-1]["doc_id"] == "shipping_policies"
+    assert sum(len(d["sections"]) for d in docs) == len(chunks)
     section = client.get(f"{API}/sections/SOP-04").json()
     assert section["heading"] == "Overheating robot" and "60 C" in section["text"]
     assert client.get(f"{API}/sections/XX-9").status_code == 404

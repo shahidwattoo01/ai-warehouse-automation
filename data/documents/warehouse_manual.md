@@ -1,8 +1,8 @@
 ---
 doc_id: warehouse_manual
 title: Warehouse Operations Manual
-version: 3.0
-effective: 2026-09-07
+version: 4.0
+effective: 2026-10-30
 owner: Operations
 ---
 
@@ -160,6 +160,12 @@ bays and unloads in 3 ticks.
 
 WM-5.6 Manual assignment: an operator can switch the warehouse to manual mode. The dispatcher then
 assigns nothing and operators assign each order to a robot themselves (see SOP-08).
+
+WM-5.7 Delivery to the packing station ends the robot's part of an order. The order then continues
+in the warehouse management system: packed into cartons, sorted to its carrier's lane, loaded onto
+the carrier's truck at the shipping doors SHIP-01 to SHIP-03 and shipped when the truck leaves
+(see the Shipping and Outbound Policies, SHP-2 to SHP-5). Stock is allocated when the order is
+created and an order is only given to a robot once all its lines are allocated (INV-5).
 
 ## WM-6 Traffic rules
 

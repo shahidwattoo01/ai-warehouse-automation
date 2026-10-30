@@ -42,7 +42,7 @@ class Settings:
     candidates: int = 10
     # Minimum score of the best passage to answer. It must be a relevance score: the
     # cross-encoder logit (rerank) or cosine (dense); hybrid's fused score only reflects rank.
-    threshold: float = 0.663
+    threshold: float = -0.656
     answer_style: str = "section"  # extractive answers: "section" or "sentences"
     embedder: str = "sentence-transformers/all-MiniLM-L6-v2"
     reranker: str = "cross-encoder/ms-marco-MiniLM-L6-v2"

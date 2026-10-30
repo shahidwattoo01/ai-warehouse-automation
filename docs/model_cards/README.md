@@ -11,7 +11,7 @@ held-out data compared with a simple baseline, and where it should not be truste
 | [demand.md](demand.md) | Demand v1 · Gradient Boosting (+ v2 network, opt-in) | orders in the next hour | MAE 8.51 vs 10.34 baseline |
 | [anomaly.md](anomaly.md) | Anomaly v2 · LSTM (v1 XGBoost fallback) | is a robot developing a fault? | F1 0.835 vs 0.813 (v1) |
 | [vision.md](vision.md) | Vision v1 · YOLO11s | robots, workers, hazards in camera frames | mAP@0.5 0.908 |
-| [rag.md](rag.md) | Knowledge assistant v1 · sections + hybrid + rerank | answers from the documents with sources | hit@3 0.962, cite@1 0.865 |
+| [rag.md](rag.md) | Knowledge assistant v1 (knowledge base v2) · sections + hybrid + rerank | answers from the documents with sources | hit@3 0.970, cite@1 0.851 |
 | [nlp.md](nlp.md) | Commands v1 · DistilBERT (TF-IDF fallback) | intent + entities of operator commands | exact tool call 0.807 vs 0.725 |
 
 **Common to all models**

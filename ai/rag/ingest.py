@@ -27,6 +27,7 @@ DOC_ORDER = [
     "maintenance_guides",
     "sops",
     "inventory_policies",
+    "shipping_policies",
 ]
 DOC_TYPE = {  # warehouse_docs.doc_type: lets a query search one kind of document
     "warehouse_manual": "manual",
@@ -35,6 +36,7 @@ DOC_TYPE = {  # warehouse_docs.doc_type: lets a query search one kind of documen
     "maintenance_guides": "maintenance",
     "sops": "sop",
     "inventory_policies": "policy",
+    "shipping_policies": "policy",
 }
 SECTION_ID = re.compile(r"^([A-Z]{2,4}-\d+(?:\.\d+)?)\b\s*(.*)$")
 BULLET = re.compile(r"^[\x7f\uf0b7\u2022\u25aa\u25cf]\s*")  # bullet glyphs pypdf extracts
@@ -82,9 +84,13 @@ def _sections(lines: list[str]) -> list[tuple[str, str, list[str]]]:
     """(section id, heading, lines) for every block that starts with a section id."""
     out: list[tuple[str, str, list[str]]] = []
     heading = ""
-    for line in lines:
+    prefix = None  # every id of a document shares its prefix (WM-, SHP-); codes such as door
+    for line in lines:  # SHIP-01 at the start of a table row are not sections
         m = SECTION_ID.match(line)
+        if m and prefix and m.group(1).split("-")[0] != prefix:
+            m = None
         if m:
+            prefix = prefix or m.group(1).split("-")[0]
             sid, rest = m.groups()
             if "." not in sid and rest:  # "WM-2 Building layout" / "SOP-04 Overheating robot"
                 heading = rest

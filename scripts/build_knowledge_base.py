@@ -34,6 +34,7 @@ DOC_ORDER = [
     "maintenance_guides",
     "sops",
     "inventory_policies",
+    "shipping_policies",
 ]
 SECTION_ID = re.compile(r"^(?:#+\s+)?([A-Z]{2,4}-\d+(?:\.\d+)?)\b\s*(.*)$")
 

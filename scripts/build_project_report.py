@@ -362,11 +362,11 @@ def layer6_section() -> list:
 def layer7_section() -> list:
     """Section 13: Phase 7 knowledge assistant (RAG), from notebooks/12_rag.ipynb."""
     out = [PageBreak(), p("13. Layer 7 — Knowledge assistant: RAG (Phase 7)", H2)]
-    out += [p("Operators ask about procedures and rules; the answer comes from the six warehouse documents (120 "
-              "numbered sections), never from a model's memory. The assistant <b>retrieves</b> the 3 best sections, "
+    out += [p("Operators ask about procedures and rules; the answer comes from the seven warehouse documents (178 "
+              "section chunks; knowledge base v2 of 30 Oct 2026), never from a model's memory. The assistant <b>retrieves</b> the 3 best sections, "
               "checks that the best one is relevant enough (otherwise it says the documents do not cover the question "
               "and shows the closest passages) and <b>answers</b> by quoting the best section with its id. All choices "
-              "were made on 38 development questions; 56 test questions were scored once.", NOTE)]  # fmt: skip
+              "were made on 48 development questions; 71 test questions were scored once.", NOTE)]  # fmt: skip
     r = json.loads((MODELS / "rag_v1.json").read_text(encoding="utf-8"))
     rows = [["Chunking", "Retriever", "hit@3", "all@3", "MRR", "cite@1", "Words read"]]
     names = {
@@ -869,7 +869,7 @@ def main() -> None:
         "its own data, and the detector needs domain randomisation and labelled real footage (sim-to-real gap).",
         "Layer 6 commands are template-generated English; real operators' phrasing must be collected and labelled "
         "before the accuracy figures apply to a real site.",
-        "Layer 7 is evaluated on 94 questions about documents written for this simulator; real manuals (scans, "
+        "Layer 7 is evaluated on 119 questions about documents written for this simulator; real manuals (scans, "
         "figures, versions, contradictions) and real operators' questions need their own evaluation set.",
         "Ultralytics YOLO is AGPL-3.0 (see THIRD_PARTY_LICENSES.md).",
     ):

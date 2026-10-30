@@ -1,8 +1,8 @@
 ---
 doc_id: sops
 title: Standard Operating Procedures
-version: 3.0
-effective: 2026-09-07
+version: 4.0
+effective: 2026-10-30
 owner: Operations
 ---
 
@@ -133,3 +133,34 @@ arriving faster than the fleet can deliver.
 3. Watch the queue length and the late percentage every hour.
 4. Expect late LOW-priority orders during the busiest hours; HIGH-priority orders are served first.
 5. After the peak, run opportunity charging and restart postponed maintenance.
+
+## SOP-11 Emergency stop and restart
+
+Trigger: a person injured or in danger, a fire alarm, several robots behaving abnormally at once,
+or anyone asking to stop the fleet.
+
+1. Press the red E-STOP button at the top of any screen (one press, no confirmation). For work in
+   one zone only, stop that zone on the Safety page instead.
+2. Check the red banner: it shows how many robots are held, the reason and who stopped them.
+3. Deal with the cause: send help, clear the person or hazard, call maintenance.
+4. When the cause is dealt with, press Release. The robots keep holding (amber banner).
+5. Get confirmation that the area is clear from the person who asked for the stop, then press
+   Reset. If the reset is refused because a person stands next to a robot, make sure they are
+   clear and aware before choosing "area checked, reset anyway" (logged under your name).
+6. Confirm robots are moving again and check the safety log for the stop, release and reset.
+
+## SOP-12 Order at risk of missing its truck
+
+Trigger: an order close to its carrier's cut-off that is not packed, a long pack queue, or orders
+reported as having missed a truck.
+
+1. Open the order under Orders, Customer orders: check its status, its truck and the minutes to
+   cut-off.
+2. ON_HOLD: if the hold reason is resolved, release the hold. READY in wave mode: release it now.
+3. WAITING_STOCK: if the customer accepts partial shipments, ship what is in stock (the rest goes
+   on backorder); otherwise check the urgent replenishment or the purchase order for the item.
+4. AT_PACK with a long pack queue: switch packing to manual for that station and pack from the
+   Packing tab, or move help to the station.
+5. If the truck is missed anyway, the order moves to the carrier's next truck automatically; tell
+   the customer service team.
+6. Confirm on Shipping and trucks that the order is on board before departure.

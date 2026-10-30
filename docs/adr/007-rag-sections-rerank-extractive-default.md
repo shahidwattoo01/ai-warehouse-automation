@@ -39,3 +39,7 @@ All choices were made on 38 development questions; 56 test questions were scored
 * About 1 s of CPU per question (the cross-encoder), run in a worker thread so the simulator never
   waits. An LLM writer adds API latency and a per-question cost.
 * The settings live in code defaults and `models/rag_v1.json` (equal; a test checks it).
+
+**Update 30 Oct 2026 (knowledge base v2, PR-27):** with 7 documents and 119 questions the same
+choices won again on development data; only the "not covered" threshold moved (now -0.656). Test:
+hit@3 0.970, MRR 0.908, cite@1 0.851; see the model card.

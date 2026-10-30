@@ -284,13 +284,13 @@
 - id: Q056
   type: procedural
   question: How do I stop the whole fleet in an emergency?
-  answer: Pause the simulation so all robots stop at once - for an injury, a fire alarm, or several robots behaving abnormally.
+  answer: Press the red E-STOP button at the top of any screen - one press, no confirmation; every robot holds where it is. Use it for an injury or a person in danger, a fire alarm, or several robots behaving abnormally.
   sources: [safety_rules#SAF-4.2]
 - id: Q057
   type: factual
-  question: When may a paused robot be resumed?
-  answer: Only after the person who requested the pause confirms the area is clear.
-  sources: [safety_rules#SAF-4.3]
+  question: When may the robots be restarted after an emergency stop?
+  answer: Only after a reset, once the person who requested the stop confirms the area is clear; the reset is refused while a person stands next to a held robot unless the area check is confirmed and logged.
+  sources: [safety_rules#SAF-4.5]
 - id: Q058
   type: factual
   question: Can I touch an overheating robot?
@@ -375,42 +375,42 @@
   type: procedural
   question: How should we prepare for Black Friday?
   answer: Charge all robots above 70 %, keep aisles open and postpone routine maintenance closures, watch queue length and late percentage hourly, expect late LOW-priority orders at the busiest hours, and raise stock of top sellers in advance.
-  sources: [sops#SOP-10, inventory_policies#INV-6.3]
+  sources: [sops#SOP-10, inventory_policies#INV-10.3]
 - id: Q075
   type: factual
-  question: What is the product ID of the item stored in bay C-31-20?
-  answer: P-C-31-20 (on shelf SH-C-31-20).
-  sources: [inventory_policies#INV-1.2]
+  question: What is the SKU of the item picked from bay C-31-20?
+  answer: P-C-31-20; its pick face is C-31-20-1.
+  sources: [inventory_policies#INV-1.1]
 - id: Q076
   type: factual
-  question: At what stock level is a bay replenished?
-  answer: When its stock falls below 10 units a replenishment is raised automatically.
-  sources: [inventory_policies#INV-3.1]
+  question: When is a pick face replenished?
+  answer: When its free stock falls below its minimum (about one case); associates move stock from the item's reserve plates, earliest expiry first, up to the maximum of about three cases.
+  sources: [inventory_policies#INV-6.1]
 - id: Q077
   type: factual
-  question: How long does replenishment take and how much is delivered?
-  answer: 300-900 ticks; the delivery adds 60-120 units and is logged as INVENTORY_RESTOCKED.
-  sources: [inventory_policies#INV-3.2]
+  question: How long do suppliers take to deliver?
+  answer: Supplier lead times are between 3 and 10 hours; the supplier sends an advance shipping notice listing every plate with its SSCC, item, quantity, lot and expiry.
+  sources: [inventory_policies#INV-4.1]
 - id: Q078
   type: factual
-  question: Can a customer order a product with zero stock?
-  answer: No. Only products with stock above zero can be ordered; it is out of stock until replenished.
-  sources: [inventory_policies#INV-2.3]
+  question: Can a customer order an item that has no available stock?
+  answer: No. Orders are accepted only for items with available-to-promise stock above zero (available units in pick faces and reserve minus units already allocated).
+  sources: [inventory_policies#INV-2.5]
 - id: Q079
   type: factual
-  question: How often are rack rows counted?
-  answer: Every rack row once a week; high-velocity rows (top 10 % by units picked) twice a week.
-  sources: [inventory_policies#INV-5.1]
+  question: How often are pick faces counted?
+  answer: Twelve pick faces are counted every hour, chosen by ABC class - A items six times and B items three times as often as C items; short picks add an extra count.
+  sources: [inventory_policies#INV-7.2]
 - id: Q080
   type: factual
   question: When are orders busiest on a weekday?
   answer: Around 09:00-10:00 and 14:00-15:00; quiet at night, about a fifth of the average rate between 01:00 and 04:00.
-  sources: [inventory_policies#INV-6.1]
+  sources: [inventory_policies#INV-10.1]
 - id: Q081
   type: factual
   question: How much volume does a Sunday have compared with a weekday?
   answer: About 66 % (Saturday about 80 %).
-  sources: [inventory_policies#INV-6.2]
+  sources: [inventory_policies#INV-10.2]
 - id: Q082
   type: multi_hop
   question: Robot R22 shows 63 C and is moving slowly. Is that a fault, and what should I do?
@@ -467,12 +467,139 @@
   answer: The documents do not state the robot's weight.
   sources: []
 - id: Q093
-  type: unanswerable
-  question: Which courier collects parcels from the packing stations?
-  answer: The documents do not name couriers.
-  sources: []
+  type: factual
+  question: Which couriers collect parcels from the warehouse?
+  answer: Swiftline Couriers (Express, HIGH priority), RoadLink Parcel (Standard, MEDIUM) and Freightway Cargo (Economy, LOW), from shipping doors SHIP-01 to SHIP-03.
+  sources: [shipping_policies#SHP-1.2]
 - id: Q094
   type: unanswerable
   question: What is the maximum payload of a robot in kilograms?
   answer: The documents do not state a payload limit.
+  sources: []
+
+# ----- added 30 Oct 2026 (PR-27): warehouse management, shipping and fleet safety -----------------
+- id: Q095
+  type: factual
+  question: What is printed on a pallet label?
+  answer: A GS1 logistic label - the SSCC-18 as AI (00), the license plate number, plus (02) content GTIN, (37) count, (17) expiry and (10) lot.
+  sources: [inventory_policies#INV-3.2]
+- id: Q096
+  type: factual
+  question: Which lot of a grocery item is picked first?
+  answer: The lot with the earliest expiry date (first expiry first out, FEFO); items without expiry are picked first in first out.
+  sources: [inventory_policies#INV-5.2]
+- id: Q097
+  type: factual
+  question: What happens to damaged units found when a truck is received?
+  answer: Good units go to the dock's staging lane on the plate; damaged units go to quarantine QA-01 with status DAMAGED.
+  sources: [inventory_policies#INV-4.2]
+- id: Q098
+  type: factual
+  question: Does the person counting a location see the system quantity?
+  answer: No. Counts are blind - the counter reports what is on the shelf and never sees the system quantity.
+  sources: [inventory_policies#INV-7.1]
+- id: Q099
+  type: procedural
+  question: A recount confirms a count difference worth 200 dollars. Who decides?
+  answer: A supervisor must approve or reject it, because differences of 150 dollars or more are not adjusted automatically; a rejected count is counted again.
+  sources: [inventory_policies#INV-7.4]
+- id: Q100
+  type: factual
+  question: How is the reorder point of an item calculated?
+  answer: Demand during the supplier lead time plus safety stock, where safety stock is 1.65 x sqrt(hourly demand x lead time in hours) for a 95 % cycle service level.
+  sources: [inventory_policies#INV-6.3]
+- id: Q101
+  type: procedural
+  question: A supplier recalls one lot. How do I stop it from being shipped?
+  answer: Put that lot on HOLD; held stock cannot be allocated to orders. Release the hold to make it available again.
+  sources: [inventory_policies#INV-8.1]
+- id: Q102
+  type: factual
+  question: Which reason codes can be used for a stock adjustment?
+  answer: COUNT_VARIANCE, DAMAGED, FOUND, LOST, EXPIRED, QUALITY, DATA_ERROR, RETURN_RESTOCK or RETURN_SCRAP.
+  sources: [inventory_policies#INV-9.1]
+- id: Q103
+  type: multi_hop
+  question: Why is a new order not given to a robot even though robots are free?
+  answer: An order is released only when all its lines are allocated; if a pick face is short it waits for an urgent replenishment (WAITING_STOCK), or in wave release it waits for the next wave unless it is a hot order.
+  sources: [inventory_policies#INV-5.3, shipping_policies#SHP-3.2]
+- id: Q104
+  type: factual
+  question: When does the express truck leave?
+  answer: Swiftline Couriers (Express) leaves from SHIP-01 at 07:00, 12:00, 17:00 and 22:00.
+  sources: [shipping_policies#SHP-1.2]
+- id: Q105
+  type: factual
+  question: What is the shipping cut-off?
+  answer: Cartons must be ready 30 minutes before their truck leaves; an order is promised the first truck whose cut-off is at least 15 minutes after its robot deadline.
+  sources: [shipping_policies#SHP-1.3]
+- id: Q106
+  type: factual
+  question: Which cartons are used and how are they chosen?
+  answer: S (6 litres, up to 5 kg), M (18 litres, up to 12 kg) and L (40 litres, up to 20 kg), filled to at most 80 %; the largest carton is filled first, then each gets the smallest size its contents fit.
+  sources: [shipping_policies#SHP-4.2]
+- id: Q107
+  type: factual
+  question: When does a carton fail the weight check and what then?
+  answer: When its weight differs from the expected weight by more than 3 % (at least 50 g); re-open it, correct the contents and weigh again before it leaves the station.
+  sources: [shipping_policies#SHP-4.3]
+- id: Q108
+  type: factual
+  question: What is on a shipping label?
+  answer: Ship-from and ship-to address, carrier and service, carton n of N, the tracking number as Code 128, the ship-to postal code as GS1-128 (420), and the carton's SSCC with gross weight (00) and (3301).
+  sources: [shipping_policies#SHP-4.4]
+- id: Q109
+  type: procedural
+  question: Can an order be cancelled after it has been packed?
+  answer: Yes, until it is loaded. Allocated stock is freed and a dock loader puts the picked units back on their pick faces; an order on a robot can only be cancelled once it reaches packing.
+  sources: [shipping_policies#SHP-6.2]
+- id: Q110
+  type: multi_hop
+  question: An order has waited an hour for stock and the customer accepts partial shipments. What happens?
+  answer: It ships what is allocated and the missing units become a backorder; when the stock is available again a follow-up order for the same customer is created automatically.
+  sources: [shipping_policies#SHP-6.3, shipping_policies#SHP-6.5]
+- id: Q111
+  type: factual
+  question: What happens when an order misses its truck?
+  answer: It moves to the carrier's next truck and counts as late; each departure reports how many orders missed it.
+  sources: [shipping_policies#SHP-5.4]
+- id: Q112
+  type: factual
+  question: Does releasing an emergency stop restart the robots?
+  answer: No. Release only clears the stop; robots keep holding until a separate reset. Only operators, supervisors and administrators may release and reset.
+  sources: [safety_rules#SAF-4.4]
+- id: Q113
+  type: procedural
+  question: How do I restart the fleet after an emergency stop?
+  answer: Deal with the cause, press Release (robots keep holding), get confirmation that the area is clear, then press Reset; if refused because a person is next to a robot, confirm the area check only when they are clear and aware; then confirm robots move and check the safety log.
+  sources: [sops#SOP-11]
+- id: Q114
+  type: factual
+  question: How close to a person may a robot drive at full speed?
+  answer: Not within 3 m - inside that slow zone a robot drives at half speed (the radius can be set to 1-5 m).
+  sources: [safety_rules#SAF-6.1]
+- id: Q115
+  type: factual
+  question: What counts as a near miss?
+  answer: A moving robot passing within 1 m of a person; it is logged automatically with the robot, the place and the time.
+  sources: [safety_rules#SAF-6.2]
+- id: Q116
+  type: procedural
+  question: Racking in Zone C needs repair. How do I stop only the robots there?
+  answer: Stop that zone on the Safety page; robots in the zone hold, the rest keep working but wait at the zone's edge instead of driving in.
+  sources: [safety_rules#SAF-4.3]
+- id: Q117
+  type: multi_hop
+  question: An express order is close to its cut-off but still at packing with a long queue. What should I do?
+  answer: Express cartons must be ready 30 minutes before the truck; switch packing to manual for that station and pack it from the Packing tab or move help there, and confirm it is on board before departure - if missed it goes on the next truck.
+  sources: [sops#SOP-12, shipping_policies#SHP-1.3]
+- id: Q118
+  type: unanswerable
+  question: How much does it cost to ship a parcel with Swiftline Couriers?
+  answer: The documents do not contain shipping rates.
+  sources: []
+- id: Q119
+  type: unanswerable
+  question: What is the phone number of RoadLink Parcel?
+  answer: The documents do not contain carrier contact details.
   sources: []

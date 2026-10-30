@@ -12,7 +12,7 @@ Retrievers (compared in notebooks/12_rag.ipynb):
 * Rerank: a cross-encoder reads question and chunk *together* and scores the pair; slower, so it
   only re-orders the hybrid top candidates.
 
-The vector part runs in memory (exact search; the knowledge base has ~120 chunks) or in
+The vector part runs in memory (exact search; the knowledge base has ~180 chunks) or in
 PostgreSQL with pgvector (ai/rag/store.py), with the same results.
 """
 

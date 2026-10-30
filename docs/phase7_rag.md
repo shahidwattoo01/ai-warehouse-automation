@@ -90,3 +90,16 @@ CI, where the database image has the extension), `tests/e2e/test_ui.py`.
 * Query rewriting for questions phrased unlike the documents; multi-hop retrieval for questions
   that need two sections.
 * Phase 8: the knowledge search becomes one tool of the agents.
+
+## Update: knowledge base v2 (30 Oct 2026, backlog PR-27)
+
+The numbers above are Phase 7 as delivered (6 documents, 94 questions). The documents were then
+updated for the warehouse management system, outbound shipping and the fleet emergency stop: the
+inventory policies were rewritten, a shipping policies document added (7 documents, 178 section
+chunks), SAF-4/6/7 and SOP-11/12 added, and 25 questions added (119: 48 development, 71 test).
+Notebook 12 was re-run; the same design won on development, with a new "not covered" threshold
+(-0.656). Test: hit@3 0.970, MRR 0.908, cite@1 0.851 (simple dense search 0.761 / 0.642); 4 of 4
+unanswerable questions refused, 4 of 67 answerable ones wrongly refused. The section chunker now
+only accepts section ids with the document's own prefix (door codes such as SHIP-01 at the start
+of a table row are not sections). Current figures:
+[model card](model_cards/rag.md).

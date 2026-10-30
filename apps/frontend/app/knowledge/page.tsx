@@ -14,6 +14,8 @@ const EXAMPLES = [
   "What do we do when a robot overheats?",
   "How many charging bays are there?",
   "When is a product reordered?",
+  "When does the express truck leave?",
+  "How do I restart the fleet after an emergency stop?",
   "Can a person walk into a closed aisle?",
   "What should happen when a robot's battery falls below the low threshold?",
   "What is the Wi-Fi password for the robot network?",
@@ -25,7 +27,7 @@ const DOC_TYPES: { value: DocType | null; label: string }[] = [
   { value: "manual", label: "Manuals" },
   { value: "safety", label: "Safety" },
   { value: "maintenance", label: "Maintenance" },
-  { value: "policy", label: "Inventory" },
+  { value: "policy", label: "Inventory & shipping" },
 ];
 
 const CITATION = /\[([A-Z]{2,4}-[\d.]+)\]/g;

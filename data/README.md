@@ -29,7 +29,7 @@ data/processed/
 | 4 Deep learning | Sequences (LSTM / Transformer) | `processed/deep_learning/robot_status.parquet` + `classical_ml/` | 26 million telemetry rows |
 | 5 Computer vision | Object detection | `processed/computer_vision/` | 2,400 labelled 640x480 frames |
 | 6 NLP + Transformers | Intent + entities | `processed/nlp/commands.jsonl` | 5,461 operator messages |
-| 7 RAG | Knowledge base + eval | `documents/*.md`, `documents/pdf/`, `processed/rag/` | 6 documents, 120 sections, 94 questions |
+| 7 RAG | Knowledge base + eval | `documents/*.md`, `documents/pdf/`, `processed/rag/` | 7 documents, 178 sections, 119 questions (v2, 30 Oct 2026) |
 | 8-9 Agents + tools | Tool catalogue + scenarios | `processed/agents/` | 15 tools, 92 scenarios |
 | 9 Reinforcement learning | none needed | the simulator itself | RL learns by acting in the environment |
 | 11 Evaluation | every split above | `processed/validation_report.json` | all checks |
@@ -154,7 +154,7 @@ Six documents written to match the simulator exactly (thresholds, aisle numbers,
 warehouse manual, robot manual, safety rules (with restricted zones), maintenance guide, ten SOPs,
 inventory policies. Markdown sources plus PDFs (`documents/pdf/`) for the extraction step.
 `processed/rag/sections.jsonl` holds the 120 numbered sections (the ground-truth retrieval units);
-`processed/rag/questions.jsonl` holds 94 questions (factual, procedural, multi-hop, unanswerable)
+`processed/rag/questions.jsonl` holds 119 questions (factual, procedural, multi-hop, unanswerable)
 with reference answers and the exact sections they come from: retrieval precision, context recall,
 groundedness and citation accuracy can all be scored.
 

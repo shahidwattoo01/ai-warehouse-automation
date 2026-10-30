@@ -77,7 +77,7 @@ owner: NetSol training project
 
 - Computer vision: a headless browser (Playwright) renders the real 3D scene; a depth-buffer test keeps only the visible part of each object, so boxes are exact. 2,400 images, 6 classes, YOLO and COCO.
 - NLP: 5,461 commands with intent, entities (BIO tags) and tool calls; the test split uses unseen phrasings.
-- RAG: 6 documents (Markdown and PDF), 120 numbered sections, 94 questions with their source sections.
+- RAG: 7 documents (Markdown and PDF), 178 numbered sections, 119 questions with their source sections.
 - Agents: 92 scenarios from real simulator states, replayable from a seed and checked with a state fingerprint.
 
 **10. Quality.** 37 automated tests, a golden-master fingerprint (proves refactors did not change behaviour), Ruff and TypeScript strict both clean.
@@ -104,7 +104,7 @@ All data comes from our own simulator and documents, so every label is exact and
 | anomaly_windows | 5.2 million rows (13.6 % faulty) | ML: anomaly detection | Is the robot abnormal, and which fault? |
 | Camera images | 2,400 images | Computer vision | Boxes for robots, workers, shelves, parcels, pallets, barriers |
 | NLP commands | 5,461 messages | NLP and Transformers | Intent, entities, which tool to call |
-| RAG knowledge base | 6 documents, 94 questions | RAG | The correct answer with its source section |
+| RAG knowledge base | 7 documents, 119 questions | RAG | The correct answer with its source section |
 
 Also included: 92 agent scenarios, reference tables (zones, aisles, shelves, products, robots) and raw logs (telemetry 26 million rows, events 27 million, hazards).
 
