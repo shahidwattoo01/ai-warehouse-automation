@@ -41,7 +41,13 @@ class WmsStock:
                 per_hour * sum(orders.get("items_per_order", [1, 2])) / 2 * 2
             )
         self.wms = Warehouse(
-            layout, self.catalog, self.face, random.Random(f"{seed}:wms"), ticks_per_hour, config
+            layout,
+            self.catalog,
+            self.face,
+            random.Random(f"{seed}:wms"),
+            ticks_per_hour,
+            config,
+            outbound_rng=random.Random(f"{seed}:outbound"),
         )
         self.weights = self.wms.popularity  # order generator: popular items are ordered more
 
@@ -84,7 +90,12 @@ class WmsStock:
         return self.wms.pick_line(order.order_id, line, robot_id)
 
     def shipped(self, order, robot_id: str, station: str) -> None:
-        self.wms.ship_order(order.order_id, robot_id, station)
+        """The robot reached its packing station (the order ships later, on a truck)."""
+        self.wms.deliver_to_pack(order.order_id, robot_id, station)
+
+    def take_new_orders(self) -> list[dict]:
+        """Follow-up orders for backorders whose stock has arrived."""
+        return self.wms.out.take_new_orders()
 
     def cancelled(self, order_id: str) -> None:
         self.wms.cancel_order(order_id)

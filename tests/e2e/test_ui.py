@@ -269,3 +269,24 @@ def test_a_viewer_cannot_open_the_copilot(browser):
     page.goto(f"{UI}/copilot", wait_until="domcontentloaded")
     page.get_by_text("Not available for your role").wait_for()
     context.close()
+
+
+def test_customer_orders_packing_and_trucks(page, restore_running):
+    """Outbound: customer orders with their truck, the order detail, and the carriers' trucks."""
+    try:
+        get(f"{API}/api/v1/wms/outbound/carriers")
+    except OSError:
+        pytest.skip("the backend runs the simple inventory model")
+    _call(f"{API}/api/v1/simulation/start", "POST", token=token())
+    page.goto(f"{UI}/orders", wait_until="domcontentloaded")
+    page.get_by_role("button", name="Customer orders").click()
+    page.get_by_text("On-time shipping").wait_for()
+    page.locator("tbody tr td.font-mono").first.wait_for()  # orders arrive within seconds
+    page.locator("tbody tr td.font-mono").first.click()
+    page.get_by_text("Ship to", exact=True).wait_for()
+    page.get_by_text("History", exact=True).wait_for()
+    page.get_by_role("button", name="Shipping & trucks").click()
+    for carrier in ("Swiftline Couriers", "RoadLink Parcel", "Freightway Cargo"):
+        page.get_by_text(carrier).first.wait_for()
+    page.get_by_role("button", name="Packing", exact=True).click()
+    page.get_by_text("Packed cartons").wait_for()

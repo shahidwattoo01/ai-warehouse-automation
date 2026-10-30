@@ -80,6 +80,8 @@ ENDPOINTS = [
     ("post", "/wms/holds", {"sku": "X", "reason": "test hold"}, "wms:hold"),
     ("post", "/wms/counts/CNT-X/decide", {"approve": True}, "wms:count_approve"),
     ("put", "/wms/settings", {"auto_tasks": {}}, "wms:settings"),
+    ("post", "/wms/outbound/orders/NOPE/hold", {"reason": "test hold"}, "orders:manage"),
+    ("post", "/wms/outbound/load", {"sscc": "000000000000000000"}, "wms:ship"),
     ("get", "/users", None, "users:manage"),
     ("post", "/copilot/actions/none/approve", None, "copilot:approve"),
 ]

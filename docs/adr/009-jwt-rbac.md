@@ -18,7 +18,7 @@ Docker, without a company identity provider.
 3. **Refresh token = random 64 bytes in an httpOnly, SameSite=Strict cookie**, valid 7 days,
    stored only as a SHA-256 hash, **rotated on every use**; reuse of a replaced token revokes its
    whole family (theft detection).
-4. **RBAC in code:** 18 permissions, 5 roles (`app/core/permissions.py`). Every endpoint declares
+4. **RBAC in code:** 18 permissions (20 since the outbound flow added `orders:manage` and `wms:ship`), 5 roles (`app/core/permissions.py`). Every endpoint declares
    its permission; the user is re-read on each request, so disabling or demoting acts at once.
 5. **The user is taken from the token**, never from the request body, for every recorded action
    (inventory ledger, copilot approvals, count approvals).

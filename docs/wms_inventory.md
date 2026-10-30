@@ -52,7 +52,8 @@ supplier ─► purchase order (reorder point reached) ─► ASN: plates with l
          ─► staging lane ─► PUTAWAY (directed): top up the pick face, the rest to a free reserve
             position (same bay first) ─► confirmed by scanning the location
 order    ─► ALLOCATE at pick faces (FEFO / FIFO) ─► short at the pick face? urgent REPLENISH,
-            the order waits ─► released to a robot ─► PICK ─► SHIP at the packing station
+            the order waits ─► released to a robot ─► PICK ─► tote at the packing station
+         ─► PACK, LOAD, SHIP when the carrier's truck leaves (outbound: docs/wms_outbound.md)
 pick face below min ─► REPLENISH from reserve (whole cases, FEFO)
 every simulated hour ─► demand update (per SKU), purchasing, cycle counts, expiry check,
                         returns arriving, (simulated) shrinkage on the shelves
@@ -112,9 +113,9 @@ recorded run (migration 004). API under `/api/v1/wms`: `kpis`, `alerts`, `items`
 
 ## 7. Not yet (in the professional backlog)
 
-* Packing, shipping labels, carriers and cut-off times (PR-08), and an inspection screen for
-  returns: returns are inspected automatically today.
-* Logins and roles (PR-01): the user name is typed into the screen for now.
+* An inspection screen for returns: returns are inspected automatically today (PR-11).
+  (Packing, labels, carriers and cut-offs are done: [wms_outbound.md](wms_outbound.md). Logins
+  and roles are done: [authentication.md](authentication.md).)
 * Scan events from simulated handhelds in the 3D view; associates are not drawn walking their
   tasks yet.
 * The warehouse documents (RAG knowledge base) still describe the simple stock rules; they will be

@@ -114,7 +114,7 @@ Trained models are not in Git (see [`models/README.md`](models/README.md)): copy
 | 12 | Finalization | ⏳ | Deployment, final report, presentation |
 
 Details: [`docs/phase4_optimization.md`](docs/phase4_optimization.md),
-[`docs/phase5_deep_learning_vision.md`](docs/phase5_deep_learning_vision.md), [`docs/phase6_nlp.md`](docs/phase6_nlp.md), [`docs/phase7_rag.md`](docs/phase7_rag.md), inventory management [`docs/wms_inventory.md`](docs/wms_inventory.md), the beginner's
+[`docs/phase5_deep_learning_vision.md`](docs/phase5_deep_learning_vision.md), [`docs/phase6_nlp.md`](docs/phase6_nlp.md), [`docs/phase7_rag.md`](docs/phase7_rag.md), inventory management [`docs/wms_inventory.md`](docs/wms_inventory.md), outbound and shipping [`docs/wms_outbound.md`](docs/wms_outbound.md), the beginner's
 guide [`docs/phase4_phase5_explained.md`](docs/phase4_phase5_explained.md), and the main report
 [`reports/Project_Progress_Report.pdf`](reports/Project_Progress_Report.pdf) (see `reports/README.md`).
 

@@ -87,6 +87,9 @@ class Inventory:
     def cancelled(self, order_id: str) -> None:
         pass
 
+    def take_new_orders(self) -> list[dict]:
+        return []  # no backorders in the simple model
+
     @staticmethod
     def location(product_id: str) -> str:
         """Rack location label, e.g. "A-05-12" (zone A, row y=5, bay x=12)."""

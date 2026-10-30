@@ -14,6 +14,8 @@ const TYPES = [
   "DEALLOCATE",
   "PICK",
   "SHORT_PICK",
+  "PACK",
+  "LOAD",
   "SHIP",
   "ADJUST",
   "STATUS",

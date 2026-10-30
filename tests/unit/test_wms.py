@@ -139,9 +139,11 @@ def test_the_warehouse_receives_replenishes_counts_and_ships(day):
     assert wms.metrics["orders_shipped"] > 50 and k["fill_rate"] > 0.95
     assert wms.metrics["purchase_orders"] > 0 and wms.metrics["tasks_replenish"] > 0
     assert k["counts_done"] > 0 and 0.5 < k["inventory_record_accuracy"] <= 1.0
-    for order in engine.orders.values():  # shipped orders have their stock picked and shipped
-        if order.status.value in ("DELIVERED", "LATE"):
-            assert any(t.ref == order.order_id and t.type == TxnType.SHIP for t in wms.inv.ledger)
+    shipped = {t.ref for t in wms.inv.ledger if t.type == TxnType.SHIP}
+    packed = {t.ref for t in wms.inv.ledger if t.type == TxnType.PACK}
+    for rec in wms.out.orders.values():  # shipped orders were packed and left on a truck
+        if rec.status == "SHIPPED":
+            assert rec.order_id in shipped and rec.order_id in packed and rec.cartons
 
 
 def test_blind_count_finds_shrinkage_and_needs_approval_above_the_value_limit(day):

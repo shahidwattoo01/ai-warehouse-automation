@@ -3,8 +3,10 @@
 Locations follow the racking: every bay has 4 levels. Level 1 is the item's **pick face**
 (robots pick there); levels 2-4 are **reserve** positions, each holding one license plate (a
 stack of cases of any item). Six dock doors on the north wall receive trucks, with a staging lane
-behind each; a quarantine area and a returns area sit by the docks; the packing stations are the
-shipping points.
+behind each; a quarantine area and a returns area sit by the docks. Outbound runs along the south
+wall: the packing stations, one sort lane per carrier and three shipping doors with trailers.
+
+Customers and carriers are fictitious (any likeness to a real business is a coincidence).
 
 Everything is derived from stable checksums of the ids (never from the simulation's random
 stream), so building the master data does not change any simulation run.
@@ -57,6 +59,21 @@ CATEGORY_RULES: dict[
 }
 
 
+# Packed litres per kg of product: light bulky goods (apparel, toys) need bigger cartons.
+LITRES_PER_KG = {
+    "Electronics": 2.5,
+    "Home & Kitchen": 2.0,
+    "Apparel": 6.0,
+    "Toys & Games": 4.0,
+    "Books & Media": 1.4,
+    "Sports & Outdoors": 2.5,
+    "Beauty & Health": 1.5,
+    "Grocery": 1.2,
+    "Office Supplies": 1.6,
+    "Tools & DIY": 0.9,
+}
+
+
 def suppliers() -> dict[str, Supplier]:
     out = {}
     for i, (category, (name, *_)) in enumerate(CATEGORY_RULES.items(), start=1):
@@ -96,6 +113,11 @@ def build_items(
                 lot_controlled=True,
                 shelf_life_days=int(_between(pid + "life", *shelf_life)) if shelf_life else None,
                 serial_controlled=serial_above is not None and cost >= serial_above,
+                volume_l=round(
+                    max(0.2, product.weight_kg * LITRES_PER_KG[product.category])
+                    * _between(pid + "vol", 0.8, 1.25),
+                    2,
+                ),
             )
         )
     return items
@@ -158,11 +180,102 @@ def build_locations(
         )
     out.append(Location("QA-01", LocationType.QUARANTINE, None, 1, 2, check="17"))
     out.append(Location("RET-01", LocationType.RETURNS, None, width - 2, 2, check="42"))
-    for station in layout.stations:
-        if station.type == "PACKING":
-            out.append(
-                Location(
-                    station.station_id, LocationType.PACK, None, station.x, station.y, check="00"
-                )
+    packing = [s for s in layout.stations if s.type == "PACKING"]
+    for station in packing:
+        out.append(
+            Location(station.station_id, LocationType.PACK, None, station.x, station.y, check="00")
+        )
+    south = max((s.y for s in packing), default=layout.grid.height - 1)
+    for i, carrier in enumerate(carriers().values()):
+        x = round(width * (i + 0.5) / 3)
+        lane = f"LANE-{carrier.code}"
+        out.append(Location(lane, LocationType.LANE, None, x, south, check=f"{_c(lane) % 100:02d}"))
+        out.append(
+            Location(
+                carrier.door,
+                LocationType.SHIP_DOCK,
+                None,
+                x,
+                south,
+                check=f"{_c(carrier.door) % 100:02d}",
             )
+        )
+    return out
+
+
+# ----- outbound master data ---------------------------------------------------------------------
+@dataclass(frozen=True)
+class Carrier:
+    code: str  # EXP | STD | ECO
+    name: str
+    service: str
+    door: str  # shipping door where its trailer is loaded
+    departures: tuple[int, ...]  # hours of the day the truck leaves
+    tracking_prefix: str
+
+    def to_dict(self) -> dict:
+        return {**self.__dict__, "departures": list(self.departures)}
+
+
+def carriers() -> dict[str, Carrier]:
+    """Three services, chosen by order priority: HIGH -> express, MEDIUM -> standard, LOW ->
+    economy. Each truck leaves at a fixed hour; the cut-off is some minutes before."""
+    return {
+        c.code: c
+        for c in (
+            Carrier("EXP", "Swiftline Couriers", "Express", "SHIP-01", (7, 12, 17, 22), "SWX"),
+            Carrier("STD", "RoadLink Parcel", "Standard", "SHIP-02", (9, 15, 21), "RLP"),
+            Carrier("ECO", "Freightway Cargo", "Economy", "SHIP-03", (6, 18), "FWC"),
+        )
+    }
+
+
+@dataclass(frozen=True)
+class Customer:
+    customer_id: str
+    name: str
+    kind: str  # B2C marketplace seller / B2B retailer
+    address: str
+    city: str
+    postal_code: str
+    allow_partial: bool  # accepts a partial shipment with the rest on backorder
+
+    def to_dict(self) -> dict:
+        return dict(self.__dict__)
+
+
+CITIES = [
+    ("Lahore", "54000"),
+    ("Karachi", "74200"),
+    ("Islamabad", "44000"),
+    ("Rawalpindi", "46000"),
+    ("Faisalabad", "38000"),
+    ("Multan", "60000"),
+    ("Peshawar", "25000"),
+    ("Gujranwala", "52250"),
+    ("Sialkot", "51310"),
+    ("Hyderabad", "71000"),
+    ("Quetta", "87300"),
+    ("Bahawalpur", "63100"),
+]
+_NAME_A = ["Northgate", "Riverbend", "Bluepeak", "Greenfield", "Starling", "Cedar", "Brightway",
+           "Oakridge", "Silverline", "Harbor", "Meadow", "Summit"]  # fmt: skip
+_NAME_B = ["Retail", "Mart", "Online", "Stores", "Traders", "Outlet"]
+
+
+def customers(count: int = 60) -> dict[str, Customer]:
+    out = {}
+    for i in range(1, count + 1):
+        cid = f"C-{i:04d}"
+        city, postal = CITIES[_c(cid + "city") % len(CITIES)]
+        name = f"{_NAME_A[_c(cid + 'a') % len(_NAME_A)]} {_NAME_B[_c(cid + 'b') % len(_NAME_B)]}"
+        out[cid] = Customer(
+            cid,
+            f"{name} {i:02d}",
+            "B2B" if _c(cid + "kind") % 4 == 0 else "B2C",
+            f"Plot {1 + _c(cid + 'plot') % 240}, Block {chr(65 + _c(cid + 'blk') % 8)}",
+            city,
+            postal,
+            allow_partial=_c(cid + "partial") % 10 < 7,  # 70 % accept partial shipments
+        )
     return out

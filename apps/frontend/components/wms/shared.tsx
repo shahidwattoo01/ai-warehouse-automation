@@ -148,6 +148,23 @@ const TONE: Record<string, string> = {
   DAMAGED: "bg-danger/15 text-danger",
   EXPIRED: "bg-danger/15 text-danger",
   A: "bg-accent/20 text-accent",
+  // outbound
+  WAITING_STOCK: "bg-warning/15 text-warning",
+  READY: "bg-accent/10 text-accent",
+  ON_HOLD: "bg-danger/15 text-danger",
+  RELEASED: "bg-accent/15 text-accent",
+  PICKING: "bg-accent/20 text-accent",
+  AT_PACK: "bg-warning/15 text-warning",
+  PACKED: "bg-success/10 text-success",
+  IN_LANE: "bg-success/10 text-success",
+  LOADED: "bg-success/15 text-success",
+  SHIPPED: "bg-success/25 text-success",
+  CANCELLED: "bg-border text-muted",
+  DEPARTED: "bg-border text-muted",
+  SCHEDULED: "bg-accent/15 text-accent",
+  FAIL: "bg-danger/15 text-danger",
+  PASS: "bg-success/15 text-success",
+  AUDITED: "bg-success/15 text-success",
 };
 
 export function Badge({ value }: { value: string }) {

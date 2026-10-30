@@ -5,6 +5,9 @@
   picker reads out to confirm being at the right place.
 * Pallet label (100 x 150 mm, GS1 logistic label layout): SSCC barcode (00), then content
   (02 GTIN, 37 count, 17 expiry, 10 lot) for one-item pallets.
+* Shipping label (100 x 150 mm): ship-from / ship-to, carrier and service, the carrier's
+  tracking barcode (Code 128), ship-to postal code (420) for sortation, and the carton's SSCC
+  (00) with its gross weight (3301).
 """
 
 from __future__ import annotations
@@ -169,6 +172,41 @@ def pallet_label(
     )
     _text(c, 6, 19, f"(00) {plate['sscc']}", 11, BOLD)
     _text(c, 6, 8, "SSCC", 8)
+    c.showPage()
+    c.save()
+    return buf.getvalue()
+
+
+def shipping_label(
+    carton: dict, customer: dict, carrier: dict, ship_from: str = "Warehouse AI DC-1, Lahore"
+) -> bytes:
+    """carton: sscc, tracking, order_id, seq, of, scale_kg, size, trip."""
+    buf = io.BytesIO()
+    c = canvas.Canvas(buf)
+    _page(c, 100, 150)
+    _text(c, 4, 144, "FROM", 7)
+    _text(c, 14, 144, ship_from, 8)
+    c.line(4 * mm, 141 * mm, 96 * mm, 141 * mm)
+    _text(c, 4, 136, "SHIP TO", 7)
+    _text(c, 4, 130, customer["name"][:34], 12, BOLD)
+    _text(c, 4, 124, customer["address"][:40], 10)
+    _text(c, 4, 118, f"{customer['city']}  {customer['postal_code']}", 12, BOLD)
+    c.line(4 * mm, 114 * mm, 96 * mm, 114 * mm)
+    _text(c, 4, 108, carrier["name"], 10, BOLD)
+    _text(c, 4, 103, f"{carrier['service'].upper()}   trip {carton.get('trip') or '-'}", 9)
+    _text(c, 66, 108, f"CARTON {carton['seq']} / {carton['of']}", 9, BOLD)
+    _text(c, 66, 103, f"{carton['scale_kg']:.2f} kg   size {carton['size']}", 9)
+    renderPDF.draw(drawing("code128", carton["tracking"], 88, 16), c, 6 * mm, 82 * mm)
+    _text(c, 6, 77, f"TRACKING  {carton['tracking']}", 9, BOLD)
+    _text(c, 66, 77, f"ORDER {carton['order_id']}", 8)
+    c.line(4 * mm, 74 * mm, 96 * mm, 74 * mm)
+    route = {"420": customer["postal_code"]}
+    renderPDF.draw(drawing("gs1-128", gs1_128_value(route), 60, 14), c, 6 * mm, 56 * mm)
+    _text(c, 6, 51, f"(420) {customer['postal_code']}   SHIP TO POSTAL CODE", 8)
+    weight = {"00": carton["sscc"], "3301": f"{round(carton['scale_kg'] * 10):06d}"}
+    renderPDF.draw(drawing("gs1-128", gs1_128_value(weight), 88, 24), c, 6 * mm, 20 * mm)
+    _text(c, 6, 14, f"(00) {carton['sscc']}  (3301) {weight['3301']}", 10, BOLD)
+    _text(c, 6, 6, "SSCC / GROSS WEIGHT", 8)
     c.showPage()
     c.save()
     return buf.getvalue()

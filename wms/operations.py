@@ -15,13 +15,20 @@ TASK_PRIORITY = {
     "RETURN": 4,
     "QUARANTINE": 5,
     "COUNT": 6,
+    # outbound crews (separate people, so these never delay inbound work)
+    "PUTBACK": 0,
+    "AUDIT": 1,
+    "PACK": 2,
+    "LOAD": 3,
 }
+TASK_CREW = {"PACK": "pack", "AUDIT": "pack", "LOAD": "dock", "PUTBACK": "dock"}  # else inbound
 
 
 @dataclass
 class Task:
     task_id: str
-    type: str  # RECEIVE | PUTAWAY | REPLENISH | REPLENISH_URGENT | COUNT | RETURN | QUARANTINE
+    type: str  # RECEIVE | PUTAWAY | REPLENISH(_URGENT) | COUNT | RETURN | QUARANTINE |
+    #            PACK | AUDIT | LOAD | PUTBACK
     created: int
     data: dict
     status: str = "OPEN"  # OPEN | IN_PROGRESS | DONE | CANCELLED

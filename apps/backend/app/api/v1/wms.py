@@ -1,5 +1,6 @@
 """Warehouse management endpoints: inventory, scanning, receiving, putaway, moves, adjustments,
-holds, cycle counts, purchase orders, tasks and labels.
+holds, cycle counts, purchase orders, tasks, labels, and outbound (customer orders, waves,
+packing, loading, carrier departures, backorders).
 
 Every change is booked in the inventory ledger under the logged-in user (from the access token,
 never from the request body). Endpoints run on the event loop between simulator ticks, so the
@@ -20,6 +21,7 @@ from wms import barcodes as bc
 from wms import labels
 from wms.inventory import InventoryError
 from wms.model import REASONS, LocationType, StockStatus
+from wms.outbound import FINAL, OutboundError
 
 router = APIRouter(prefix="/wms", tags=["wms"])
 
@@ -572,30 +574,45 @@ async def tasks(status: Literal["open", "all"] = "open") -> dict:
     return {
         "tasks": rows[:300],
         "associates": [
-            {"name": n, **{k: v for k, v in a.items() if k in ("task", "until")}}
+            {"name": n, **{k: v for k, v in a.items() if k in ("task", "until", "crew", "station")}}
             for n, a in sorted(wms.associates.items())
         ],
     }
 
 
 class SettingsIn(BaseModel):
-    auto_tasks: dict[str, bool]
+    auto_tasks: dict[str, bool] = Field(default_factory=dict)
+    release_mode: Literal["continuous", "wave"] | None = None
+    wave_minutes: int | None = Field(default=None, ge=5, le=120)
+
+
+def _settings(wms) -> dict:
+    return {
+        "auto_tasks": wms.cfg["auto_tasks"],
+        "release_mode": wms.cfg["release_mode"],
+        "wave_minutes": wms.cfg["wave_minutes"],
+    }
 
 
 @router.get("/settings", dependencies=[need("wms:view")])
 async def settings() -> dict:
-    return {"auto_tasks": _wms().cfg["auto_tasks"]}
+    return _settings(_wms())
 
 
 @router.put("/settings", dependencies=[need("wms:settings")])
 async def update_settings(body: SettingsIn) -> dict:
-    """Choose which work the associates do by themselves; the rest waits for an operator."""
+    """Choose which work the associates do by themselves (the rest waits for an operator), and
+    how orders are released to the robots: continuously or in waves."""
     wms = _wms()
     unknown = set(body.auto_tasks) - set(wms.cfg["auto_tasks"])
     if unknown:
         raise _bad(ValueError(f"unknown task types: {sorted(unknown)}"))
     wms.cfg["auto_tasks"].update(body.auto_tasks)
-    return {"auto_tasks": wms.cfg["auto_tasks"]}
+    if body.wave_minutes is not None:
+        wms.cfg["wave_minutes"] = body.wave_minutes
+    if body.release_mode is not None:
+        wms.out.set_release_mode(body.release_mode)
+    return _settings(wms)
 
 
 @router.get("/returns", dependencies=[need("wms:view")])
@@ -603,6 +620,286 @@ async def returns() -> list[dict]:
     return [
         r.to_dict() for r in sorted(_wms().returns.values(), key=lambda r: r.rma_id, reverse=True)
     ][:200]
+
+
+# ----- outbound: customer orders, packing, loading, departures ---------------------------------
+def _out():
+    return _wms().out
+
+
+def _refused(err: Exception) -> HTTPException:
+    return HTTPException(409, detail={"code": "refused", "message": str(err)})
+
+
+@router.get("/outbound/orders", dependencies=[need("wms:view")])
+async def outbound_orders(
+    status: str | None = None,
+    q: str | None = Query(None, max_length=40),
+    limit: int = Query(200, le=1000),
+) -> dict:
+    """Customer orders, earliest truck first; status=open (not shipped or cancelled) or one
+    status; q searches order id, customer and city."""
+    out = _out()
+    recs = list(out.orders.values())
+    if status == "open":
+        recs = [r for r in recs if r.status not in FINAL]
+    elif status:
+        recs = [r for r in recs if r.status == status]
+    rows = [out.order_row(r) for r in recs]
+    if q:
+        needle = q.lower()
+        rows = [
+            r
+            for r in rows
+            if needle in r["order_id"].lower()
+            or needle in r["customer"].lower()
+            or needle in r["city"].lower()
+        ]
+    rows.sort(key=lambda r: (r["status"] in FINAL, r["departure"], r["order_id"]))
+    counts: dict[str, int] = {}
+    for r in out.orders.values():
+        counts[r.status] = counts.get(r.status, 0) + 1
+    return {"orders": rows[:limit], "total": len(rows), "by_status": counts}
+
+
+@router.get("/outbound/orders/{order_id}", dependencies=[need("wms:view")])
+async def outbound_order(order_id: str) -> dict:
+    try:
+        detail = _out().order_detail(order_id)
+    except OutboundError as err:
+        raise HTTPException(404, detail=str(err)) from err
+    sim = simulator.engine.orders.get(order_id)
+    detail["robot"] = sim.assigned_robot if sim else None
+    detail["robot_status"] = sim.status.value if sim else None
+    return detail
+
+
+class ReasonIn(BaseModel):
+    reason: str = Field(min_length=3, max_length=120)
+
+
+def _not_on_a_robot(order_id: str) -> None:
+    sim = simulator.engine.orders.get(order_id)
+    if sim is not None and sim.status.value in ("ASSIGNED", "IN_PROGRESS"):
+        raise _refused(
+            OutboundError(f"{order_id} is with robot {sim.assigned_robot}; wait for packing")
+        )
+
+
+@router.post("/outbound/orders/{order_id}/hold")
+async def hold_order(
+    order_id: str, body: ReasonIn, who: Annotated[Principal, Depends(require("orders:manage"))]
+) -> dict:
+    _not_on_a_robot(order_id)
+    try:
+        rec = _out().hold(order_id, body.reason, who.username)
+    except OutboundError as err:
+        raise _refused(err) from err
+    return _out().order_row(rec)
+
+
+@router.post("/outbound/orders/{order_id}/release-hold")
+async def release_hold(
+    order_id: str, who: Annotated[Principal, Depends(require("orders:manage"))]
+) -> dict:
+    try:
+        rec = _out().release_hold(order_id, who.username)
+    except OutboundError as err:
+        raise _refused(err) from err
+    return _out().order_row(rec)
+
+
+@router.post("/outbound/orders/{order_id}/release")
+async def release_order(
+    order_id: str, who: Annotated[Principal, Depends(require("orders:manage"))]
+) -> dict:
+    """Release a ready order to the robots now, ahead of its wave."""
+    try:
+        rec = _out().release_now(order_id, who.username)
+    except OutboundError as err:
+        raise _refused(err) from err
+    return _out().order_row(rec)
+
+
+@router.post("/outbound/orders/{order_id}/ship-partial")
+async def ship_partial(
+    order_id: str, who: Annotated[Principal, Depends(require("orders:manage"))]
+) -> dict:
+    """Ship what is allocated now; the missing units go on backorder."""
+    try:
+        rec = _out().ship_partial(order_id, who.username)
+    except OutboundError as err:
+        raise _refused(err) from err
+    return _out().order_row(rec)
+
+
+@router.post("/outbound/orders/{order_id}/cancel")
+async def cancel_order(
+    order_id: str, body: ReasonIn, who: Annotated[Principal, Depends(require("orders:manage"))]
+) -> dict:
+    """Cancel before loading. Allocated stock is freed; units already picked are put back."""
+    from simulation.warehouse.entities import OrderStatus
+
+    _not_on_a_robot(order_id)
+    try:
+        rec = _out().cancel(order_id, body.reason, who.username)
+    except OutboundError as err:
+        raise _refused(err) from err
+    sim = simulator.engine.orders.get(order_id)
+    if sim is not None and sim.status == OrderStatus.PENDING:
+        sim.status = OrderStatus.CANCELLED  # the dispatcher never sends a robot for it
+    return _out().order_row(rec)
+
+
+class OrderRef(BaseModel):
+    order_id: str
+
+
+class CartonScan(BaseModel):
+    sscc: str = Field(min_length=18, max_length=80)  # SSCC, LPN<sscc> or a GS1 (00) scan
+
+
+def _sscc(raw: str) -> str:
+    scan = bc.parse_scan(raw)
+    sscc = scan.sscc or raw.removeprefix("LPN")
+    if not (sscc.isdigit() and len(sscc) == 18 and bc.valid(sscc)):
+        raise _bad(ValueError(f"not a valid SSCC: {raw}"))
+    return sscc
+
+
+def _finish_task(wms, kind: str, user: str, **match) -> None:
+    """A manual pack / audit / load replaces the crew's open task for it."""
+    for t in wms.tasks.values():
+        if (
+            t.type == kind
+            and t.status == "OPEN"
+            and all(t.data.get(k) == v for k, v in match.items())
+        ):
+            t.status, t.assignee, t.done_at = "DONE", user, wms.inv.tick
+            t.result = "done in the app"
+            return
+    raise _refused(OutboundError(f"no open {kind.lower()} task for {match}"))
+
+
+@router.post("/outbound/pack")
+async def pack(body: OrderRef, who: Annotated[Principal, Depends(require("wms:ship"))]) -> dict:
+    """Pack an order waiting at a packing station (when packing is done by hand in the app)."""
+    wms = _wms()
+    _finish_task(wms, "PACK", who.username, order=body.order_id)
+    try:
+        cartons = wms.out.pack(body.order_id, who.username)
+    except (OutboundError, InventoryError) as err:
+        raise _refused(err) from err
+    return {"cartons": [wms.out.carton_row(c) for c in cartons]}
+
+
+@router.post("/outbound/audit")
+async def audit(body: CartonScan, who: Annotated[Principal, Depends(require("wms:ship"))]) -> dict:
+    wms = _wms()
+    sscc = _sscc(body.sscc)
+    _finish_task(wms, "AUDIT", who.username, sscc=sscc)
+    try:
+        return wms.out.carton_row(wms.out.audit(sscc, who.username))
+    except (OutboundError, InventoryError) as err:
+        raise _refused(err) from err
+
+
+@router.post("/outbound/load")
+async def load(body: CartonScan, who: Annotated[Principal, Depends(require("wms:ship"))]) -> dict:
+    """Scan a carton in a sort lane onto its carrier's trailer."""
+    wms = _wms()
+    sscc = _sscc(body.sscc)
+    _finish_task(wms, "LOAD", who.username, sscc=sscc)
+    try:
+        return wms.out.carton_row(wms.out.load(sscc, who.username))
+    except (OutboundError, InventoryError) as err:
+        raise _refused(err) from err
+
+
+@router.get("/outbound/cartons", dependencies=[need("wms:view")])
+async def cartons(status: str | None = None, limit: int = Query(200, le=1000)) -> list[dict]:
+    out = _out()
+    rows = [c for c in out.cartons.values() if status is None or c.status == status]
+    rows.sort(key=lambda c: -(c.packed_at or 0))
+    return [out.carton_row(c) for c in rows[:limit]]
+
+
+@router.get("/outbound/cartons/{sscc}", dependencies=[need("wms:view")])
+async def carton(sscc: str) -> dict:
+    out = _out()
+    found = out.cartons.get(_sscc(sscc))
+    if found is None:
+        raise HTTPException(404, detail=f"No carton {sscc}")
+    return out.carton_row(found)
+
+
+@router.get("/outbound/trips", dependencies=[need("wms:view")])
+async def trips() -> list[dict]:
+    """Carrier departures: the next trucks and the last two days."""
+    out = _out()
+    return [
+        out.trip_row(t) for t in sorted(out.trips.values(), key=lambda t: (t.departs, t.carrier))
+    ]
+
+
+@router.get("/outbound/trips/{trip_id}", dependencies=[need("wms:view")])
+async def trip_manifest(trip_id: str) -> dict:
+    """The manifest of a trip: every carton with its order, customer and weight."""
+    out = _out()
+    trip = out.trips.get(trip_id)
+    if trip is None:
+        raise HTTPException(404, detail=f"No trip {trip_id}")
+    cartons = [out.cartons[s] for s in trip.cartons if s in out.cartons]
+    return {
+        **out.trip_row(trip),
+        "manifest": [
+            {
+                "sscc": c.sscc,
+                "tracking": c.tracking,
+                "order_id": c.order_id,
+                "customer": out.customers[out.orders[c.order_id].customer_id].name
+                if c.order_id in out.orders
+                else None,
+                "city": out.customers[out.orders[c.order_id].customer_id].city
+                if c.order_id in out.orders
+                else None,
+                "weight_kg": c.scale_kg,
+                "units": sum(r["qty"] for r in c.contents),
+            }
+            for c in cartons
+        ],
+    }
+
+
+@router.get("/outbound/waves", dependencies=[need("wms:view")])
+async def waves() -> list[dict]:
+    return list(_out().waves)
+
+
+@router.get("/outbound/backorders", dependencies=[need("wms:view")])
+async def backorders(status: str | None = "OPEN") -> list[dict]:
+    rows = [b.to_dict() for b in _out().backorders.values() if status in (None, b.status)]
+    return sorted(rows, key=lambda b: b["bo_id"], reverse=True)[:500]
+
+
+@router.get("/outbound/customers", dependencies=[need("wms:view")])
+async def customer_master() -> list[dict]:
+    return [c.to_dict() for c in _out().customers.values()]
+
+
+@router.get("/outbound/carriers", dependencies=[need("wms:view")])
+async def carrier_master() -> list[dict]:
+    out = _out()
+    return [
+        {**c.to_dict(), "cutoff_minutes": out.cfg["cutoff_minutes"]} for c in out.carriers.values()
+    ]
+
+
+@router.get("/outbound/confirmations", dependencies=[need("wms:view")])
+async def confirmations(limit: int = Query(100, le=500)) -> list[dict]:
+    """Ship confirmations (what an ERP would receive): order, trip, tracking, units shipped."""
+    out = _out()
+    return [{**c, "time": out.clock(c["tick"])} for c in list(out.confirmations)[:limit]]
 
 
 # ----- labels and barcodes -------------------------------------------------------------------
@@ -663,6 +960,22 @@ async def plate_label(sscc: str) -> Response:
     return _pdf(
         labels.pallet_label(plate, item, wms.suppliers[item.supplier_id].name), f"sscc-{sscc}.pdf"
     )
+
+
+@router.get("/labels/shipping/{sscc}", dependencies=[need("wms:view")])
+async def shipping_label(sscc: str) -> Response:
+    """GS1 shipping label of a packed carton (100 x 150 mm PDF)."""
+    out = _out()
+    found = out.cartons.get(_sscc(sscc))
+    if found is None or found.order_id not in out.orders:
+        raise HTTPException(404, detail=f"No carton {sscc}")
+    rec = out.orders[found.order_id]
+    data = labels.shipping_label(
+        found.to_dict(),
+        out.customers[rec.customer_id].to_dict(),
+        out.carriers[rec.carrier].to_dict(),
+    )
+    return _pdf(data, f"ship-{found.sscc}.pdf")
 
 
 @router.get("/barcode.svg", dependencies=[need("wms:view")])

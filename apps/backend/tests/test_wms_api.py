@@ -144,3 +144,79 @@ def test_simple_model_answers_409():
         assert TestClient(app).get(f"{API}/kpis").status_code == 409
     finally:
         simulator.engine = original
+
+
+# ----- outbound --------------------------------------------------------------------------------
+def _new_order(qty: int = 1):
+    from simulation.warehouse.entities import OrderItem, Priority
+
+    eng = simulator.engine
+    wms = eng.inventory.wms
+    sku = wms.orderable()[0]
+    order = eng.generator.operator_order(
+        eng.next_order_id(), eng.time, Priority.MEDIUM, [OrderItem(sku, qty)], eng.inventory
+    )
+    eng._add_order(order)
+    return order
+
+
+def test_outbound_orders_hold_release_and_cancel(client, wms):
+    order = _new_order()
+    page = client.get(f"{API}/outbound/orders", params={"status": "open"}).json()
+    assert any(r["order_id"] == order.order_id for r in page["orders"])
+    detail = client.get(f"{API}/outbound/orders/{order.order_id}").json()
+    assert detail["customer_detail"]["postal_code"] and detail["departure_at"]
+    held = client.post(
+        f"{API}/outbound/orders/{order.order_id}/hold", json={"reason": "address check"}
+    ).json()
+    assert held["status"] == "ON_HOLD" and held["hold_reason"] == "address check"
+    released = client.post(f"{API}/outbound/orders/{order.order_id}/release-hold").json()
+    assert released["status"] == "RELEASED"
+    gone = client.post(
+        f"{API}/outbound/orders/{order.order_id}/cancel", json={"reason": "customer called"}
+    ).json()
+    assert gone["status"] == "CANCELLED"
+    assert simulator.engine.orders[order.order_id].status.value == "CANCELLED"
+    again = client.post(
+        f"{API}/outbound/orders/{order.order_id}/cancel", json={"reason": "customer called"}
+    )
+    assert again.status_code == 409
+    history = client.get(f"{API}/outbound/orders/{order.order_id}").json()["history"]
+    assert [h["user"] for h in history if h["event"] in ("ON_HOLD", "CANCELLED")] == [
+        "test-admin"
+    ] * 2
+
+
+def test_manual_packing_loading_and_the_shipping_label(client, wms):
+    client.put(f"{API}/settings", json={"auto_tasks": {"PACK": False, "LOAD": False}})
+    order = _new_order(2)
+    rec = wms.out.orders[order.order_id]
+    for _ in range(3000):
+        simulator.engine.tick()
+        if rec.status == "AT_PACK":
+            break
+    assert rec.status == "AT_PACK"
+    packed = client.post(f"{API}/outbound/pack", json={"order_id": order.order_id}).json()
+    carton = packed["cartons"][0]
+    assert carton["tracking"] and carton["size"] in ("S", "M", "L")
+    if carton["check"] == "FAIL":
+        client.post(f"{API}/outbound/audit", json={"sscc": carton["sscc"]})
+    label = client.get(f"{API}/labels/shipping/{carton['sscc']}")
+    assert label.status_code == 200 and label.content.startswith(b"%PDF")
+    loaded = client.post(f"{API}/outbound/load", json={"sscc": "LPN" + carton["sscc"]}).json()
+    assert loaded["status"] == "LOADED" and loaded["trip"]
+    manifest = client.get(f"{API}/outbound/trips/{loaded['trip']}").json()
+    assert any(m["sscc"] == carton["sscc"] for m in manifest["manifest"])
+    assert client.post(f"{API}/outbound/load", json={"sscc": carton["sscc"]}).status_code == 409
+
+
+def test_outbound_settings_and_lists(client, wms):
+    s = client.put(f"{API}/settings", json={"release_mode": "wave", "wave_minutes": 20}).json()
+    assert s["release_mode"] == "wave" and s["wave_minutes"] == 20
+    assert client.put(f"{API}/settings", json={"release_mode": "batch"}).status_code == 422
+    client.put(f"{API}/settings", json={"release_mode": "continuous"})
+    trips = client.get(f"{API}/outbound/trips").json()
+    assert {t["carrier"] for t in trips} == {"EXP", "STD", "ECO"}
+    assert len(client.get(f"{API}/outbound/customers").json()) == 60
+    assert client.get(f"{API}/outbound/carriers").json()[0]["departures"]
+    assert "outbound" in client.get(f"{API}/kpis").json()

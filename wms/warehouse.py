@@ -4,13 +4,17 @@ cycle counts, expiry, returns and the associates who do the manual work.
     supplier ─► purchase order ─► truck at a dock door (ASN: license plates with lot / expiry)
             ─► RECEIVE (scan SSCC, check quantity, damage → quarantine) ─► staging lane
             ─► PUTAWAY: fill the pick face up to its max, the rest on a reserve position
-    order   ─► ALLOCATE at pick faces (FEFO) ─► released to a robot ─► PICK ─► SHIP at packing
+    order   ─► ALLOCATE at pick faces (FEFO) ─► released to a robot ─► PICK ─► tote at packing
             short at the pick face?  urgent REPLENISH from reserve, order waits until it lands
+            ─► PACK (cartons, weight check, label) ─► carrier lane ─► LOAD ─► truck departs: SHIP
+            (wms/outbound.py: customers, carriers, waves, holds, cancellations, backorders)
     every hour: demand update, reorder (reorder point = demand over lead time + safety stock),
                 cycle counts (A items most often), expiry check, shrinkage (simulated), returns
 
-Associates (a labour pool) take open tasks by priority; each task takes walking time plus
-handling time. Operators can do the same work from the app (scan-based) under their own name.
+Associates take open tasks by priority; each task takes walking time plus handling time. Three
+crews: inbound associates (receiving to counts), one packer per packing station, and dock loaders
+(loading trailers, putting back cancelled orders). Operators can do the same work from the
+app (scan-based) under their own name.
 """
 
 from __future__ import annotations
@@ -23,7 +27,8 @@ from collections import Counter, defaultdict, deque
 from wms.inventory import AVAILABLE, Inventory, InventoryError
 from wms.master import build_items, build_locations, suppliers
 from wms.model import LocationType, StockKey, StockStatus, TxnType
-from wms.operations import Count, POLine, PurchaseOrder, Return, Task
+from wms.operations import TASK_CREW, Count, POLine, PurchaseOrder, Return, Task
+from wms.outbound import Outbound
 
 DEFAULTS = {
     "associates": 8,  # people doing receiving, putaway, replenishment, counts, returns
@@ -36,7 +41,24 @@ DEFAULTS = {
         "COUNT": 6,
         "RETURN": 10,
         "QUARANTINE": 6,
+        "PACK": 6,  # plus pack_ticks_per_unit for every unit in the tote
+        "AUDIT": 8,
+        "LOAD": 3,
+        "PUTBACK": 8,
     },
+    "pack_ticks_per_unit": 1,
+    "packers_per_station": 1,
+    "loaders": 2,
+    # outbound
+    "release_mode": "continuous",  # continuous (as soon as allocated) | wave
+    "wave_minutes": 15,
+    "wave_max_orders": 80,
+    "cutoff_minutes": 30,  # cartons must be ready this long before the truck leaves
+    "pack_buffer_minutes": 15,  # pick-by deadline + this = earliest truck an order is planned on
+    "credit_hold_rate": 0.01,  # share of new orders held for a (simulated) credit check
+    "hold_minutes": (20, 90),
+    "backorder_after_minutes": 60,  # then ship partial if the customer accepts it
+    "mispack_rate": 0.004,  # cartons with a wrong unit: caught by the weight check
     "service_level_z": 1.65,  # 95 % cycle service level for the safety stock
     "review_hours": 4,  # order-up-to: cover lead time + review period
     "opening_cover_days": 1.5,
@@ -58,13 +80,24 @@ DEFAULTS = {
         "COUNT": True,
         "RETURN": True,
         "QUARANTINE": True,
+        "PACK": True,
+        "AUDIT": True,
+        "LOAD": True,
+        "PUTBACK": True,
     },
 }
 
 
 class Warehouse:
     def __init__(
-        self, layout, products, faces, rng: random.Random, ticks_per_hour: int, config=None
+        self,
+        layout,
+        products,
+        faces,
+        rng: random.Random,
+        ticks_per_hour: int,
+        config=None,
+        outbound_rng: random.Random | None = None,
     ):
         self.cfg = {**DEFAULTS, **(config or {})}
         self.cfg["auto_tasks"] = {**DEFAULTS["auto_tasks"], **self.cfg.get("auto_tasks", {})}
@@ -85,9 +118,24 @@ class Warehouse:
         self.returns: dict[str, Return] = {}
         self.seq = Counter()
         self.associates = {
-            f"AS{i + 1:02d}": {"task": None, "until": 0, "x": 40, "y": 2}
+            f"AS{i + 1:02d}": {"task": None, "until": 0, "x": 40, "y": 2, "crew": "inbound"}
             for i in range(self.cfg["associates"])
         }
+        packing = sorted(
+            (loc for loc in self.inv.locations.values() if loc.type == LocationType.PACK),
+            key=lambda p: p.code,
+        )
+        stations = [loc for loc in packing for _ in range(self.cfg["packers_per_station"])]
+        for i, loc in enumerate(stations, start=1):
+            self.associates[f"PK{i:02d}"] = {
+                "task": None, "until": 0, "x": loc.x, "y": loc.y, "crew": "pack",
+                "station": loc.code,
+            }  # fmt: skip
+        lane = next(loc for loc in self.inv.locations.values() if loc.type == LocationType.LANE)
+        for i in range(self.cfg["loaders"]):
+            self.associates[f"LD{i + 1:02d}"] = {
+                "task": None, "until": 0, "x": lane.x, "y": lane.y, "crew": "dock",
+            }  # fmt: skip
         self.waiting: dict[str, list[tuple[int, str, int]]] = {}  # order -> (line, sku, missing)
         self.ordered: dict[str, dict[int, list]] = {}  # order -> line -> [sku, units allocated]
         self.popularity = self._popularity()
@@ -104,6 +152,7 @@ class Warehouse:
         self._expiry_warned: set[tuple[str, str]] = set()
         self._opening_stock()
         self._classify_abc()
+        self.out = Outbound(self, outbound_rng or random.Random(0))
 
     # ----- helpers ---------------------------------------------------------------------------
     def _id(self, prefix: str) -> str:
@@ -231,10 +280,12 @@ class Warehouse:
                 self._replenish(item.product_id, urgent=True)
         if missing:
             self.waiting[order.order_id] = missing
+        self.out.register(order, waiting=bool(missing))
         return not missing
 
     def releasable(self, order_id: str) -> bool:
-        return order_id not in self.waiting
+        """Fully allocated (or partly, with a backorder), not on hold, released to the robots."""
+        return self.out.releasable(order_id)
 
     def _retry_waiting(self, sku: str) -> None:
         for order_id in sorted(self.waiting):
@@ -250,9 +301,12 @@ class Warehouse:
                 self.waiting[order_id] = still
             else:
                 del self.waiting[order_id]
+                self.out.stock_complete(order_id)
 
     def pick_line(self, order_id: str, line: int, robot: str) -> tuple[int, int]:
         picked, short = self.inv.pick(order_id, line, robot)
+        self.metrics["units_picked"] += picked
+        self.out.picked(order_id, line, picked, short)
         if picked or short:
             sku = next(
                 (a.sku for a in self.inv.allocations.get(order_id, []) if a.line == line), None
@@ -271,13 +325,11 @@ class Warehouse:
             self._exception_count(alloc.location, alloc.sku, "SHORT_PICK")
         return picked, short
 
-    def ship_order(self, order_id: str, robot: str, station: str) -> int:
-        shipped = self.inv.ship(order_id, robot, station)
-        self.metrics["units_shipped"] += shipped
-        self.metrics["orders_shipped"] += 1
-        self._maybe_return(order_id)
+    def deliver_to_pack(self, order_id: str, robot: str, station: str) -> int:
+        """The robot reached the packing station; packing and shipping follow (outbound)."""
         self.ordered.pop(order_id, None)
-        return shipped
+        self.metrics["orders_at_pack"] += 1
+        return self.out.delivered(order_id, robot, station)
 
     def cancel_order(self, order_id: str) -> None:
         self.inv.deallocate(order_id)
@@ -724,10 +776,10 @@ class Warehouse:
                 scrapped += qty
         return f"scrapped {scrapped}"
 
-    def _maybe_return(self, order_id: str) -> None:
+    def _maybe_return(self, order_id: str, lines: list[tuple[str, int]]) -> None:
         """A small share of shipped lines comes back some hours later (one unit each)."""
         reasons = ["changed mind", "wrong size", "damaged in transit", "not as described"]
-        for sku, units in self.ordered.get(order_id, {}).values():
+        for sku, units in lines:
             if units and self.rng.random() < self.cfg["return_rate"]:
                 arrives = self.inv.tick + self.rng.randint(4, 24) * self.tph
                 rma = Return(self._id("RMA"), order_id, sku, 1, arrives, self.rng.choice(reasons))
@@ -829,6 +881,10 @@ class Warehouse:
             "COUNT": self._do_count,
             "RETURN": self._do_return,
             "QUARANTINE": self._do_quarantine,
+            "PACK": self._do_pack,
+            "AUDIT": self._do_audit,
+            "LOAD": self._do_load,
+            "PUTBACK": self._do_putback,
         }
         for name, a in sorted(self.associates.items()):
             task = self.tasks.get(a["task"]) if a["task"] else None
@@ -852,13 +908,30 @@ class Warehouse:
             ),
             key=lambda t: (t.priority, t.created, t.task_id),
         )
-        for task, name in zip(open_tasks, idle, strict=False):
+        taken: set[str] = set()
+        for name in idle:  # each crew member takes the most urgent task of their crew
             a = self.associates[name]
+            task = next(
+                (
+                    t
+                    for t in open_tasks
+                    if t.task_id not in taken
+                    and TASK_CREW.get(t.type, "inbound") == a["crew"]
+                    and a.get("station") in (None, t.data.get("location"))
+                ),
+                None,
+            )
+            if task is None:
+                continue
+            taken.add(task.task_id)
             x, y = self._task_location(task)
             walk = (abs(a["x"] - x) + abs(a["y"] - y)) / self.cfg["walk_m_per_tick"]
+            handling = self.cfg["handling_ticks"][task.type]
+            if task.type == "PACK":
+                handling += self.cfg["pack_ticks_per_unit"] * task.data.get("units", 1)
             a["task"], a["until"], a["x"], a["y"] = (
                 task.task_id,
-                self.inv.tick + int(walk) + self.cfg["handling_ticks"][task.type],
+                self.inv.tick + int(walk) + handling,
                 x,
                 y,
             )
@@ -869,6 +942,31 @@ class Warehouse:
             if t.status in ("DONE", "CANCELLED") and self.inv.tick - (t.done_at or 0) > 4 * self.tph
         ]:
             del self.tasks[t.task_id]  # keep the task list short; the ledger keeps the history
+
+    def _do_pack(self, task: Task, user: str) -> str:
+        if self.out.orders.get(task.data["order"], None) is None:
+            return "order gone"
+        if self.out.orders[task.data["order"]].status != "AT_PACK":
+            return f"order {self.out.orders[task.data['order']].status.lower()}"
+        cartons = self.out.pack(task.data["order"], user)
+        return f"{len(cartons)} carton(s)"
+
+    def _do_audit(self, task: Task, user: str) -> str:
+        carton = self.out.cartons.get(task.data["sscc"])
+        if carton is None or carton.status == "CANCELLED":
+            return "carton cancelled"
+        self.out.audit(carton.sscc, user)
+        return "corrected"
+
+    def _do_load(self, task: Task, user: str) -> str:
+        carton = self.out.cartons.get(task.data["sscc"])
+        if carton is None or carton.status != "IN_LANE":
+            return "not in the lane"
+        return f"on {self.out.load(carton.sscc, user).trip}"
+
+    def _do_putback(self, task: Task, user: str) -> str:
+        units = self.out.put_back(task.data["plates"], task.data["order"], user)
+        return f"{units} units back on the shelf"
 
     def _do_receive(self, task: Task, user: str) -> str:
         po = self.pos[task.data["po"]]
@@ -888,6 +986,7 @@ class Warehouse:
         if tick % self.tph == 0 and tick > 0:
             self._hourly()
         self._trucks()
+        self.out.step()
         self._labour()
 
     def _hourly(self) -> None:
@@ -927,8 +1026,8 @@ class Warehouse:
             "inventory_value": round(value, 2),
             "stockouts": stockouts,
             "orders_waiting_stock": len(self.waiting),
-            "fill_rate": round(
-                m["units_shipped"] / max(1, m["units_shipped"] + m["units_short"]), 4
+            "fill_rate": round(  # units picked / units the robots were sent for
+                m["units_picked"] / max(1, m["units_picked"] + m["units_short"]), 4
             ),
             "units_short": m["units_short"],
             "inventory_record_accuracy": round(m["counts_accurate"] / done, 4) if done else None,
@@ -945,4 +1044,5 @@ class Warehouse:
             else None,
             "open_tasks": dict(open_tasks),
             "on_hold_units": sum(q for k, q in inv.rows() if k.status != AVAILABLE),
+            "outbound": self.out.kpis(),
         }

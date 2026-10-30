@@ -229,6 +229,7 @@ class Inventory:
             and v["location"] == from_loc
             and v["lot"] == lot
             and v["state"] == "IN_STOCK"
+            and (order is None or v["order"] in (None, order))
         )[:qty]
         for s in moved:
             self.serials[s].update(location=to_loc, state=state, order=order)
@@ -287,6 +288,7 @@ class Inventory:
         status=AVAILABLE,
         ref: str | None = None,
         user: str = "system",
+        order: str | None = None,
     ) -> Txn:
         self._check(sku, from_loc, to_loc)
         if qty <= 0:
@@ -305,7 +307,7 @@ class Inventory:
             )
         self._book(src, -qty)
         self._book(StockKey(sku, to_loc, lot, status, to_lpn), qty)
-        serials = self._move_serials(sku, qty, from_loc, to_loc, lot)
+        serials = self._move_serials(sku, qty, from_loc, to_loc, lot, order=order)
         return self._record(
             type_,
             sku,
@@ -491,8 +493,53 @@ class Inventory:
             picked_total += got
         return picked_total, short_total
 
+    def drop(self, order_id: str, robot: str, station: str, tote: str) -> int:
+        """The robot drops the order's units at a packing station, in the order's tote (a
+        license plate), so orders waiting at the same station never mix."""
+        dropped = 0
+        on_robot = self.robot_location(robot)
+        for key, q in list(self.rows(location=on_robot)):
+            self.move(
+                key.sku,
+                q,
+                on_robot,
+                station,
+                key.lot,
+                TxnType.MOVE,
+                to_lpn=tote,
+                ref=order_id,
+                user=robot,
+                order=order_id,
+            )
+            dropped += q
+        self.allocations.pop(order_id, None)
+        return dropped
+
+    def ship_lpn(self, lpn: str, location: str, ref: str | None, user: str) -> int:
+        """A carton leaves the building on a truck: its units leave the stock."""
+        shipped = 0
+        for key, q in list(self.rows(location=location, lpn=lpn)):
+            self._book(key, -q)
+            serials = self._move_serials(
+                key.sku, q, location, "SHIPPED", key.lot, state="SHIPPED", order=ref
+            )
+            self._record(
+                TxnType.SHIP,
+                key.sku,
+                q,
+                from_loc=location,
+                lot=key.lot,
+                lpn=lpn,
+                ref=ref,
+                user=user,
+                serials=serials,
+            )
+            shipped += q
+        return shipped
+
     def ship(self, order_id: str, robot: str, station: str) -> int:
-        """Picked units reach the packing station and leave the stock (shipped)."""
+        """Ship straight from the robot at the station (no packing step; the warehouse uses
+        drop -> pack -> load -> ship_lpn)."""
         shipped = 0
         on_robot = self.robot_location(robot)
         for key, q in list(self.rows(location=on_robot)):

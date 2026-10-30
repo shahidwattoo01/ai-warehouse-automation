@@ -252,10 +252,20 @@ class SimulationEngine:
                 Event(self.time, EventType.INVENTORY_RESTOCKED, pid, {"added": added})
             ),
         )
+        for spec in self.inventory.take_new_orders():  # WMS: backorders whose stock arrived
+            order = self.generator.operator_order(
+                self.next_order_id(),
+                self.time,
+                Priority(spec["priority"]),
+                [OrderItem(sku, qty) for sku, qty in spec["items"]],
+                self.inventory,
+            )
+            order.source = "BACKORDER"
+            self._add_order(order)
         finished = [
             k
             for k, o in self.orders.items()
-            if o.status in (OrderStatus.DELIVERED, OrderStatus.LATE)
+            if o.status in (OrderStatus.DELIVERED, OrderStatus.LATE, OrderStatus.CANCELLED)
         ]
         for k in finished[:-KEEP_FINISHED_ORDERS]:
             del self.orders[k]

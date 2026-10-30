@@ -22,12 +22,14 @@ recorded under the person who made it. Decision record: [ADR 009](adr/009-jwt-rb
 | `simulation:control` (start, pause, reset, speed, strategy) | ✓ | ✓ | ✓ | | |
 | `robots:command` (pause / resume / reroute, aisles) | ✓ | ✓ | ✓ | | |
 | `orders:create`, `orders:assign` | ✓ | ✓ | ✓ | | |
+| `orders:manage` (hold, release, cancel, ship partial) | ✓ | ✓ | ✓ | | |
 | `vision:use` (run detection) | ✓ | ✓ | ✓ | | |
 | `copilot:use` (copilot and knowledge assistant) | ✓ | ✓ | ✓ | ✓ | |
 | `copilot:approve` (approve copilot actions) | ✓ | ✓ | ✓ | | |
 | `wms:receive`, `wms:move`, `wms:adjust`, `wms:hold`, `wms:count` | ✓ | ✓ | | ✓ | |
+| `wms:ship` (pack, weight-check audit, load trucks) | ✓ | ✓ | | ✓ | |
 | `wms:count_approve` (sign off count differences) | ✓ | ✓ | | | |
-| `wms:settings` (what associates do automatically) | ✓ | ✓ | | | |
+| `wms:settings` (what associates do automatically, release mode) | ✓ | ✓ | | | |
 | `users:manage` | ✓ | | | | |
 
 The table lives in `apps/backend/app/core/permissions.py`; the **Users & roles** page shows it,

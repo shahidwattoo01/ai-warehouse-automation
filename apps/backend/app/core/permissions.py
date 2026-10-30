@@ -17,6 +17,7 @@ PERMISSIONS: dict[str, str] = {
     "robots:command": "Pause, resume and reroute robots; close and open aisles",
     "orders:create": "Create orders",
     "orders:assign": "Assign orders to robots; switch manual / automatic assignment",
+    "orders:manage": "Hold, release, cancel and partly ship customer orders",
     "vision:use": "Run object detection on camera images",
     "copilot:use": "Ask the copilot and the knowledge assistant",
     "copilot:approve": "Approve copilot actions that change the warehouse",
@@ -27,7 +28,8 @@ PERMISSIONS: dict[str, str] = {
     "wms:hold": "Hold and release stock",
     "wms:count": "Create and submit cycle counts",
     "wms:count_approve": "Approve or reject count differences (supervisor)",
-    "wms:settings": "Choose which work the associates do automatically",
+    "wms:ship": "Pack, check and load cartons onto carrier trucks",
+    "wms:settings": "Choose which work the associates do automatically; order release mode",
     "users:manage": "Create users, change roles, disable accounts, reset passwords",
 }
 
@@ -53,6 +55,7 @@ ROLES: dict[str, dict] = {
             "robots:command",
             "orders:create",
             "orders:assign",
+            "orders:manage",
             "vision:use",
             "copilot:use",
             "copilot:approve",
@@ -62,7 +65,15 @@ ROLES: dict[str, dict] = {
         "label": "Inventory clerk",
         "home": "/inventory",
         "permissions": _READ
-        | {"copilot:use", "wms:receive", "wms:move", "wms:adjust", "wms:hold", "wms:count"},
+        | {
+            "copilot:use",
+            "wms:receive",
+            "wms:move",
+            "wms:adjust",
+            "wms:hold",
+            "wms:count",
+            "wms:ship",
+        },
     },
     "viewer": {
         "label": "Viewer (read only)",

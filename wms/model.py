@@ -14,7 +14,9 @@ class LocationType(str, Enum):
     STAGING = "STAGING"  # received goods waiting for putaway
     QUARANTINE = "QUARANTINE"  # damaged or doubtful goods waiting for a decision
     RETURNS = "RETURNS"  # customer returns waiting for inspection
-    PACK = "PACK"  # packing station: picked goods leave the stock here (shipped)
+    PACK = "PACK"  # packing station: robots drop order totes here, packers fill cartons
+    LANE = "LANE"  # outbound sort lane of one carrier: labelled cartons wait for loading
+    SHIP_DOCK = "SHIP_DOCK"  # shipping door with the carrier's trailer: loaded cartons
     ROBOT = "ROBOT"  # on a robot between pick and pack
 
 
@@ -38,7 +40,9 @@ class TxnType(str, Enum):
     DEALLOCATE = "DEALLOCATE"
     PICK = "PICK"
     SHORT_PICK = "SHORT_PICK"
-    SHIP = "SHIP"
+    PACK = "PACK"  # units from the order tote into a shipping carton
+    LOAD = "LOAD"  # carton from the sort lane onto the carrier's trailer
+    SHIP = "SHIP"  # the trailer leaves: the units leave the stock
     ADJUST = "ADJUST"
     COUNT = "COUNT"
     STATUS = "STATUS"  # hold / release / quarantine / expire
@@ -80,6 +84,7 @@ class Item:
     serial_controlled: bool = False
     abc: str = "C"  # A / B / C by recent pick volume
     uom: str = "EA"
+    volume_l: float = 1.0  # packed volume of one unit (litres): chooses the shipping carton
 
     def to_dict(self) -> dict:
         return asdict(self)

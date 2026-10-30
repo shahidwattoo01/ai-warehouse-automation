@@ -219,7 +219,8 @@ def test_the_wms_ledger_and_balances_are_recorded(db_url):
             ).scalar()
         by_type = dict(txns)
         assert sum(by_type.values()) == len(inv.ledger)
-        assert by_type.get("PICK", 0) > 0 and by_type.get("SHIP", 0) > 0
+        # 70 simulated minutes: picked, packed and loaded; the first truck leaves at 06:00
+        assert all(by_type.get(t, 0) > 0 for t in ("PICK", "PACK", "LOAD"))
         on_robots = sum(q for k, q in inv.stock.items() if k.location.startswith("ROBOT:"))
         assert db_units == sum(inv.stock.values()) - on_robots  # balances match the WMS
     finally:

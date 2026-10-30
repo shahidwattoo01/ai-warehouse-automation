@@ -17,7 +17,7 @@ items:
     priority: high
     effort: M
     status: done
-    evidence: "JWT access + rotating refresh tokens, 5 roles / 18 permissions on every endpoint, user admin page, login audit; docs/authentication.md"
+    evidence: "JWT access + rotating refresh tokens, 5 roles / 20 permissions on every endpoint, user admin page, login audit; docs/authentication.md"
   - id: PR-02
     area: Security
     gap: Local-only hardening
@@ -78,7 +78,8 @@ items:
     phase: 10
     priority: high
     effort: L
-    status: planned
+    status: done
+    evidence: "wms/outbound.py: totes, cartonisation and weight check, GS1 shipping label (00/420/3301), carrier lanes, loading, scheduled trucks with cut-offs, continuous or wave release, manifests and ship confirmations; docs/wms_outbound.md, ADR 010"
   - id: PR-09
     area: WMS
     gap: Simple stock per bay
@@ -255,7 +256,8 @@ items:
     phase: 10
     priority: high
     effort: M
-    status: planned
+    status: done
+    evidence: "60 customers with ship-to addresses, credit and manual holds, cancel with put-back of picked units, partial release with backorders and follow-up orders, per-order history; Orders page tabs"
   - id: PR-29
     area: WMS
     gap: Floor staff have no handheld screens; every page is built for the control room

@@ -33,7 +33,18 @@ AIS: dict[str, tuple[int | None, int, str]] = {
     "21": (None, 20, "serial"),
     "30": (None, 8, "quantity"),
     "37": (None, 8, "count"),
+    "401": (None, 30, "consignment"),  # GINC: the shipment / trip
+    "420": (None, 20, "ship_to_postal"),  # ship-to postal code (sortation)
+    "3301": (6, 6, "gross_weight_kg"),  # logistic weight, kg with one decimal
 }
+
+
+def _ai_at(text: str, i: int = 0) -> str | None:
+    """The application identifier starting at text[i] (AIs have 2, 3 or 4 digits)."""
+    for n in (2, 3, 4):
+        if text[i : i + n] in AIS:
+            return text[i : i + n]
+    return None
 
 
 def check_digit(digits: str) -> str:
@@ -130,6 +141,8 @@ class Scan:
     serial: str | None = None
     quantity: int | None = None
     code: str | None = None  # location or LPN code
+    ship_to_postal: str | None = None
+    consignment: str | None = None
     errors: list[str] = field(default_factory=list)
 
     def to_dict(self) -> dict:
@@ -140,7 +153,7 @@ class Scan:
 
 
 LOCATION_CODE = re.compile(
-    r"^(?:[A-D]-\d{2}-\d{2}-\d|DOCK-\d{2}|STAGE-\d{2}|PACK_\d|QA-\d{2}|RET-\d{2})$"
+    r"^(?:[A-D]-\d{2}-\d{2}-\d|DOCK-\d{2}|STAGE-\d{2}|PACK_\d|QA-\d{2}|RET-\d{2}|LANE-[A-Z]{3}|SHIP-\d{2})$"
 )
 LPN_CODE = re.compile(r"^LPN\d{18}$")
 
@@ -153,12 +166,12 @@ def _parse_element_string(data: str) -> tuple[dict[str, str], list[str]]:
         if data[i] in (GS, FNC1):
             i += 1
             continue
-        ai = data[i : i + 2]
-        if ai not in AIS:
+        ai = _ai_at(data, i)
+        if ai is None:
             errors.append(f"unknown application identifier at '{data[i : i + 6]}'")
             break
         fixed, max_len, _ = AIS[ai]
-        i += 2
+        i += len(ai)
         if fixed:
             fields[ai] = data[i : i + fixed]
             i += fixed
@@ -176,7 +189,7 @@ def parse_scan(raw: str) -> Scan:
     for prefix in ("]C1", "]d2", "]Q3", "]e0"):  # symbology identifiers some scanners add
         text = text.removeprefix(prefix)
     if text.startswith("("):  # bracketed human-readable GS1: (01)...(17)...(10)...
-        pairs = re.findall(r"\((\d{2})\)([^(]*)", text)
+        pairs = re.findall(r"\((\d{2,4})\)([^(]*)", text)
         if pairs:  # variable-length values end with a group separator, as in a raw scan
             text = "".join(
                 ai + v + (GS if AIS.get(ai, (1,))[0] is None else "") for ai, v in pairs
@@ -194,13 +207,15 @@ def parse_scan(raw: str) -> Scan:
         )
     if text.isdigit() and len(text) == 18:
         return Scan(raw, "sscc", sscc=text, errors=[] if valid(text) else ["bad check digit"])
-    if text[:2] in AIS:
+    if _ai_at(text) is not None:
         fields, errors = _parse_element_string(text)
         scan = Scan(raw, "gs1", errors=errors)
         scan.gtin = fields.get("01") or fields.get("02")
         scan.sscc = fields.get("00")
         scan.lot = fields.get("10")
         scan.serial = fields.get("21")
+        scan.ship_to_postal = fields.get("420")
+        scan.consignment = fields.get("401")
         if "17" in fields:
             try:
                 scan.expiry = from_yymmdd(fields["17"])
