@@ -81,7 +81,7 @@ class Copilot:
         self.engine = engine
         self.events = {}
         self.actions.clear()
-        engine.events.subscribe(self._on_event)
+        engine.events.subscribe(self._on_event, external=True)
 
     def _on_event(self, event: Event) -> None:
         if event.entity_id:

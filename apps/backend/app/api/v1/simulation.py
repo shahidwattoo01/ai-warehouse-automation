@@ -90,6 +90,26 @@ async def set_strategy(body: StrategyRequest) -> dict:
     return {"preset": simulator.preset, "strategies": strategies}
 
 
+@router.get("/recovery", dependencies=[need("dashboard:view")])
+async def recovery_status() -> dict:
+    """Saved-state status: last snapshot, what start-up restored, this instance's role."""
+    s = simulator.settings
+    return {
+        **simulator.recovery.status(),
+        "role": simulator.role,
+        "ha_mode": s.ha_mode,
+        "every_seconds": s.snapshot_seconds,
+    }
+
+
+@router.post("/snapshot", dependencies=[need("simulation:control")])
+async def snapshot_now() -> dict:
+    """Save the warehouse state now (e.g. before maintenance)."""
+    if not simulator.recovery.enabled:
+        raise HTTPException(409, {"code": "recovery_off", "message": "Recovery needs JWT_SECRET"})
+    return await simulator.save_state()
+
+
 @router.post("/reset", dependencies=[need("simulation:control")])
 async def reset() -> dict:
     await simulator.reset()

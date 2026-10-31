@@ -177,7 +177,7 @@ class Predictor:
         self.records: list[dict] = []  # finished predictions for the database
         self.alerts: list[dict] = []  # new alerts for the database
         self._shelf_zone = {s.shelf_id: s.zone_id for s in engine.layout.shelves}
-        engine.events.subscribe(self._on_event)
+        engine.events.subscribe(self._on_event, external=True)
         self._forecast_hour(0)
 
     def drain(self) -> tuple[list[dict], list[dict]]:

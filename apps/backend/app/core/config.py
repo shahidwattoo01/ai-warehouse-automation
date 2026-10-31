@@ -30,6 +30,14 @@ class Settings(BaseSettings):
     inventory_model: str = "wms"
     safety_slow_zones: bool = True  # robots at half speed near people (configs: safety)
 
+    # Recovery (docs/recovery.md): the live warehouse is saved to STATE_DIR every SNAPSHOT_SECONDS
+    # and on shutdown, and restored (paused) at start-up. Needs a fixed JWT_SECRET (signing key).
+    state_recovery: bool = True
+    state_dir: str = str(ROOT_ENV.parent / "data" / "state")
+    snapshot_seconds: float = 30.0
+    # single | active-standby (two or more backends behind a load balancer; needs PostgreSQL)
+    ha_mode: str = "single"
+
     # Monitoring (docs/monitoring.md): LOG_FORMAT json for a log collector, text for people.
     log_format: str = "text"
     log_level: str = "INFO"

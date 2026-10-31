@@ -163,7 +163,8 @@ items:
     phase: 12
     priority: high
     effort: M
-    status: planned
+    status: done
+    evidence: "Signed state snapshots every 30 s and on shutdown, restored paused (engine, incidents, ERP outbox, event sequence); pg_dump backups with a restore test on a temporary server (656k rows identical); active/standby via a PostgreSQL lock behind nginx, failover in 1.7 s; docs/recovery.md"
   - id: PR-18
     area: Operations
     gap: No load testing

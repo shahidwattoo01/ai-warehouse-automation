@@ -29,6 +29,7 @@ from app.core.ratelimit import (  # noqa: E402
 )
 from app.core.security import OriginCheckMiddleware  # noqa: E402
 from app.services import monitoring  # noqa: E402
+from app.services.leader import StandbyMiddleware  # noqa: E402
 from app.services.simulator import simulator  # noqa: E402
 
 
@@ -52,6 +53,8 @@ app.add_middleware(
     allow_headers=["Content-Type", "Authorization"],
 )
 app.add_middleware(OriginCheckMiddleware, allowed_origins=settings.cors_list)
+# A standby instance (HA_MODE=active-standby) refuses work before anything else runs.
+app.add_middleware(StandbyMiddleware, is_active=lambda: simulator.role == "active")
 # Added last = runs first: over-limit requests are refused before any other work.
 limiter = RateLimiter(default_rules(settings.api_prefix, settings.rate_limit_scale))
 app.add_middleware(

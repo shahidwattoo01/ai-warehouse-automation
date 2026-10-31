@@ -41,3 +41,9 @@ dev_users.local.json
 
 # Prometheus bearer token for /metrics (docs/monitoring.md)
 monitoring/prometheus/metrics_token
+
+# Saved warehouse state (docs/recovery.md)
+data/state/
+
+# Database backups (scripts/backup_db.py)
+backups/

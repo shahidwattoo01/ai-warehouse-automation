@@ -52,10 +52,22 @@ class EventBus:
 
     def __init__(self) -> None:
         self._subscribers: list[Callable[[Event], None]] = []
+        self._external: set[int] = set()  # ids of handlers owned by services outside the engine
         self.buffer: list[Event] = []
 
-    def subscribe(self, handler: Callable[[Event], None]) -> None:
+    def subscribe(self, handler: Callable[[Event], None], external: bool = False) -> None:
+        """`external`: the handler belongs to a service around the engine (copilot, live
+        models). It is left out when the engine is saved; the service subscribes again when it
+        attaches to the restored engine."""
         self._subscribers.append(handler)
+        if external:
+            self._external.add(id(handler))
+
+    def __getstate__(self) -> dict:
+        state = dict(self.__dict__)
+        state["_subscribers"] = [h for h in self._subscribers if id(h) not in self._external]
+        state["_external"] = set()
+        return state
 
     def emit(self, event: Event) -> None:
         self.buffer.append(event)

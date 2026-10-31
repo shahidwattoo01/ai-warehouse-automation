@@ -1,0 +1,48 @@
+# Two backends behind nginx, active-standby (docs/recovery.md):
+#   docker compose -f docker-compose.yml -f docker-compose.ha.yml up
+# Both share the state volume; the PostgreSQL advisory lock decides which one is active.
+services:
+  backend:
+    environment:
+      HA_MODE: active-standby
+      STATE_DIR: /app/state
+      TRUST_PROXY_HEADERS: "true"
+    volumes:
+      - warehouse-state:/app/state
+    healthcheck:
+      # In active-standby the standby is "not ready" by design; the container is healthy if it
+      # answers at all.
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+
+  backend-standby:
+    build:
+      context: .
+      dockerfile: docker/backend.Dockerfile
+    env_file: .env
+    environment:
+      MQTT_URL: mqtt://mosquitto:1883
+      LOG_FORMAT: json
+      HA_MODE: active-standby
+      STATE_DIR: /app/state
+      TRUST_PROXY_HEADERS: "true"
+    volumes:
+      - ./models:/app/models
+      - ./data:/app/data
+      - ./configs:/app/configs:ro
+      - warehouse-state:/app/state
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  loadbalancer:
+    image: nginx:1.27.3-alpine
+    ports:
+      - "127.0.0.1:8080:8080"
+    volumes:
+      - ./docker/nginx-ha.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - backend
+      - backend-standby
+
+volumes:
+  warehouse-state:

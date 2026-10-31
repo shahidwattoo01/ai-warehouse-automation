@@ -31,6 +31,7 @@ services:
     env_file: .env
     environment:
       MQTT_URL: mqtt://mosquitto:1883  # VDA 5050 over the broker (empty: in-process bus)
+      STATE_DIR: /app/state
       LOG_FORMAT: json  # one JSON object per line for a log collector (docs/monitoring.md)
     ports:
       - "127.0.0.1:8000:8000"
@@ -38,6 +39,7 @@ services:
       - ./models:/app/models
       - ./data:/app/data
       - ./configs:/app/configs:ro
+      - warehouse-state:/app/state  # saved warehouse state (docs/recovery.md)
     depends_on:
       postgres:
         condition: service_healthy
@@ -93,5 +95,6 @@ services:
 
 volumes:
   pgdata:
+  warehouse-state:
   promdata:
   grafanadata:

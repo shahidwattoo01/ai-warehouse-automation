@@ -43,6 +43,15 @@ docker-compose publishes Prometheus (9090) and Grafana (3001) on this machine on
 refuses to start without `GRAFANA_ADMIN_PASSWORD`. Unsafe `X-Request-ID` values are replaced, so a
 caller cannot inject text into logs or headers.
 
+## Saved state and backups
+
+Warehouse-state snapshots (`STATE_DIR`) are pickles, and unpickling can run code. Each file
+therefore carries an HMAC-SHA256 made with a key derived from `JWT_SECRET`, and a file whose HMAC
+does not match is never unpickled. Keep `STATE_DIR` and `backups/` readable by the service account
+only: they hold the warehouse's orders and stock. Database backups hold user names and password
+hashes. `scripts/backup_db.py` passes the database password to the PostgreSQL tools through
+`PGPASSWORD` and never prints it.
+
 ## Before production
 
 A deployment that is reachable over a network, serves several users or connects to real robots

@@ -43,6 +43,11 @@ def _database_ok() -> tuple[bool, str]:
 def readiness(simulator) -> tuple[bool, dict]:
     s = get_settings()
     checks: dict[str, dict] = {}
+    checks["role"] = {
+        "ok": simulator.role == "active",
+        "required": True,
+        "detail": simulator.role if s.ha_mode != "single" else "active (single instance)",
+    }
     age = time.monotonic() - simulator.loop_heartbeat
     task = simulator._task
     loop_ok = task is not None and not task.done() and age < LOOP_STALE_SECONDS
@@ -72,6 +77,16 @@ def readiness(simulator) -> tuple[bool, dict]:
         st = erp.connector.status()
         checks["erp"] = {"ok": not st["last_error"], "required": False,
                          "detail": st["last_error"] or st["client"]}  # fmt: skip
+    rec = simulator.recovery.status()
+    checks["state_snapshot"] = {
+        "ok": rec["last_error"] is None,
+        "required": False,
+        "detail": (
+            f"saved {rec['age_seconds']} s ago"
+            if rec["saved_at"]
+            else ("no snapshot yet" if rec["enabled"] else "recovery off")
+        ),
+    }
     ready = all(c["ok"] for c in checks.values() if c["required"])
     return ready, checks
 
@@ -106,6 +121,20 @@ def collect(simulator, limiter=None) -> str:
         round(time.monotonic() - simulator.loop_heartbeat, 2)
     )
     fam("stream_clients", "gauge", "Browsers on the live stream").add(len(simulator._subscribers))
+    rec = simulator.recovery.status()
+    fam("instance_active", "gauge", "1 on the instance that runs the warehouse").add(
+        int(simulator.role == "active")
+    )
+    fam("state_snapshot_age_seconds", "gauge", "Seconds since the state was last saved").add(
+        rec["age_seconds"]
+    )
+    fam("state_snapshot_bytes", "gauge", "Size of the last state snapshot").add(rec["size_bytes"])
+    fam("state_snapshot_capture_seconds", "gauge", "Event-loop time of the last capture").add(
+        rec["capture_ms"] / 1000
+    )
+    fam("state_snapshot_failures_total", "counter", "State snapshots that failed").add(
+        rec["failures"]
+    )
     # ----- fleet
     states = Counter(r.status.value for r in eng.robots.values())
     robots = fam("robots", "gauge", "Robots by status")

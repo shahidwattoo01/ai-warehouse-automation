@@ -95,3 +95,17 @@ groups:
         labels: {severity: warning}
         annotations:
           summary: "A critical alert-centre incident is open for 15 minutes"
+
+      - alert: StateSnapshotStale
+        expr: warehouse_state_snapshot_age_seconds > 900 and warehouse_instance_active == 1
+        for: 5m
+        labels: {severity: warning}
+        annotations:
+          summary: "The warehouse state was last saved {{ $value | humanize }} s ago"
+          description: "Saved every 30 s running, every 10 min paused. Check STATE_DIR (disk full?)."
+
+      - alert: StateSnapshotFailing
+        expr: increase(warehouse_state_snapshot_failures_total[15m]) > 0
+        labels: {severity: warning}
+        annotations:
+          summary: "Saving the warehouse state failed; see the backend log"
