@@ -47,6 +47,12 @@ class SimulatorService:
         self._subscribers: set[asyncio.Queue[str]] = set()
         self.store = RunStore(self.settings.database_url) if self.settings.persist_runs else None
         self._last_flush = time.monotonic()
+        # Loop health for /ready and /metrics: when the loop last ran, how late it was, tick cost.
+        self.loop_heartbeat = time.monotonic()
+        self.loop_lag = 0.0
+        self.ticks_total = 0
+        self.tick_seconds_total = 0.0
+        self.tick_seconds_max = 0.0
 
     def _new_engine(self) -> SimulationEngine:
         return SimulationEngine(
@@ -100,7 +106,10 @@ class SimulatorService:
         next_tick = time.monotonic()
         while True:
             engine = self.engine
+            now = time.monotonic()
+            self.loop_lag, self.loop_heartbeat = max(0.0, now - next_tick), now
             if engine.running:
+                began = time.perf_counter()
                 events = engine.tick()
                 self.predictor.after_tick()
                 self.optimizer.after_tick()
@@ -118,6 +127,10 @@ class SimulatorService:
                     self.store.add_predictions(*self.predictor.drain())
                 else:
                     self.predictor.drain()  # nothing records them: drop instead of piling up
+                cost = time.perf_counter() - began
+                self.ticks_total += 1
+                self.tick_seconds_total += cost
+                self.tick_seconds_max = max(self.tick_seconds_max * 0.999, cost)  # slow decay
             self._flush_if_due()
             # Fixed-rate schedule: the tick's own compute time does not slow the simulation down.
             next_tick += 1.0 / (self.tick_hz * engine.speed)

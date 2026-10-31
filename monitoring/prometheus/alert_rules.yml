@@ -1,0 +1,97 @@
+# Platform alert rules (docs/monitoring.md). These watch the platform itself: is it up, is the
+# simulator loop keeping time, are integrations working. Warehouse-floor alerts (low stock, a
+# missed truck, an e-stop) are the alert centre's job (configs/alert_rules.yaml); a few of its
+# numbers are repeated here so an on-call engineer sees them without logging in.
+groups:
+  - name: warehouse-platform
+    rules:
+      - alert: BackendDown
+        expr: up{job="warehouse-backend"} == 0
+        for: 1m
+        labels: {severity: critical}
+        annotations:
+          summary: "Warehouse backend does not answer scrapes"
+          description: "Prometheus could not read /metrics from {{ $labels.instance }} for 1 minute."
+
+      - alert: SimulatorLoopStalled
+        expr: warehouse_sim_loop_age_seconds > 5
+        for: 30s
+        labels: {severity: critical}
+        annotations:
+          summary: "Simulator loop has not run for {{ $value | humanize }} s"
+          description: "The tick loop is stuck; robots get no new commands. /ready reports 503."
+
+      - alert: SimulatorFallingBehind
+        expr: warehouse_sim_running == 1 and warehouse_sim_loop_lag_seconds > 0.5
+        for: 2m
+        labels: {severity: warning}
+        annotations:
+          summary: "Simulator ticks start {{ $value | humanize }} s late"
+          description: "Ticks take longer than their slot; lower the speed or check the CPU."
+
+      - alert: HighErrorRate
+        expr: |
+          sum(rate(warehouse_http_requests_total{status=~"5.."}[5m]))
+            / clamp_min(sum(rate(warehouse_http_requests_total[5m])), 1e-9) > 0.05
+        for: 5m
+        labels: {severity: warning}
+        annotations:
+          summary: "{{ $value | humanizePercentage }} of API requests fail with 5xx"
+
+      - alert: SlowApi
+        expr: |
+          histogram_quantile(0.95,
+            sum by (le) (rate(warehouse_http_request_duration_seconds_bucket[5m]))) > 1
+        for: 10m
+        labels: {severity: warning}
+        annotations:
+          summary: "95% of API requests take up to {{ $value | humanize }} s"
+
+      - alert: RateLimitedClients
+        expr: increase(warehouse_rate_limited_total[10m]) > 50
+        labels: {severity: info}
+        annotations:
+          summary: "{{ $value | humanize }} requests refused by the rate limiter in 10 min"
+          description: "A misbehaving client or a login attack; see the backend log."
+
+      - alert: ErpOutboxFailing
+        expr: warehouse_erp_outbox_messages{status="FAILED"} > 0
+        for: 5m
+        labels: {severity: warning}
+        annotations:
+          summary: "{{ $value }} ERP messages failed after all retries"
+          description: "Ship confirmations did not reach the ERP. Integration page, ERP outbox."
+
+      - alert: ErpUnreachable
+        expr: warehouse_erp_up == 0
+        for: 10m
+        labels: {severity: warning}
+        annotations:
+          summary: "The last ERP calls failed for 10 minutes"
+
+      - alert: VehiclesOffline
+        expr: sum(warehouse_robots) - sum(warehouse_vda5050_vehicles{state="ONLINE"}) > 0
+        for: 2m
+        labels: {severity: warning}
+        annotations:
+          summary: "{{ $value }} vehicles do not report ONLINE over VDA 5050"
+
+      - alert: EmergencyStopActive
+        expr: warehouse_safety_state{state="ESTOP"} == 1
+        labels: {severity: critical}
+        annotations:
+          summary: "Emergency stop is active on the floor"
+
+      - alert: RobotsInFault
+        expr: warehouse_robots{status="FAULT"} >= 3
+        for: 5m
+        labels: {severity: warning}
+        annotations:
+          summary: "{{ $value }} robots are in fault"
+
+      - alert: CriticalIncidentsOpen
+        expr: warehouse_alert_incidents{state="critical"} > 0
+        for: 15m
+        labels: {severity: warning}
+        annotations:
+          summary: "A critical alert-centre incident is open for 15 minutes"

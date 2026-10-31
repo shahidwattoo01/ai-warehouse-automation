@@ -1,0 +1,24 @@
+# Prometheus for the Warehouse AI Platform (docs/monitoring.md). Started by docker-compose.
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+rule_files:
+  - /etc/prometheus/alert_rules.yml
+
+scrape_configs:
+  - job_name: warehouse-backend
+    metrics_path: /metrics
+    static_configs:
+      - targets: ["backend:8000"]
+        labels:
+          site: dc-1
+    # With METRICS_TOKEN set in .env, put the same token in monitoring/prometheus/metrics_token
+    # (git-ignored) and uncomment:
+    # authorization:
+    #   type: Bearer
+    #   credentials_file: /etc/prometheus/metrics_token
+
+  - job_name: prometheus
+    static_configs:
+      - targets: ["localhost:9090"]

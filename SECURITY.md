@@ -17,7 +17,7 @@ robots. The protections below fit that model; the
 | Network exposure | Docker publishes the API (8000), UI (3000) and database (5432) on `127.0.0.1` only; nothing is reachable from other machines | `docker-compose.yml` |
 | Cross-site requests | State-changing requests and the live stream are refused unless they come from an allowed origin (a malicious website cannot pause robots or reset a run through the operator's browser) | `apps/backend/app/core/security.py` |
 | CORS | Only the configured UI origins; credentials (the refresh cookie) only for those origins | `apps/backend/app/main.py` |
-| Rate limiting | Per client address, answered with 429 and `Retry-After`: login and first-time setup 10 per minute (password guessing across accounts; the per-account lockout protects one account), token refresh 30, changes 120, all API requests 600 per minute; `/health` and the live stream exempt. `RATE_LIMIT_SCALE` for a class behind one address; `TRUST_PROXY_HEADERS=true` only behind a reverse proxy | `apps/backend/app/core/ratelimit.py` |
+| Rate limiting | Per client address, answered with 429 and `Retry-After`: login and first-time setup 10 per minute (password guessing across accounts; the per-account lockout protects one account), token refresh 30, changes 120, all API requests 600 per minute; `/health`, `/ready`, `/metrics` and the live stream exempt. `RATE_LIMIT_SCALE` for a class behind one address; `TRUST_PROXY_HEADERS=true` only behind a reverse proxy | `apps/backend/app/core/ratelimit.py` |
 | Security headers | API: `nosniff`, `X-Frame-Options: DENY`, `Content-Security-Policy: default-src 'none'`, no referrer, token answers `Cache-Control: no-store`, HSTS when `COOKIE_SECURE=true`. UI: a Content Security Policy that allows only the page itself, the API and the Google fonts (no framing, `object-src` only for the label PDFs), `nosniff`, a referrer policy, camera only for the page itself (barcode scanning), no `X-Powered-By` | `apps/backend/app/core/ratelimit.py`, `apps/frontend/next.config.mjs` |
 | Secrets | Database password, `JWT_SECRET` and API keys only in `.env` (git-ignored); `.env.example` holds placeholders; development users' passwords only in the git-ignored `dev_users.local.json` | `.gitignore`, `.env.example` |
 | Input validation | Typed request models (Pydantic) with limits; camera frames limited to 5 MB and decoded safely, clear 4xx errors | `apps/backend/app/schemas/`, `apps/backend/app/api/v1/vision.py` |
@@ -33,6 +33,15 @@ robots. The protections below fit that model; the
 **Still missing for a networked deployment:** TLS (set `COOKIE_SECURE=true` behind HTTPS) and
 single sign-on with the company identity provider (backlog PR-02). The rate limits count in
 memory per backend process; several processes need a shared store (Redis, backlog PR-17).
+
+## Monitoring endpoints
+
+`/health`, `/ready` and `/metrics` need no login: they hold counts and states, never order
+contents, users or secrets (the readiness check reports an error's type, not the database URL).
+Set `METRICS_TOKEN` to make Prometheus send a bearer token, or keep the API on a private network;
+docker-compose publishes Prometheus (9090) and Grafana (3001) on this machine only, and Grafana
+refuses to start without `GRAFANA_ADMIN_PASSWORD`. Unsafe `X-Request-ID` values are replaced, so a
+caller cannot inject text into logs or headers.
 
 ## Before production
 

@@ -183,7 +183,7 @@ class SecurityHeadersMiddleware:
                 headers = list(message.get("headers", []))
                 present = {k.lower() for k, _ in headers}
                 extra = dict(API_HEADERS)
-                if path.startswith(self.api_prefix) or path == "/health":
+                if path.startswith(self.api_prefix) or path in ("/health", "/ready", "/metrics"):
                     extra[b"content-security-policy"] = API_CSP
                 if path.startswith(self.auth_prefix):
                     extra[b"cache-control"] = b"no-store"

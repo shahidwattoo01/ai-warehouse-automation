@@ -30,6 +30,13 @@ class Settings(BaseSettings):
     inventory_model: str = "wms"
     safety_slow_zones: bool = True  # robots at half speed near people (configs: safety)
 
+    # Monitoring (docs/monitoring.md): LOG_FORMAT json for a log collector, text for people.
+    log_format: str = "text"
+    log_level: str = "INFO"
+    # Bearer token Prometheus must send to /metrics; empty: /metrics is open (bind the API to
+    # this machine or a private network then, as docker-compose does).
+    metrics_token: str = ""
+
     # Authentication (JWT access tokens + rotating refresh tokens; app/core/auth.py).
     # Set JWT_SECRET in .env (python -c "import secrets; print(secrets.token_urlsafe(48))").
     # Empty: a random secret is made at start-up, so everyone logs in again after a restart.

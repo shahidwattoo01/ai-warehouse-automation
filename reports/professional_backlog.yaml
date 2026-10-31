@@ -154,7 +154,8 @@ items:
     phase: 12
     priority: high
     effort: M
-    status: planned
+    status: done
+    evidence: "/health and /ready (loop, database, broker; 503 when not ready), /metrics for Prometheus (HTTP by route, simulator loop, fleet, WMS, safety, alerts, VDA, ERP, events), request ids and JSON logs, Prometheus with 12 alert rules and a Grafana dashboard in docker-compose; docs/monitoring.md. Not run in containers here"
   - id: PR-17
     area: Operations
     gap: Single process, no recovery
