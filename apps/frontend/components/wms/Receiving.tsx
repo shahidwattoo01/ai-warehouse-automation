@@ -1,7 +1,8 @@
 "use client";
 
 import { Can } from "@/components/layout/Can";
-import { Printer, Truck } from "lucide-react";
+import { LabelMenu } from "./LabelMenu";
+import { Truck } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { wms, type WmsPurchaseOrder, type WmsScanResult } from "@/lib/wms";
 import { Badge, button, clock, ErrorNote, ghost, input, Panel, ScanBox, td, th } from "./shared";
@@ -91,13 +92,13 @@ export function Receiving({ user }: { user: string }) {
                         {p.received ? (
                           <Badge value="RECEIVED" />
                         ) : (
-                          <button
-                            type="button"
+                          <LabelMenu
+                            align="left"
+                            kind="plates"
+                            target={p.sscc}
+                            text="label"
                             className="inline-flex items-center gap-1 text-accent"
-                            onClick={() => void wms.openLabel(`plates/${p.sscc}`)}
-                          >
-                            <Printer size={12} /> label
-                          </button>
+                          />
                         )}
                       </td>
                     </tr>

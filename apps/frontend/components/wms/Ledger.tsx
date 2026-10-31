@@ -3,7 +3,7 @@
 import { useCan } from "@/lib/auth";
 import { useCallback, useEffect, useState } from "react";
 import { wms, type WmsTask, type WmsTxn } from "@/lib/wms";
-import { Badge, clock, ErrorNote, input, Panel, td, th } from "./shared";
+import { Badge, clock, ErrorNote, ExportButton, input, Panel, td, th } from "./shared";
 
 const TYPES = [
   "RECEIVE",
@@ -50,7 +50,7 @@ export function Ledger() {
     />
   );
   return (
-    <Panel title="Inventory ledger">
+    <Panel title="Inventory ledger" actions={<ExportButton name="transactions" />}>
       <div className="mb-3 flex flex-wrap gap-2">
         {field("sku", "SKU")}
         {field("location", "Location")}

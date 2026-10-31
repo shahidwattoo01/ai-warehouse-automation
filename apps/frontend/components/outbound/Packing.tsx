@@ -1,6 +1,6 @@
 "use client";
 
-import { Printer } from "lucide-react";
+import { LabelMenu } from "@/components/wms/LabelMenu";
 import { useCallback, useEffect, useState } from "react";
 import { Badge, ErrorNote, Panel, ScanBox, button, td, th } from "@/components/wms/shared";
 import { useCan } from "@/lib/auth";
@@ -156,13 +156,7 @@ export function Packing({ onResult, autoPack }: { onResult: Result; autoPack: bo
                     <div className="text-muted">{c.packed_by}</div>
                   </td>
                   <td className={td}>
-                    <button
-                      onClick={() => void outbound.openLabel(c.sscc)}
-                      title="Shipping label (PDF)"
-                      className="rounded p-1 text-muted hover:text-ink"
-                    >
-                      <Printer size={14} />
-                    </button>
+                    <LabelMenu kind="shipping" target={c.sscc} />
                   </td>
                 </tr>
               ))}

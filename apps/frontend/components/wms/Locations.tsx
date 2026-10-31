@@ -1,7 +1,7 @@
 "use client";
 
 import { Can } from "@/components/layout/Can";
-import { Printer } from "lucide-react";
+import { LabelMenu } from "./LabelMenu";
 import { useCallback, useEffect, useState } from "react";
 import { wms, type WmsLocation, type WmsStockRow } from "@/lib/wms";
 import { Badge, Barcode, button, ErrorNote, ghost, input, Panel, ScanBox, td, th } from "./shared";
@@ -36,13 +36,13 @@ export function Locations({ user }: { user: string }) {
         title={`Locations${rows ? ` (${rows.total.toLocaleString()})` : ""}`}
         actions={
           q && (
-            <button
-              type="button"
+            <LabelMenu
+              align="left"
+              kind="locations"
+              target={q.toUpperCase()}
+              text={`Labels for "${q.toUpperCase()}"`}
               className={`${ghost} flex items-center gap-1 text-xs`}
-              onClick={() => void wms.openLabel(`locations?prefix=${encodeURIComponent(q.toUpperCase())}`)}
-            >
-              <Printer size={13} /> Labels for &quot;{q.toUpperCase()}&quot;
-            </button>
+            />
           )
         }
       >

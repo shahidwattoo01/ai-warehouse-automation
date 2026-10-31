@@ -4,7 +4,7 @@ import { useCan } from "@/lib/auth";
 import { Can } from "@/components/layout/Can";
 import { useCallback, useEffect, useState } from "react";
 import { wms, type WmsCount } from "@/lib/wms";
-import { Badge, button, clock, ErrorNote, ghost, input, Panel, ScanBox, td, th } from "./shared";
+import { Badge, button, clock, ErrorNote, ExportButton, ghost, input, Panel, ScanBox, td, th } from "./shared";
 
 /**
  * Cycle counting as in a real WMS: counts are **blind** (the counter never sees the system
@@ -47,6 +47,15 @@ export function Counts({ user }: { user: string }) {
       title="Cycle counts"
       actions={
         <div className="flex gap-1.5">
+          <button
+            type="button"
+            onClick={() => void wms.countSheet()}
+            title="Blind count sheet of the open counts (PDF, no system quantities)"
+            className="rounded-control border border-border px-2 py-1 text-xs hover:border-accent"
+          >
+            Count sheet PDF
+          </button>
+          <ExportButton name="counts" />
           {(
             [
               ["OPEN", "To count"],

@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useCan } from "@/lib/auth";
 import { wms, type WmsReturn, type WmsReturns } from "@/lib/wms";
-import { Badge, ErrorNote, Panel, button, ghost, input, td, th } from "./shared";
+import { Badge, ErrorNote, ExportButton, Panel, button, ghost, input, td, th } from "./shared";
 
 const FILTERS: [string | undefined, string][] = [
   ["RECEIVED", "Waiting for inspection"],
@@ -50,6 +50,7 @@ export function Returns() {
       title="Customer returns"
       actions={
         <div className="flex gap-1 text-xs">
+          <ExportButton name="returns" />
           {FILTERS.map(([value, label]) => (
             <button
               key={label}

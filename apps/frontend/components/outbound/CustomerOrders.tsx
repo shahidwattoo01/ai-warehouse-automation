@@ -1,8 +1,9 @@
 "use client";
 
-import { Printer, Search, X } from "lucide-react";
+import { Search, X } from "lucide-react";
+import { LabelMenu } from "@/components/wms/LabelMenu";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Badge, ErrorNote, Panel, button, ghost, input, td, th } from "@/components/wms/shared";
+import { Badge, ErrorNote, ExportButton, Panel, button, ghost, input, td, th } from "@/components/wms/shared";
 import { useCan } from "@/lib/auth";
 import { outbound, PIPELINE, type CustomerOrderDetail, type CustomerOrderRow } from "@/lib/outbound";
 
@@ -41,15 +42,18 @@ export function CustomerOrders({ onResult }: { onResult: (m: { ok: boolean; text
       <Panel
         title="Customer orders"
         actions={
-          <label className="flex items-center gap-1 rounded-control border border-border bg-canvas px-2">
-            <Search size={14} className="text-muted" />
-            <input
-              value={q}
-              onChange={(e) => setQ(e.target.value)}
-              placeholder="Order, customer or city"
-              className="w-48 bg-transparent py-1 text-sm outline-none"
-            />
-          </label>
+          <>
+            <ExportButton name="orders" />
+            <label className="flex items-center gap-1 rounded-control border border-border bg-canvas px-2">
+              <Search size={14} className="text-muted" />
+              <input
+                value={q}
+                onChange={(e) => setQ(e.target.value)}
+                placeholder="Order, customer or city"
+                className="w-48 bg-transparent py-1 text-sm outline-none"
+              />
+            </label>
+          </>
         }
       >
         <div className="mb-3 flex flex-wrap gap-1 text-xs">
@@ -346,13 +350,9 @@ function OrderDetail({
                 </span>
                 <Badge value={c.status} />
                 {c.check !== "PASS" && <Badge value={c.check} />}
-                <button
-                  onClick={() => void outbound.openLabel(c.sscc)}
-                  title="Shipping label"
-                  className="ml-auto rounded p-1 text-muted hover:text-ink"
-                >
-                  <Printer size={14} />
-                </button>
+                <span className="ml-auto">
+                  <LabelMenu kind="shipping" target={c.sscc} />
+                </span>
               </div>
             ))}
           </div>

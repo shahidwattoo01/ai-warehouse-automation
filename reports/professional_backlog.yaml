@@ -276,7 +276,8 @@ items:
     phase: 10
     priority: medium
     effort: S
-    status: planned
+    status: done
+    evidence: "wms/zpl.py: every label also in ZPL (203 dpi, GS1-128 with FNC1, command-character cleaning); direct printing to named network printers (port 9100); CSV exports of items, stock, transactions, counts, orders, returns (formula-safe); blind count sheet and truck manifest PDFs; label menu and export buttons in the app"
   - id: PR-31
     area: Operations
     gap: The simulated associates have no productivity standards

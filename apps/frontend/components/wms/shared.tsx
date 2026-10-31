@@ -257,3 +257,17 @@ export function clock(tick: number | null | undefined): string {
 
 /** Ticks as a duration in simulated minutes. */
 export const minutes = (ticks: number | null | undefined) => (ticks == null ? "–" : `${Math.round(ticks / 10)} min`);
+
+/** Download a table as CSV (opens in Excel; formulas in cells are neutralised by the server). */
+export function ExportButton({ name, label = "Export CSV" }: { name: string; label?: string }) {
+  return (
+    <button
+      type="button"
+      onClick={() => void wms.exportCsv(name)}
+      title={`Download ${name} as CSV`}
+      className="rounded-control border border-border px-2 py-1 text-xs hover:border-accent"
+    >
+      {label}
+    </button>
+  );
+}

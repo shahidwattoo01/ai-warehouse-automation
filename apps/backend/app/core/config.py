@@ -48,6 +48,9 @@ class Settings(BaseSettings):
     rate_limit_scale: float = 1.0
     trust_proxy_headers: bool = False
 
+    # Network label printers for ZPL (app/services/printers.py): name=host[:port],...
+    label_printers: str = ""
+
     llm_provider: str = ""
     llm_model: str = ""
     llm_api_key: str = ""

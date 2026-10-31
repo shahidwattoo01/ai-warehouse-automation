@@ -1,10 +1,11 @@
 "use client";
 
 import { Can } from "@/components/layout/Can";
-import { Printer, X } from "lucide-react";
+import { LabelMenu } from "./LabelMenu";
+import { X } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { wms, type WmsItemDetail, type WmsItemRow } from "@/lib/wms";
-import { Badge, Barcode, clock, ErrorNote, ghost, input, Panel, ScanBox, td, th } from "./shared";
+import { Badge, Barcode, clock, ErrorNote, ExportButton, ghost, input, Panel, ScanBox, td, th } from "./shared";
 
 const CATEGORIES = [
   "Electronics",
@@ -67,7 +68,15 @@ export function Items({ user, openSku }: { user: string; openSku: string | null 
 
   return (
     <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(380px,42%)]">
-      <Panel title={`Items${data ? ` (${data.total.toLocaleString()})` : ""}`}>
+      <Panel
+        title={`Items${data ? ` (${data.total.toLocaleString()})` : ""}`}
+        actions={
+          <div className="flex gap-1.5">
+            <ExportButton name="items" label="Items CSV" />
+            <ExportButton name="stock" label="Stock by location CSV" />
+          </div>
+        }
+      >
         <div className="mb-3 grid gap-2 md:grid-cols-[1fr_auto_auto]">
           <ScanBox onScan={onScan} placeholder="Scan an item barcode (EAN-13 / GS1-128)" />
           <input
@@ -317,13 +326,13 @@ function ItemPanel({ sku, user, onClose }: { sku: string; user: string; onClose:
       )}
 
       <div className="mt-4 flex flex-wrap gap-2">
-        <button
-          type="button"
+        <LabelMenu
+          align="left"
+          kind="items"
+          target={d.sku}
+          text="Item label"
           className={`${ghost} flex items-center gap-1`}
-          onClick={() => void wms.openLabel(`items/${d.sku}`)}
-        >
-          <Printer size={14} /> Item label
-        </button>
+        />
         <Can permission="wms:count">
           <button className={ghost} onClick={() => act(() => wms.createCount(d.home), `Count created for ${d.home}`)}>
             Count pick face

@@ -176,8 +176,24 @@ export function Shipping({ onResult }: { onResult: Result }) {
           </table>
           {manifest && (
             <div className="mt-3 border-t border-border pt-2">
-              <div className="mb-1 text-[11px] uppercase text-muted">
-                Manifest {manifest.trip_id} · {manifest.carrier_name}
+              <div className="mb-1 flex items-center gap-2 text-[11px] uppercase text-muted">
+                <span className="mr-auto">
+                  Manifest {manifest.trip_id} · {manifest.carrier_name}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => void outbound.manifestPdf(manifest.trip_id)}
+                  className="rounded-control border border-border px-2 py-0.5 normal-case hover:border-accent"
+                >
+                  PDF (driver signs)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => void outbound.manifestCsv(manifest.trip_id)}
+                  className="rounded-control border border-border px-2 py-0.5 normal-case hover:border-accent"
+                >
+                  CSV
+                </button>
               </div>
               <div className="max-h-64 overflow-auto">
                 <table className="w-full text-xs">

@@ -2,7 +2,7 @@
 // (backend: wms/outbound.py, /api/v1/wms/outbound/...).
 
 import { API_URL, request } from "./api";
-import { openProtected } from "./auth";
+import { downloadProtected, openProtected } from "./auth";
 
 export type OrderStatus =
   | "WAITING_STOCK"
@@ -226,4 +226,8 @@ export const outbound = {
   setSettings: (s: Partial<OutboundSettings>) =>
     request<OutboundSettings>("/wms/settings", { method: "PUT", body: JSON.stringify(s) }),
   openLabel: (sscc: string) => openProtected(`${API_URL}/wms/labels/shipping/${sscc}`),
+  manifestPdf: (trip: string) =>
+    openProtected(`${API_URL}/wms/outbound/trips/${encodeURIComponent(trip)}/manifest.pdf`),
+  manifestCsv: (trip: string) =>
+    downloadProtected(`${API_URL}/wms/outbound/trips/${encodeURIComponent(trip)}/manifest.csv`, `manifest-${trip}.csv`),
 };

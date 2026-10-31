@@ -113,6 +113,21 @@ recorded run (migration 004). API under `/api/v1/wms`: `kpis`, `alerts`, `items`
 `barcode.svg`. Tests: `tests/unit/test_wms.py`, `apps/backend/tests/test_wms_api.py`,
 `apps/backend/tests/test_run_store.py`, `tests/e2e/test_ui.py`.
 
+## 6b. Labels, printers and exports
+
+* **Every label in two formats:** PDF for any office printer, or **ZPL** for industrial thermal
+  printers (Zebra and compatibles, 203 dpi): item, location, pallet (SSCC) and shipping labels,
+  same layout and GS1 data (`wms/zpl.py`). Text is cleaned of the ZPL command characters `^` and
+  `~`, so an item name cannot inject printer commands. API: `?format=zpl` on every
+  `/wms/labels/...` endpoint.
+* **Direct printing:** `LABEL_PRINTERS=pack1=10.0.0.21:9100,...` names the network printers; the
+  label menu (printer icon) then offers *Print on pack1*, which sends the ZPL to the printer's raw
+  port. Only named printers are used, never an address from a request.
+* **Exports:** CSV of items, stock by location, transactions, counts, customer orders and returns
+  (`/wms/exports/{name}.csv`; cells starting with = + - @ are prefixed so spreadsheets do not run
+  them as formulas); a **blind count sheet** PDF of the open counts (no system quantities); the
+  **truck manifest** as a PDF for the driver to sign, or CSV for the carrier.
+
 ## 7. Not yet (in the professional backlog)
 
   (Packing, labels, carriers and cut-offs are done: [wms_outbound.md](wms_outbound.md). Logins

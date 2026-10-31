@@ -16,9 +16,10 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Response
 from pydantic import BaseModel, Field
 
 from app.core.auth import Principal, need, require
+from app.services import printers
 from app.services.simulator import simulator
 from wms import barcodes as bc
-from wms import labels
+from wms import exports, labels, zpl
 from wms.inventory import InventoryError
 from wms.model import REASONS, LocationType, StockStatus
 from wms.outbound import FINAL, OutboundError
@@ -954,71 +955,217 @@ def _pdf(data: bytes, name: str) -> Response:
     )
 
 
-@router.get("/labels/items/{sku}", dependencies=[need("wms:view")])
-async def item_label(sku: str) -> Response:
+LabelKind = Literal["items", "locations", "plates", "shipping"]
+
+
+def _label_sources(kind: str, ref: str):
+    """(PDF maker, ZPL maker, file stem) for one label job; 404 when it does not exist."""
     wms = _wms()
-    if sku not in wms.inv.items:
-        raise HTTPException(404, detail=f"No item {sku}")
-    return _pdf(labels.item_labels([wms.inv.items[sku]]), f"item-{sku}.pdf")
-
-
-@router.get("/labels/locations", dependencies=[need("wms:view")])
-async def location_labels(prefix: str = Query(..., min_length=1, max_length=20)) -> Response:
-    """Labels for every location whose code starts with `prefix` (e.g. A-05 for a rack row)."""
-    wms = _wms()
-    locs = [
-        loc
-        for c, loc in sorted(wms.inv.locations.items())
-        if c.startswith(prefix) and loc.type != LocationType.ROBOT
-    ]
-    if not locs:
-        raise HTTPException(404, detail=f"No locations start with {prefix}")
-    return _pdf(labels.location_labels(locs[:500]), f"locations-{prefix}.pdf")
-
-
-@router.get("/labels/plates/{sscc}", dependencies=[need("wms:view")])
-async def plate_label(sscc: str) -> Response:
-    wms = _wms()
-    sscc = sscc.removeprefix("LPN")
-    for po in wms.pos.values():
-        for plate in po.asn:
-            if plate["sscc"] == sscc:
-                item = wms.inv.items[plate["sku"]]
-                return _pdf(
-                    labels.pallet_label(plate, item, wms.suppliers[po.supplier_id].name),
-                    f"sscc-{sscc}.pdf",
-                )
-    rows = _rows(wms, lpn=sscc)
-    if not rows:
-        raise HTTPException(404, detail=f"No plate {sscc}")
-    r = rows[0]
-    plate = {
-        "sscc": sscc,
-        "sku": r["sku"],
-        "qty": r["qty"],
-        "lot": r["lot"],
-        "expiry": dt.date.fromisoformat(r["expiry"]) if r["expiry"] else None,
-    }
-    item = wms.inv.items[r["sku"]]
-    return _pdf(
-        labels.pallet_label(plate, item, wms.suppliers[item.supplier_id].name), f"sscc-{sscc}.pdf"
-    )
-
-
-@router.get("/labels/shipping/{sscc}", dependencies=[need("wms:view")])
-async def shipping_label(sscc: str) -> Response:
-    """GS1 shipping label of a packed carton (100 x 150 mm PDF)."""
-    out = _out()
-    found = out.cartons.get(_sscc(sscc))
+    if kind == "items":
+        if ref not in wms.inv.items:
+            raise HTTPException(404, detail=f"No item {ref}")
+        items = [wms.inv.items[ref]]
+        return (lambda: labels.item_labels(items)), (lambda: zpl.item_labels(items)), f"item-{ref}"
+    if kind == "locations":
+        locs = [
+            loc
+            for c, loc in sorted(wms.inv.locations.items())
+            if c.startswith(ref) and loc.type != LocationType.ROBOT
+        ][:500]
+        if not locs:
+            raise HTTPException(404, detail=f"No locations start with {ref}")
+        return (
+            (lambda: labels.location_labels(locs)),
+            (lambda: zpl.location_labels(locs)),
+            f"locations-{ref}",
+        )
+    if kind == "plates":
+        sscc = ref.removeprefix("LPN")
+        plate, item, supplier = None, None, None
+        for po in wms.pos.values():
+            for p in po.asn:
+                if p["sscc"] == sscc:
+                    plate, item = p, wms.inv.items[p["sku"]]
+                    supplier = wms.suppliers[po.supplier_id].name
+        if plate is None:
+            rows = _rows(wms, lpn=sscc)
+            if not rows:
+                raise HTTPException(404, detail=f"No plate {sscc}")
+            r = rows[0]
+            plate = {
+                "sscc": sscc,
+                "sku": r["sku"],
+                "qty": r["qty"],
+                "lot": r["lot"],
+                "expiry": dt.date.fromisoformat(r["expiry"]) if r["expiry"] else None,
+            }
+            item = wms.inv.items[r["sku"]]
+            supplier = wms.suppliers[item.supplier_id].name
+        return (
+            (lambda: labels.pallet_label(plate, item, supplier)),
+            (lambda: zpl.pallet_label(plate, item, supplier)),
+            f"sscc-{sscc}",
+        )
+    out = wms.out  # shipping
+    found = out.cartons.get(_sscc(ref))
     if found is None or found.order_id not in out.orders:
-        raise HTTPException(404, detail=f"No carton {sscc}")
+        raise HTTPException(404, detail=f"No carton {ref}")
     rec = out.orders[found.order_id]
-    data = labels.shipping_label(
+    args = (
         found.to_dict(),
         out.customers[rec.customer_id].to_dict(),
         out.carriers[rec.carrier].to_dict(),
     )
-    return _pdf(data, f"ship-{found.sscc}.pdf")
+    return (
+        (lambda: labels.shipping_label(*args)),
+        (lambda: zpl.shipping_label(*args)),
+        f"ship-{found.sscc}",
+    )
+
+
+def _label_response(kind: str, ref: str, fmt: str) -> Response:
+    make_pdf, make_zpl, stem = _label_sources(kind, ref)
+    if fmt == "zpl":
+        return Response(
+            make_zpl(),
+            media_type="text/plain; charset=us-ascii",
+            headers={"Content-Disposition": f'attachment; filename="{stem}.zpl"'},
+        )
+    return _pdf(make_pdf(), f"{stem}.pdf")
+
+
+Fmt = Annotated[Literal["pdf", "zpl"], Query(alias="format")]
+
+
+@router.get("/labels/items/{sku}", dependencies=[need("wms:view")])
+async def item_label(sku: str, fmt: Fmt = "pdf") -> Response:
+    """Item label: EAN-13 of the unit and GS1-128 of the case. format=zpl for thermal printers."""
+    return _label_response("items", sku, fmt)
+
+
+@router.get("/labels/locations", dependencies=[need("wms:view")])
+async def location_labels(
+    prefix: str = Query(..., min_length=1, max_length=20), fmt: Fmt = "pdf"
+) -> Response:
+    """Labels for every location whose code starts with `prefix` (e.g. A-05 for a rack row)."""
+    return _label_response("locations", prefix, fmt)
+
+
+@router.get("/labels/plates/{sscc}", dependencies=[need("wms:view")])
+async def plate_label(sscc: str, fmt: Fmt = "pdf") -> Response:
+    return _label_response("plates", sscc, fmt)
+
+
+@router.get("/labels/shipping/{sscc}", dependencies=[need("wms:view")])
+async def shipping_label(sscc: str, fmt: Fmt = "pdf") -> Response:
+    """GS1 shipping label of a packed carton (100 x 150 mm)."""
+    return _label_response("shipping", sscc, fmt)
+
+
+@router.get("/printers", dependencies=[need("wms:view")])
+async def label_printers() -> list[str]:
+    """Names of the configured network label printers (LABEL_PRINTERS)."""
+    return sorted(printers.printers())
+
+
+class PrintIn(BaseModel):
+    kind: LabelKind
+    ref: str = Field(min_length=1, max_length=40)
+    printer: str = Field(min_length=1, max_length=40)
+    copies: int = Field(1, ge=1, le=20)
+
+
+@router.post("/labels/print")
+async def print_label(
+    body: PrintIn, who: Annotated[Principal, Depends(require("wms:view"))]
+) -> dict:
+    """Send a label as ZPL straight to a configured network printer (raw port 9100)."""
+    import asyncio
+
+    _, make_zpl, stem = _label_sources(body.kind, body.ref)
+    try:
+        sent = await asyncio.to_thread(printers.send, body.printer, make_zpl(), body.copies)
+    except printers.PrinterError as err:
+        raise HTTPException(502, detail={"code": "printer", "message": str(err)}) from err
+    return {"printed": stem, "printer": body.printer, "copies": body.copies, "bytes": sent}
+
+
+# ----- exports (CSV, PDF) ------------------------------------------------------------------------
+def _csv(text: str, name: str) -> Response:
+    return Response(
+        text,
+        media_type="text/csv; charset=utf-8",
+        headers={"Content-Disposition": f'attachment; filename="{name}"'},
+    )
+
+
+EXPORT_COLUMNS = {
+    "items": ["sku", "name", "category", "abc", "gtin", "home", "on_hand", "available",
+              "allocated", "atp", "pick_face", "reserve", "on_hold", "on_order", "unit_cost"],
+    "stock": ["sku", "location", "lot", "expiry", "status", "lpn", "qty"],
+    "transactions": ["txn_id", "tick", "type", "sku", "qty", "from_loc", "to_loc", "lot", "lpn",
+                     "status", "reason", "ref", "user"],
+    "counts": ["count_id", "location", "sku", "reason", "status", "expected", "counted",
+               "variance", "value", "counter", "decided_by"],
+    "orders": ["order_id", "status", "priority", "customer_id", "customer", "city", "service",
+               "created_at", "departure_at", "shipped_at", "on_time", "units", "cartons",
+               "backordered", "missed", "hold_reason"],
+    "returns": ["rma_id", "order_id", "customer", "sku", "item", "qty", "reason", "status",
+                "condition", "inspected_by", "inspected_at_time", "note"],
+}  # fmt: skip
+
+
+@router.get("/exports/{name}.csv", dependencies=[need("wms:view")])
+async def export_csv(
+    name: Literal["items", "stock", "transactions", "counts", "orders", "returns"],
+    limit: int = Query(20_000, le=100_000),
+) -> Response:
+    """Download a table as CSV (opens in Excel). Transactions: the newest `limit` lines."""
+    wms = _wms()
+    if name == "items":
+        rows = [_item_row(wms, s) for s in sorted(wms.inv.items)]
+    elif name == "stock":
+        rows = _rows(wms)
+    elif name == "transactions":
+        rows = [t.to_dict() for t in wms.inv.ledger[-limit:]]
+    elif name == "counts":
+        rows = [c.to_dict() for c in sorted(wms.counts.values(), key=lambda c: c.count_id)]
+    elif name == "orders":
+        rows = [wms.out.order_row(r) for r in wms.out.orders.values()]
+    else:
+        rows = [_return_row(wms, r) for r in sorted(wms.returns.values(), key=lambda r: r.rma_id)]
+    stamp = wms.inv.date().isoformat()
+    return _csv(exports.to_csv(rows[:limit], EXPORT_COLUMNS[name]), f"{name}-{stamp}.csv")
+
+
+@router.get("/outbound/trips/{trip_id}/manifest.{fmt}", dependencies=[need("wms:view")])
+async def trip_manifest_file(trip_id: str, fmt: Literal["csv", "pdf"]) -> Response:
+    """The truck's manifest as a printable PDF (driver signs it) or CSV for the carrier."""
+    detail = await trip_manifest(trip_id)
+    if fmt == "csv":
+        columns = ["tracking", "sscc", "order_id", "customer", "city", "units", "weight_kg"]
+        return _csv(exports.to_csv(detail["manifest"], columns), f"manifest-{trip_id}.csv")
+    return _pdf(exports.manifest_pdf(detail, detail["manifest"]), f"manifest-{trip_id}.pdf")
+
+
+@router.get("/counts/sheet.pdf", dependencies=[need("wms:view")])
+async def count_sheet() -> Response:
+    """Blind count sheet of the open counts, for counting on paper (no system quantities)."""
+    wms = _wms()
+    open_counts = [
+        c for c in sorted(wms.counts.values(), key=lambda c: c.location) if c.status == "OPEN"
+    ]
+    rows = [
+        {
+            "count_id": c.count_id,
+            "location": c.location,
+            "check": wms.inv.locations[c.location].check,
+            "sku": c.sku,
+            "item": wms.inv.items[c.sku].name,
+        }
+        for c in open_counts
+    ]
+    return _pdf(exports.count_sheet_pdf(rows, wms.out.clock(wms.inv.tick)), "count-sheet.pdf")
 
 
 @router.get("/barcode.svg", dependencies=[need("wms:view")])

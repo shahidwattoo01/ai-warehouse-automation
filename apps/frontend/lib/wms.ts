@@ -1,7 +1,7 @@
 // WMS (inventory_model: wms): types and API client for /api/v1/wms (apps/backend/app/api/v1/wms.py).
 
 import { API_URL, request } from "./api";
-import { openProtected } from "./auth";
+import { downloadProtected, openProtected } from "./auth";
 
 export interface WmsKpis {
   skus: number;
@@ -215,6 +215,8 @@ export interface WmsReturns {
   auto_inspection: boolean;
 }
 
+export type LabelKind = "items" | "locations" | "plates" | "shipping";
+
 type Params = Record<string, string | number | boolean | null | undefined>;
 
 const post = (body: unknown): RequestInit => ({ method: "POST", body: JSON.stringify(body) });
@@ -276,4 +278,16 @@ export const wms = {
   labelUrl: (path: string) => `${API_URL}/wms/labels/${path}`,
   /** Labels are protected: fetched with the token and opened as a PDF in a new tab. */
   openLabel: (path: string) => openProtected(`${API_URL}/wms/labels/${path}`),
+  /** The same label in ZPL for a thermal printer (path may already hold a ?query). */
+  downloadZpl: (path: string, filename: string) =>
+    downloadProtected(`${API_URL}/wms/labels/${path}${path.includes("?") ? "&" : "?"}format=zpl`, filename),
+  printers: () => request<string[]>("/wms/printers"),
+  printLabel: (kind: LabelKind, ref: string, printer: string, copies = 1) =>
+    request<{ printed: string; printer: string; copies: number }>(
+      "/wms/labels/print",
+      post({ kind, ref, printer, copies }),
+    ),
+  /** CSV export: items | stock | transactions | counts | orders | returns. */
+  exportCsv: (name: string) => downloadProtected(`${API_URL}/wms/exports/${name}.csv`, `${name}.csv`),
+  countSheet: () => openProtected(`${API_URL}/wms/counts/sheet.pdf`),
 };

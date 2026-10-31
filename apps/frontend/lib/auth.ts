@@ -130,6 +130,22 @@ export async function openProtected(url: string): Promise<void> {
   }
 }
 
+/** Download a protected file (CSV, ZPL, PDF) under the given name. */
+export async function downloadProtected(url: string, filename: string): Promise<void> {
+  try {
+    const objectUrl = await protectedObjectUrl(url);
+    const a = document.createElement("a");
+    a.href = objectUrl;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(objectUrl), 10_000);
+  } catch (e) {
+    alert((e as Error).message);
+  }
+}
+
 /** Does the logged-in user hold this permission? (The backend checks it again.) */
 export function useCan(permission: string): boolean {
   return useAuth((s) => s.user?.permissions.includes(permission) ?? false);

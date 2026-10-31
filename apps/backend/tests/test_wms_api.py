@@ -238,3 +238,64 @@ def test_returns_list_and_inspection(client, wms):
     assert again.status_code == 422
     bad = client.post(f"{API}/returns/RMA-API1/inspect", json={"condition": "SHINY"})
     assert bad.status_code == 422
+
+
+# ----- ZPL labels, printing and exports -----------------------------------------------------------
+def test_labels_as_zpl_and_pdf(client, wms):
+    sku = next(iter(wms.inv.items))
+    z = client.get(f"{API}/labels/items/{sku}", params={"format": "zpl"})
+    assert z.status_code == 200 and z.text.startswith("^XA") and z.text.rstrip().endswith("^XZ")
+    assert "attachment" in z.headers["content-disposition"]
+    assert client.get(f"{API}/labels/items/{sku}").content.startswith(b"%PDF")
+    row = wms.inv.items[sku].home.rsplit("-", 2)[0]  # the item's rack row, e.g. A-04
+    loc = client.get(f"{API}/labels/locations", params={"prefix": row, "format": "zpl"})
+    assert loc.text.count("^XA") > 1
+    assert client.get(f"{API}/labels/items/NOPE", params={"format": "zpl"}).status_code == 404
+
+
+def test_printing_sends_zpl_to_a_configured_printer_only(client, wms, monkeypatch):
+    import socket
+    import threading
+
+    from app.core.config import get_settings
+
+    server = socket.socket()
+    server.bind(("127.0.0.1", 0))
+    server.listen(1)
+    received = bytearray()
+
+    def accept():
+        conn, _ = server.accept()
+        with conn:
+            while chunk := conn.recv(65536):
+                received.extend(chunk)
+
+    thread = threading.Thread(target=accept, daemon=True)
+    thread.start()
+    port = server.getsockname()[1]
+    monkeypatch.setattr(get_settings(), "label_printers", f"pack1=127.0.0.1:{port}")
+    assert client.get(f"{API}/printers").json() == ["pack1"]
+    sku = next(iter(wms.inv.items))
+    r = client.post(
+        f"{API}/labels/print", json={"kind": "items", "ref": sku, "printer": "pack1", "copies": 2}
+    )
+    assert r.status_code == 200 and r.json()["copies"] == 2
+    thread.join(timeout=5)
+    server.close()
+    assert received.decode().count("^XA") == 2  # two copies of the label
+    unknown = client.post(
+        f"{API}/labels/print", json={"kind": "items", "ref": sku, "printer": "10.0.0.9:9100"}
+    )
+    assert unknown.status_code == 502  # never an address from the request
+
+
+def test_csv_exports_and_count_sheet(client, wms):
+    for name in ("items", "stock", "transactions", "counts", "orders", "returns"):
+        r = client.get(f"{API}/exports/{name}.csv")
+        assert r.status_code == 200 and r.headers["content-type"].startswith("text/csv"), name
+        assert len(r.text.splitlines()) >= 1
+    items = client.get(f"{API}/exports/items.csv").text.splitlines()
+    assert items[0].lstrip("﻿").startswith("sku,name") and len(items) == len(wms.inv.items) + 1
+    sheet = client.get(f"{API}/counts/sheet.pdf")
+    assert sheet.status_code == 200 and sheet.content.startswith(b"%PDF")
+    assert client.get(f"{API}/exports/secrets.csv").status_code == 422
