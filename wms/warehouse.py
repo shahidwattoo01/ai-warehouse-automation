@@ -24,6 +24,7 @@ import math
 import random
 from collections import Counter, defaultdict, deque
 
+from wms import rf
 from wms.inventory import AVAILABLE, Inventory, InventoryError
 from wms.master import build_items, build_locations, suppliers
 from wms.model import LocationType, StockKey, StockStatus, TxnType
@@ -1025,6 +1026,8 @@ class Warehouse:
             self._hourly()
         self._trucks()
         self.out.step()
+        if tick % 10 == 0:
+            rf.expire_claims(self)  # handheld claims left unconfirmed go back to the queue
         self._labour()
 
     def _hourly(self) -> None:

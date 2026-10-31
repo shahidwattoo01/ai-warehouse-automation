@@ -268,7 +268,8 @@ items:
     phase: 10
     priority: medium
     effort: M
-    status: planned
+    status: done
+    evidence: "Handheld app /rf for phones and RF scanners: task-directed next task (receive, put away, replenish, count, load) by permission, confirm by scanning with wrong scans refused, claims with 30-minute expiry, move stock and look-up, vibration feedback; wms/rf.py"
   - id: PR-30
     area: Integration
     gap: Labels print only as PDF and nothing can be exported

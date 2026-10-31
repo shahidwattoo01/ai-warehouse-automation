@@ -128,6 +128,25 @@ recorded run (migration 004). API under `/api/v1/wms`: `kpis`, `alerts`, `items`
   them as formulas); a **blind count sheet** PDF of the open counts (no system quantities); the
   **truck manifest** as a PDF for the driver to sign, or CSV for the carrier.
 
+## 6c. Handheld screens (floor staff)
+
+`/rf` (sidebar: **Handheld**) is built for phones and RF scanners: full screen, big buttons, one
+scan box (hardware scanner as keyboard, or the camera), vibration on success and error.
+
+* **Next task:** the most urgent open task of a type the person may do is claimed for them
+  (receive and put away: `wms:receive`; replenish: `wms:move`; count: `wms:count`; load trucks:
+  `wms:ship`). The screen shows where to go in large type, the steps, and what to scan.
+* **Confirm by scanning:** the plate's SSCC (receiving), the destination (put away), the pick face
+  (replenishment), the location plus the units counted (blind count), the carton (loading). A
+  wrong scan is refused before anything moves; the work is booked under the person's name.
+* A claimed task is kept for its person (the associates leave it alone); one not confirmed within
+  30 simulated minutes goes back to the queue. *Skip* gives it back at once.
+* **Move stock:** scan the source location, pick the line, enter the quantity, scan the
+  destination. **Look up:** scan anything to see what it is and what is there.
+
+Code: `wms/rf.py`, `/api/v1/wms/rf/...` (`summary`, `next`, `tasks/{id}/confirm`, `release`),
+`apps/frontend/app/rf/page.tsx`; tests `tests/unit/test_rf.py`.
+
 ## 7. Not yet (in the professional backlog)
 
   (Packing, labels, carriers and cut-offs are done: [wms_outbound.md](wms_outbound.md). Logins

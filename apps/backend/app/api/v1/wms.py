@@ -666,6 +666,98 @@ async def inspect_return(
     return _return_row(wms, rma)
 
 
+# ----- handhelds: task-directed work for floor staff (wms/rf.py) --------------------------------
+def _rf_types(who: Principal, wanted: list[str] | None) -> list[str]:
+    from wms.rf import RF_TYPES
+
+    allowed = [t for t, perm in RF_TYPES.items() if perm in who.permissions]
+    return [t for t in allowed if not wanted or t in wanted or t.startswith(tuple(wanted))]
+
+
+@router.get("/rf/summary")
+async def rf_summary(who: Annotated[Principal, Depends(require("wms:view"))]) -> dict:
+    """Open tasks per handheld task type this user may do, and whether associates also do them."""
+    wms = _wms()
+    types = _rf_types(who, None)
+    open_by_type = {t: 0 for t in types}
+    for task in wms.tasks.values():
+        if task.type in open_by_type and task.status == "OPEN":
+            open_by_type[task.type] += 1
+    mine = next(
+        (
+            t.task_id
+            for t in wms.tasks.values()
+            if t.status == "IN_PROGRESS" and t.assignee == who.username
+        ),
+        None,
+    )
+    return {
+        "open": open_by_type,
+        "auto": {t: wms.cfg["auto_tasks"].get(t, True) for t in types},
+        "my_task": mine,
+    }
+
+
+class NextIn(BaseModel):
+    types: list[str] | None = None  # RECEIVE, PUTAWAY, REPLENISH, COUNT, LOAD; none = any
+
+
+@router.post("/rf/next")
+async def rf_next(body: NextIn, who: Annotated[Principal, Depends(require("wms:view"))]) -> dict:
+    """Claim the most urgent open task of these types (or return the one already claimed)."""
+    from wms import rf
+
+    wms = _wms()
+    types = _rf_types(who, body.types)
+    if not types:
+        raise HTTPException(
+            403, detail={"code": "forbidden", "message": "No handheld work for your role"}
+        )
+    task = rf.claim(wms, types, who.username)
+    return {"task": rf.instructions(wms, task) if task else None}
+
+
+class ConfirmIn(BaseModel):
+    scan: str = Field("", max_length=80)
+    qty: int | None = Field(None, ge=0)
+    damaged: int | None = Field(None, ge=0)
+    counted: int | None = Field(None, ge=0)
+
+
+@router.post("/rf/tasks/{task_id}/confirm")
+async def rf_confirm(
+    task_id: str, body: ConfirmIn, who: Annotated[Principal, Depends(require("wms:view"))]
+) -> dict:
+    """Confirm a claimed task with the scan the instructions asked for."""
+    from wms import rf
+
+    wms = _wms()
+    task = wms.tasks.get(task_id)
+    if task is not None and rf.RF_TYPES.get(task.type) not in who.permissions:
+        raise HTTPException(
+            403, detail={"code": "forbidden", "message": f"No permission for {task.type}"}
+        )
+    try:
+        result = rf.confirm(
+            wms, task_id, who.username, body.scan, body.model_dump(exclude={"scan"})
+        )
+    except rf.RFError as err:
+        raise HTTPException(409, detail={"code": "refused", "message": str(err)}) from err
+    return {"task_id": task_id, "result": result}
+
+
+@router.post("/rf/tasks/{task_id}/release")
+async def rf_release(task_id: str, who: Annotated[Principal, Depends(require("wms:view"))]) -> dict:
+    """Give a claimed task back to the queue (skip it)."""
+    from wms import rf
+
+    try:
+        rf.release(_wms(), task_id, who.username)
+    except rf.RFError as err:
+        raise HTTPException(409, detail={"code": "refused", "message": str(err)}) from err
+    return {"task_id": task_id, "released": True}
+
+
 # ----- outbound: customer orders, packing, loading, departures ---------------------------------
 def _out():
     return _wms().out

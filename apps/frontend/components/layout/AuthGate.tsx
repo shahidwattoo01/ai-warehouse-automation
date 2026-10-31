@@ -37,6 +37,10 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
       </div>
     );
   }
+  if (path.startsWith("/rf")) {
+    // Handheld screens: full screen, no sidebar (phones and RF scanners on the floor).
+    return <PageAccess path={path}>{children}</PageAccess>;
+  }
   return (
     <div className="flex h-screen overflow-hidden">
       <Sidebar />

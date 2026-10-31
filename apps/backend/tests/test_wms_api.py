@@ -299,3 +299,36 @@ def test_csv_exports_and_count_sheet(client, wms):
     sheet = client.get(f"{API}/counts/sheet.pdf")
     assert sheet.status_code == 200 and sheet.content.startswith(b"%PDF")
     assert client.get(f"{API}/exports/secrets.csv").status_code == 422
+
+
+# ----- handhelds ----------------------------------------------------------------------------------
+def test_handheld_next_confirm_and_release(client, wms):
+    item = next(iter(wms.inv.items.values()))
+    for t in wms.cfg["auto_tasks"]:
+        wms.cfg["auto_tasks"][t] = False
+    wms.tasks.clear()
+    wms.create_count(item.home, item.sku, "MANUAL")
+    summary = client.get(f"{API}/rf/summary").json()
+    assert summary["open"]["COUNT"] == 1 and summary["auto"]["COUNT"] is False
+    task = client.post(f"{API}/rf/next", json={"types": ["COUNT"]}).json()["task"]
+    assert task["go_to"] == item.home and task["inputs"][0]["name"] == "counted"
+    wrong = client.post(f"{API}/rf/tasks/{task['task_id']}/confirm", json={"scan": "X-1"})
+    assert wrong.status_code == 409 and "Wrong scan" in wrong.json()["detail"]["message"]
+    done = client.post(
+        f"{API}/rf/tasks/{task['task_id']}/confirm", json={"scan": item.home, "counted": 0}
+    ).json()
+    assert done["result"] == "difference: a recount was created"  # 0 on a stocked shelf
+    recount = client.post(f"{API}/rf/next", json={"types": ["COUNT"]}).json()["task"]
+    assert recount["title"] == "Count (recount)"
+    client.post(f"{API}/rf/tasks/{recount['task_id']}/release")
+    assert client.get(f"{API}/rf/summary").json()["my_task"] is None
+
+
+@pytest.mark.real_auth
+def test_handheld_work_follows_the_role(client, wms, make_user):
+    viewer = make_user("rf-viewer", "viewer")
+    r = client.post(f"{API}/rf/next", json={}, headers={"Authorization": f"Bearer {viewer}"})
+    assert r.status_code == 403  # a viewer has no handheld work
+    clerk = make_user("rf-clerk", "inventory_clerk")
+    s = client.get(f"{API}/rf/summary", headers={"Authorization": f"Bearer {clerk}"}).json()
+    assert {"RECEIVE", "PUTAWAY", "COUNT", "LOAD"} <= set(s["open"])
