@@ -1,0 +1,233 @@
+{
+  "when": "2026-10-31T15:46:52",
+  "setup": {
+    "users": 10,
+    "streams": 10,
+    "seconds": 20.0,
+    "speed": 1.0,
+    "target": "spawned",
+    "persist_runs": false
+  },
+  "api": {
+    "requests": 46,
+    "per_second": 2.3,
+    "errors": 0,
+    "client_errors_4xx": 4,
+    "rate_limited_429": 0,
+    "groups": {
+      "light": {
+        "requests": 37,
+        "p50_ms": 23.574700000608573,
+        "p95_ms": 15770.666300002631,
+        "p99_ms": 15956.336100000044,
+        "max_ms": 15956.336100000044
+      },
+      "heavy": {
+        "requests": 5,
+        "p50_ms": 25.29560000039055,
+        "p95_ms": 16031.187299999146,
+        "p99_ms": 16031.187299999146,
+        "max_ms": 16031.187299999146
+      }
+    },
+    "per_path": {
+      "/api/v1/wms/kpis": {
+        "n": 11,
+        "p50_ms": 45.506700000260025,
+        "p95_ms": 15956.336100000044
+      },
+      "/api/v1/alerts?status=open": {
+        "n": 0,
+        "p50_ms": null,
+        "p95_ms": null
+      },
+      "/api/v1/safety/status": {
+        "n": 3,
+        "p50_ms": 10.049599997728365,
+        "p95_ms": 17.931400001543807
+      },
+      "/api/v1/robots": {
+        "n": 4,
+        "p50_ms": 12.388899998768466,
+        "p95_ms": 15504.682499999035
+      },
+      "/api/v1/prediction/live": {
+        "n": 1,
+        "p50_ms": 15655.942199999117,
+        "p95_ms": 15655.942199999117
+      },
+      "/api/v1/orders": {
+        "n": 4,
+        "p50_ms": 20.79320000120788,
+        "p95_ms": 107.14039999948
+      },
+      "/api/v1/wms/outbound/orders": {
+        "n": 3,
+        "p50_ms": 13.63370000035502,
+        "p95_ms": 58.3611000001838
+      },
+      "/api/v1/events?after=0&limit=50": {
+        "n": 5,
+        "p50_ms": 91.54779999880702,
+        "p95_ms": 15746.703600001638
+      },
+      "/api/v1/wms/rf/summary": {
+        "n": 1,
+        "p50_ms": 12.362900000880472,
+        "p95_ms": 12.362900000880472
+      },
+      "/api/v1/erp/status": {
+        "n": 0,
+        "p50_ms": null,
+        "p95_ms": null
+      },
+      "/api/v1/vda5050/status": {
+        "n": 1,
+        "p50_ms": 166.94060000008903,
+        "p95_ms": 166.94060000008903
+      },
+      "/api/v1/auth/me": {
+        "n": 4,
+        "p50_ms": 10.293100000126287,
+        "p95_ms": 15774.7896999972
+      },
+      "/api/v1/simulation/state": {
+        "n": 1,
+        "p50_ms": 17.57480000014766,
+        "p95_ms": 17.57480000014766
+      },
+      "/api/v1/inventory": {
+        "n": 1,
+        "p50_ms": 16031.187299999146,
+        "p95_ms": 16031.187299999146
+      },
+      "/api/v1/wms/locations": {
+        "n": 1,
+        "p50_ms": 294.8458999999275,
+        "p95_ms": 294.8458999999275
+      },
+      "/api/v1/wms/tasks": {
+        "n": 2,
+        "p50_ms": 9.837300000071991,
+        "p95_ms": 25.29560000039055
+      }
+    }
+  },
+  "stream": {
+    "clients": 10,
+    "frames": 110,
+    "dropped": 0,
+    "connect_p95_ms": 240.43439999877592,
+    "gap_p50_ms": 418.9241999993101,
+    "gap_p95_ms": 16111.742699999013,
+    "gap_max_ms": 16112.23670000254,
+    "errors": []
+  },
+  "simulator": {
+    "loop_lag_p95_s": 0.156,
+    "loop_lag_max_s": 0.156,
+    "tick_rate_share": 0.276
+  },
+  "process": {
+    "start_mb": 414.2,
+    "end_mb": 421.9,
+    "max_mb": 421.9,
+    "trend_mb_per_hour": 1305.6,
+    "cpu_percent_of_one_core": 84.9
+  },
+  "checks": [
+    {
+      "check": "API light p95",
+      "value": 15771,
+      "target": "<= 250 ms",
+      "result": "FAIL"
+    },
+    {
+      "check": "API light p99",
+      "value": 15956,
+      "target": "<= 600 ms",
+      "result": "FAIL"
+    },
+    {
+      "check": "API heavy p95",
+      "value": 16031,
+      "target": "<= 1200 ms",
+      "result": "FAIL"
+    },
+    {
+      "check": "API heavy p99",
+      "value": 16031,
+      "target": "<= 2500 ms",
+      "result": "FAIL"
+    },
+    {
+      "check": "API error rate",
+      "value": "0.00%",
+      "target": "<= 1%",
+      "result": "pass"
+    },
+    {
+      "check": "Stream connect p95",
+      "value": 240,
+      "target": "<= 1500 ms",
+      "result": "pass"
+    },
+    {
+      "check": "Stream frame gap p95",
+      "value": 16112,
+      "target": "<= 1200 ms",
+      "result": "FAIL"
+    },
+    {
+      "check": "Stream clients dropped",
+      "value": 0,
+      "target": "<= 0",
+      "result": "pass"
+    },
+    {
+      "check": "Loop lag p95",
+      "value": 0.156,
+      "target": "<= 0.25 s",
+      "result": "pass"
+    },
+    {
+      "check": "Ticks done / scheduled",
+      "value": 0.276,
+      "target": ">= 0.9",
+      "result": "FAIL"
+    },
+    {
+      "check": "Memory trend",
+      "value": "+1305.6 MB/h",
+      "target": "<= 60 MB/h",
+      "result": "n/a"
+    }
+  ],
+  "passed": false,
+  "samples": [
+    {
+      "t": 0.1,
+      "lag": 0.0,
+      "ticks": 3.0,
+      "rss_mb": 414.2,
+      "cpu_s": 11.55,
+      "in_flight": 1.0
+    },
+    {
+      "t": 18.8,
+      "lag": 0.031,
+      "ticks": 12.0,
+      "rss_mb": 420.4,
+      "cpu_s": 28.06,
+      "in_flight": 8.0
+    },
+    {
+      "t": 20.0,
+      "lag": 0.156,
+      "ticks": 14.0,
+      "rss_mb": 421.9,
+      "cpu_s": 28.44,
+      "in_flight": 1.0
+    }
+  ]
+}

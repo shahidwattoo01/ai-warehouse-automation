@@ -40,6 +40,8 @@ advice: for commercial use, have the licences reviewed.)
 | PyJWT, argon2-cffi | MIT | Login: access tokens and password hashing |
 | paho-mqtt | EPL-2.0 or EDL-1.0 (BSD-3-Clause style), chosen: EDL-1.0 | VDA 5050 robot interface over MQTT |
 | Eclipse Mosquitto (Docker image, not bundled) | EPL-2.0 or EDL-1.0 | MQTT broker for the robot interface |
+| psutil | BSD-3-Clause | Process memory and CPU on /metrics |
+| httpx, websockets | BSD-3-Clause | Load tests (tests/load): HTTP and WebSocket clients |
 | pypdf | BSD-3-Clause | Phase 7 text extraction from the document PDFs |
 | anthropic (Anthropic Python SDK) | Apache-2.0 | Optional Claude-written answers; API use is billed per request |
 

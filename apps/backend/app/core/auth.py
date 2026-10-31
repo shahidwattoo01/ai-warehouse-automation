@@ -15,10 +15,13 @@ changed role takes effect at once, not when the token expires.
 
 from __future__ import annotations
 
+import asyncio
 import datetime as dt
 import hashlib
 import logging
 import secrets
+import threading
+import time
 import uuid
 from dataclasses import dataclass
 from functools import lru_cache
@@ -203,8 +206,44 @@ def logout(raw: str | None) -> None:
             get_store().revoke_family(record["family"])
 
 
+# Every API request checks that its user still exists and is active. Asking the database each
+# time cost ~7 ms of a worker thread per request and capped the API near 35 requests/s under load
+# (tests/load). The answer is kept for USER_CACHE_SECONDS; any account change in this process
+# clears it at once (users.VERSION), and another instance's change is seen within those seconds.
+USER_CACHE_SECONDS = 5.0
+_user_cache: dict[str, tuple[float, int, object]] = {}
+_user_cache_lock = threading.Lock()
+
+
+def _cache_peek(user_id: str) -> tuple[bool, object]:
+    from app.services import users
+
+    with _user_cache_lock:
+        hit = _user_cache.get(user_id)
+    if hit and hit[0] > time.monotonic() and hit[1] == users.VERSION[0]:
+        return True, hit[2]
+    return False, None
+
+
+def _cached_user(user_id: str):
+    """The user record, from the cache or the store (blocking on a miss: worker thread)."""
+    from app.services import users
+
+    found, user = _cache_peek(user_id)
+    if found:
+        return user
+    now_ = time.monotonic()
+    version = users.VERSION[0]
+    user = get_store().get(user_id)
+    with _user_cache_lock:
+        if len(_user_cache) > 5000:
+            _user_cache.clear()
+        _user_cache[user_id] = (now_ + USER_CACHE_SECONDS, version, user)
+    return user
+
+
 # ----- FastAPI dependencies -----------------------------------------------------------------------
-def principal_from_token(token: str | None) -> Principal:
+def _claims(token: str | None) -> dict:
     if not token:
         raise HTTPException(
             status.HTTP_401_UNAUTHORIZED, "Not logged in", headers={"WWW-Authenticate": "Bearer"}
@@ -219,16 +258,30 @@ def principal_from_token(token: str | None) -> Principal:
         raise HTTPException(
             status.HTTP_401_UNAUTHORIZED, "Invalid token", headers={"WWW-Authenticate": "Bearer"}
         ) from err
-    user = get_store().get(claims["sub"])
+    return claims
+
+
+def _principal(user) -> Principal:
     if user is None or not user.active:
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Account disabled")
     return principal_of(user)
 
 
-def current_user(request: Request) -> Principal:
+def principal_from_token(token: str | None) -> Principal:
+    """Blocking (may ask the user store): call from a worker thread."""
+    return _principal(_cached_user(_claims(token)["sub"]))
+
+
+async def current_user(request: Request) -> Principal:
+    """Runs on the event loop: no worker thread per request. Only a cache miss (once per user
+    every few seconds) asks the user store, in a thread."""
     header = request.headers.get("authorization", "")
     token = header[7:].strip() if header.lower().startswith("bearer ") else None
-    return principal_from_token(token)
+    sub_ = _claims(token)["sub"]
+    found, user = _cache_peek(sub_)
+    if not found:
+        user = await asyncio.to_thread(_cached_user, sub_)
+    return _principal(user)
 
 
 def require(*permissions: str):
@@ -237,7 +290,7 @@ def require(*permissions: str):
         if p not in ROLES["admin"]["permissions"]:
             raise KeyError(f"unknown permission {p}")  # a typo must fail at start-up
 
-    def check(user: Annotated[Principal, Depends(current_user)]) -> Principal:
+    async def check(user: Annotated[Principal, Depends(current_user)]) -> Principal:
         missing = [p for p in permissions if not user.can(p)]
         if missing:
             raise HTTPException(

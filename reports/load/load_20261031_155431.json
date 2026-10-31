@@ -1,0 +1,361 @@
+{
+  "when": "2026-10-31T15:54:31",
+  "setup": {
+    "users": 100,
+    "streams": 100,
+    "seconds": 120.0,
+    "speed": 1.0,
+    "target": "spawned",
+    "persist_runs": false
+  },
+  "api": {
+    "requests": 3247,
+    "per_second": 27.1,
+    "errors": 19,
+    "client_errors_4xx": 0,
+    "rate_limited_429": 0,
+    "groups": {
+      "light": {
+        "requests": 2864,
+        "p50_ms": 2052.6281999991625,
+        "p95_ms": 7460.225000002538,
+        "p99_ms": 10630.622899996524,
+        "max_ms": 12914.80170000068
+      },
+      "heavy": {
+        "requests": 364,
+        "p50_ms": 2165.3383999982907,
+        "p95_ms": 7330.066900001839,
+        "p99_ms": 9184.63310000152,
+        "max_ms": 12496.762599999784
+      }
+    },
+    "per_path": {
+      "/api/v1/wms/kpis": {
+        "n": 632,
+        "p50_ms": 1952.9728999987128,
+        "p95_ms": 7819.405700000061
+      },
+      "/api/v1/alerts?status=active": {
+        "n": 327,
+        "p50_ms": 2333.40120000139,
+        "p95_ms": 7611.397900000156
+      },
+      "/api/v1/safety/status": {
+        "n": 361,
+        "p50_ms": 1942.2209000003932,
+        "p95_ms": 7465.005599999131
+      },
+      "/api/v1/robots": {
+        "n": 294,
+        "p50_ms": 2010.5459000005794,
+        "p95_ms": 6817.028699999355
+      },
+      "/api/v1/prediction/live": {
+        "n": 242,
+        "p50_ms": 1963.235999999597,
+        "p95_ms": 7168.540300001041
+      },
+      "/api/v1/orders": {
+        "n": 172,
+        "p50_ms": 1982.961499998055,
+        "p95_ms": 7418.0200999981025
+      },
+      "/api/v1/wms/outbound/orders": {
+        "n": 201,
+        "p50_ms": 2154.907899999671,
+        "p95_ms": 7653.792799999792
+      },
+      "/api/v1/events?after=0&limit=50": {
+        "n": 163,
+        "p50_ms": 2312.826199999108,
+        "p95_ms": 7147.467499999038
+      },
+      "/api/v1/wms/rf/summary": {
+        "n": 125,
+        "p50_ms": 2110.877099999925,
+        "p95_ms": 7369.146199998795
+      },
+      "/api/v1/erp/status": {
+        "n": 107,
+        "p50_ms": 2062.512100001186,
+        "p95_ms": 7708.729699999822
+      },
+      "/api/v1/vda5050/status": {
+        "n": 120,
+        "p50_ms": 1931.0036999995646,
+        "p95_ms": 5939.29560000106
+      },
+      "/api/v1/auth/me": {
+        "n": 120,
+        "p50_ms": 2273.374299998977,
+        "p95_ms": 7791.586200000893
+      },
+      "/api/v1/simulation/state": {
+        "n": 178,
+        "p50_ms": 2178.842599998461,
+        "p95_ms": 7456.76309999908
+      },
+      "/api/v1/inventory": {
+        "n": 59,
+        "p50_ms": 2449.4981999996526,
+        "p95_ms": 7754.973399998562
+      },
+      "/api/v1/wms/locations": {
+        "n": 64,
+        "p50_ms": 2186.4069999974163,
+        "p95_ms": 6075.988100001268
+      },
+      "/api/v1/wms/tasks": {
+        "n": 63,
+        "p50_ms": 1551.6209000015806,
+        "p95_ms": 5108.369599998696
+      }
+    }
+  },
+  "stream": {
+    "clients": 100,
+    "frames": 22913,
+    "dropped": 0,
+    "connect_p95_ms": 7846.999400000641,
+    "gap_p50_ms": 475.11149999991176,
+    "gap_p95_ms": 942.8944999999658,
+    "gap_max_ms": 1809.579400000075,
+    "errors": []
+  },
+  "simulator": {
+    "loop_lag_p95_s": 0.282,
+    "loop_lag_max_s": 0.297,
+    "tick_rate_share": 1.002
+  },
+  "process": {
+    "start_mb": 414.8,
+    "end_mb": 470.7,
+    "max_mb": 470.7,
+    "trend_mb_per_hour": 907.3,
+    "cpu_percent_of_one_core": 70.0
+  },
+  "checks": [
+    {
+      "check": "API light p95",
+      "value": 7460,
+      "target": "<= 250 ms",
+      "result": "FAIL"
+    },
+    {
+      "check": "API light p99",
+      "value": 10631,
+      "target": "<= 600 ms",
+      "result": "FAIL"
+    },
+    {
+      "check": "API heavy p95",
+      "value": 7330,
+      "target": "<= 1200 ms",
+      "result": "FAIL"
+    },
+    {
+      "check": "API heavy p99",
+      "value": 9185,
+      "target": "<= 2500 ms",
+      "result": "FAIL"
+    },
+    {
+      "check": "API error rate",
+      "value": "0.59%",
+      "target": "<= 1%",
+      "result": "pass"
+    },
+    {
+      "check": "Stream connect p95",
+      "value": 7847,
+      "target": "<= 1500 ms",
+      "result": "FAIL"
+    },
+    {
+      "check": "Stream frame gap p95",
+      "value": 943,
+      "target": "<= 1200 ms",
+      "result": "pass"
+    },
+    {
+      "check": "Stream clients dropped",
+      "value": 0,
+      "target": "<= 0",
+      "result": "pass"
+    },
+    {
+      "check": "Loop lag p95",
+      "value": 0.282,
+      "target": "<= 0.25 s",
+      "result": "FAIL"
+    },
+    {
+      "check": "Ticks done / scheduled",
+      "value": 1.002,
+      "target": ">= 0.9",
+      "result": "pass"
+    },
+    {
+      "check": "Memory trend",
+      "value": "+907.3 MB/h",
+      "target": "<= 60 MB/h",
+      "result": "n/a"
+    }
+  ],
+  "passed": false,
+  "samples": [
+    {
+      "t": 0.5,
+      "lag": 0.015,
+      "ticks": 4.0,
+      "rss_mb": 414.8,
+      "cpu_s": 10.47,
+      "in_flight": 1.0
+    },
+    {
+      "t": 9.7,
+      "lag": 0.062,
+      "ticks": 22.0,
+      "rss_mb": 449.0,
+      "cpu_s": 14.72,
+      "in_flight": 4.0
+    },
+    {
+      "t": 14.9,
+      "lag": 0.297,
+      "ticks": 33.0,
+      "rss_mb": 455.5,
+      "cpu_s": 18.09,
+      "in_flight": 16.0
+    },
+    {
+      "t": 21.6,
+      "lag": 0.093,
+      "ticks": 47.0,
+      "rss_mb": 459.5,
+      "cpu_s": 22.17,
+      "in_flight": 17.0
+    },
+    {
+      "t": 34.5,
+      "lag": 0.157,
+      "ticks": 72.0,
+      "rss_mb": 462.6,
+      "cpu_s": 31.28,
+      "in_flight": 16.0
+    },
+    {
+      "t": 41.3,
+      "lag": 0.141,
+      "ticks": 86.0,
+      "rss_mb": 461.9,
+      "cpu_s": 35.48,
+      "in_flight": 26.0
+    },
+    {
+      "t": 48.3,
+      "lag": 0.0,
+      "ticks": 100.0,
+      "rss_mb": 462.3,
+      "cpu_s": 39.41,
+      "in_flight": 4.0
+    },
+    {
+      "t": 54.3,
+      "lag": 0.203,
+      "ticks": 112.0,
+      "rss_mb": 468.6,
+      "cpu_s": 44.75,
+      "in_flight": 53.0
+    },
+    {
+      "t": 60.7,
+      "lag": 0.0,
+      "ticks": 125.0,
+      "rss_mb": 469.5,
+      "cpu_s": 48.73,
+      "in_flight": 4.0
+    },
+    {
+      "t": 66.2,
+      "lag": 0.0,
+      "ticks": 136.0,
+      "rss_mb": 469.5,
+      "cpu_s": 52.23,
+      "in_flight": 2.0
+    },
+    {
+      "t": 71.3,
+      "lag": 0.032,
+      "ticks": 146.0,
+      "rss_mb": 468.6,
+      "cpu_s": 55.66,
+      "in_flight": 27.0
+    },
+    {
+      "t": 77.1,
+      "lag": 0.282,
+      "ticks": 156.0,
+      "rss_mb": 469.0,
+      "cpu_s": 59.84,
+      "in_flight": 37.0
+    },
+    {
+      "t": 83.3,
+      "lag": 0.0,
+      "ticks": 170.0,
+      "rss_mb": 469.5,
+      "cpu_s": 64.69,
+      "in_flight": 3.0
+    },
+    {
+      "t": 88.7,
+      "lag": 0.188,
+      "ticks": 180.0,
+      "rss_mb": 468.9,
+      "cpu_s": 69.11,
+      "in_flight": 21.0
+    },
+    {
+      "t": 96.9,
+      "lag": 0.219,
+      "ticks": 197.0,
+      "rss_mb": 469.0,
+      "cpu_s": 73.95,
+      "in_flight": 16.0
+    },
+    {
+      "t": 104.1,
+      "lag": 0.0,
+      "ticks": 211.0,
+      "rss_mb": 469.7,
+      "cpu_s": 80.41,
+      "in_flight": 2.0
+    },
+    {
+      "t": 111.0,
+      "lag": 0.0,
+      "ticks": 224.0,
+      "rss_mb": 469.7,
+      "cpu_s": 86.2,
+      "in_flight": 8.0
+    },
+    {
+      "t": 116.2,
+      "lag": 0.047,
+      "ticks": 236.0,
+      "rss_mb": 469.8,
+      "cpu_s": 90.41,
+      "in_flight": 13.0
+    },
+    {
+      "t": 120.3,
+      "lag": 0.219,
+      "ticks": 244.0,
+      "rss_mb": 470.7,
+      "cpu_s": 94.38,
+      "in_flight": 26.0
+    }
+  ]
+}

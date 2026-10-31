@@ -1545,6 +1545,105 @@
           "mode": "multi"
         }
       }
+    },
+    {
+      "id": 30,
+      "type": "timeseries",
+      "title": "Backend memory",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "warehouse-prometheus"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 47
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "warehouse-prometheus"
+          },
+          "expr": "process_resident_memory_bytes{job=\"warehouse-backend\"}",
+          "legendFormat": "resident"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes",
+          "custom": {
+            "fillOpacity": 5,
+            "lineWidth": 1
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      }
+    },
+    {
+      "id": 31,
+      "type": "timeseries",
+      "title": "Backend CPU and state saving",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "warehouse-prometheus"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 47
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "warehouse-prometheus"
+          },
+          "expr": "rate(process_cpu_seconds_total{job=\"warehouse-backend\"}[1m])",
+          "legendFormat": "CPU cores"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "warehouse-prometheus"
+          },
+          "expr": "warehouse_state_snapshot_capture_seconds",
+          "legendFormat": "snapshot capture s"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "custom": {
+            "fillOpacity": 5,
+            "lineWidth": 1
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      }
     }
   ]
 }

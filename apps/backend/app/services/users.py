@@ -17,6 +17,15 @@ from sqlalchemy import create_engine, text
 
 from app.core.permissions import ROLES
 
+# Bumped on every account change in this process: cached logins (app/core/auth.py) made before
+# it are dropped at once, so disabling a user or changing a role is never delayed by the cache.
+VERSION = [0]
+
+
+def _changed() -> None:
+    VERSION[0] += 1
+
+
 _hasher = PasswordHasher()  # Argon2id, library defaults (OWASP-recommended parameters)
 MIN_PASSWORD = 10
 
@@ -104,6 +113,7 @@ class MemoryUserStore:
                 str(uuid.uuid4()), username, full_name, role, password_hash, created_at=now()
             )
             self.users[user.user_id] = user
+            _changed()
             return replace(user)
 
     def update(self, user_id: str, **fields) -> None:
@@ -111,6 +121,7 @@ class MemoryUserStore:
             u = self.users[user_id]
             for k, v in fields.items():
                 setattr(u, k, v)
+            _changed()
 
     def add_token(
         self, token_hash: str, user_id: str, family: str, expires_at: dt.datetime
@@ -212,6 +223,7 @@ class SqlUserStore:
                 ),
                 {"u": username, "f": full_name, "r": role, "p": password_hash},
             ).first()
+        _changed()
         return self._user(row)
 
     def update(self, user_id: str, **fields) -> None:
@@ -235,6 +247,7 @@ class SqlUserStore:
                 text(f"UPDATE users SET {assignments} WHERE user_id = CAST(:id AS uuid)"),
                 {**sets, "id": user_id},
             )
+        _changed()
 
     def add_token(
         self, token_hash: str, user_id: str, family: str, expires_at: dt.datetime

@@ -172,7 +172,8 @@ items:
     phase: 11
     priority: medium
     effort: S
-    status: planned
+    status: done
+    evidence: "tests/load: API users, live-stream clients, soak and capacity ramp judged against configs/load_targets.yaml; found and fixed a 13 s inventory stall, a per-request login lookup, costly KPIs and a 750 MB route cache; about 50 screens per backend meet p95 250 ms; docs/load_testing.md"
   - id: PR-19
     area: Operations
     gap: Models are trained once

@@ -300,7 +300,7 @@ class RunStore:
                 b.stock[pid] = {
                     "run_id": run,
                     "product_id": pid,
-                    "stock": engine.inventory.stock[pid],
+                    "stock": engine.inventory.stock_of(pid),
                     "tick": tick,
                 }
             if order_id in engine.orders:

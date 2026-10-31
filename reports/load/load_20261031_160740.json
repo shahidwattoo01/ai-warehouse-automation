@@ -1,0 +1,288 @@
+{
+  "when": "2026-10-31T16:07:40",
+  "setup": {
+    "users": 100,
+    "streams": 0,
+    "seconds": 60.0,
+    "speed": 1.0,
+    "target": "spawned",
+    "persist_runs": false
+  },
+  "api": {
+    "requests": 2602,
+    "per_second": 43.4,
+    "errors": 26,
+    "client_errors_4xx": 0,
+    "rate_limited_429": 0,
+    "groups": {
+      "light": {
+        "requests": 2300,
+        "p50_ms": 798.386099999334,
+        "p95_ms": 4235.488199999963,
+        "p99_ms": 5441.751900001691,
+        "max_ms": 7307.725500002562
+      },
+      "heavy": {
+        "requests": 276,
+        "p50_ms": 938.5700999991968,
+        "p95_ms": 4413.574299996981,
+        "p99_ms": 5115.91910000061,
+        "max_ms": 6533.8383999987855
+      }
+    },
+    "per_path": {
+      "/api/v1/wms/kpis": {
+        "n": 519,
+        "p50_ms": 776.0142000006454,
+        "p95_ms": 4134.091500000068
+      },
+      "/api/v1/alerts?status=active": {
+        "n": 261,
+        "p50_ms": 847.5754999999481,
+        "p95_ms": 4392.713900000672
+      },
+      "/api/v1/safety/status": {
+        "n": 294,
+        "p50_ms": 850.6564999988768,
+        "p95_ms": 4548.66039999979
+      },
+      "/api/v1/robots": {
+        "n": 237,
+        "p50_ms": 846.2139000002935,
+        "p95_ms": 4148.810099999537
+      },
+      "/api/v1/prediction/live": {
+        "n": 188,
+        "p50_ms": 748.2170999974187,
+        "p95_ms": 3778.6989999985963
+      },
+      "/api/v1/orders": {
+        "n": 135,
+        "p50_ms": 729.8958999999741,
+        "p95_ms": 4047.2082999986014
+      },
+      "/api/v1/wms/outbound/orders": {
+        "n": 157,
+        "p50_ms": 845.2542000013636,
+        "p95_ms": 4473.583099999814
+      },
+      "/api/v1/events?after=0&limit=50": {
+        "n": 130,
+        "p50_ms": 709.4749999996566,
+        "p95_ms": 3608.0691999995906
+      },
+      "/api/v1/wms/rf/summary": {
+        "n": 101,
+        "p50_ms": 841.0051999999268,
+        "p95_ms": 3977.36359999908
+      },
+      "/api/v1/erp/status": {
+        "n": 87,
+        "p50_ms": 827.8604000006453,
+        "p95_ms": 4225.989800001116
+      },
+      "/api/v1/vda5050/status": {
+        "n": 91,
+        "p50_ms": 724.3006999997306,
+        "p95_ms": 4311.302399997658
+      },
+      "/api/v1/auth/me": {
+        "n": 100,
+        "p50_ms": 880.1337000004423,
+        "p95_ms": 4927.150600000459
+      },
+      "/api/v1/simulation/state": {
+        "n": 140,
+        "p50_ms": 915.3224000001501,
+        "p95_ms": 4037.0223999998416
+      },
+      "/api/v1/inventory": {
+        "n": 44,
+        "p50_ms": 955.161699999735,
+        "p95_ms": 4508.105500000966
+      },
+      "/api/v1/wms/locations": {
+        "n": 46,
+        "p50_ms": 1152.061099997809,
+        "p95_ms": 4426.99519999951
+      },
+      "/api/v1/wms/tasks": {
+        "n": 46,
+        "p50_ms": 661.5979999987758,
+        "p95_ms": 4154.323300001124
+      }
+    }
+  },
+  "stream": {
+    "clients": 0,
+    "frames": 0,
+    "dropped": 0,
+    "connect_p95_ms": null,
+    "gap_p50_ms": null,
+    "gap_p95_ms": null,
+    "gap_max_ms": null,
+    "errors": []
+  },
+  "simulator": {
+    "loop_lag_p95_s": 0.219,
+    "loop_lag_max_s": 0.235,
+    "tick_rate_share": 0.983
+  },
+  "process": {
+    "start_mb": 414.5,
+    "end_mb": 444.8,
+    "max_mb": 447.3,
+    "trend_mb_per_hour": 1277.4,
+    "cpu_percent_of_one_core": 52.6
+  },
+  "load_generator_cpu_percent": 85,
+  "checks": [
+    {
+      "check": "API light p95",
+      "value": 4235,
+      "target": "<= 250 ms",
+      "result": "FAIL"
+    },
+    {
+      "check": "API light p99",
+      "value": 5442,
+      "target": "<= 600 ms",
+      "result": "FAIL"
+    },
+    {
+      "check": "API heavy p95",
+      "value": 4414,
+      "target": "<= 1200 ms",
+      "result": "FAIL"
+    },
+    {
+      "check": "API heavy p99",
+      "value": 5116,
+      "target": "<= 2500 ms",
+      "result": "FAIL"
+    },
+    {
+      "check": "API error rate",
+      "value": "1.00%",
+      "target": "<= 1%",
+      "result": "pass"
+    },
+    {
+      "check": "Loop lag p95",
+      "value": 0.219,
+      "target": "<= 0.25 s",
+      "result": "pass"
+    },
+    {
+      "check": "Ticks done / scheduled",
+      "value": 0.983,
+      "target": ">= 0.9",
+      "result": "pass"
+    },
+    {
+      "check": "Memory trend",
+      "value": "+1277.4 MB/h",
+      "target": "<= 60 MB/h",
+      "result": "n/a"
+    }
+  ],
+  "passed": false,
+  "samples": [
+    {
+      "t": 0.2,
+      "lag": 0.015,
+      "ticks": 2.0,
+      "rss_mb": 414.5,
+      "cpu_s": 15.83,
+      "in_flight": 1.0
+    },
+    {
+      "t": 7.4,
+      "lag": 0.031,
+      "ticks": 17.0,
+      "rss_mb": 426.8,
+      "cpu_s": 19.95,
+      "in_flight": 1.0
+    },
+    {
+      "t": 12.9,
+      "lag": 0.0,
+      "ticks": 25.0,
+      "rss_mb": 438.0,
+      "cpu_s": 22.12,
+      "in_flight": 1.0
+    },
+    {
+      "t": 19.1,
+      "lag": 0.016,
+      "ticks": 38.0,
+      "rss_mb": 440.9,
+      "cpu_s": 24.41,
+      "in_flight": 2.0
+    },
+    {
+      "t": 24.9,
+      "lag": 0.0,
+      "ticks": 49.0,
+      "rss_mb": 447.3,
+      "cpu_s": 27.33,
+      "in_flight": 1.0
+    },
+    {
+      "t": 30.4,
+      "lag": 0.0,
+      "ticks": 60.0,
+      "rss_mb": 445.6,
+      "cpu_s": 30.77,
+      "in_flight": 1.0
+    },
+    {
+      "t": 36.0,
+      "lag": 0.219,
+      "ticks": 71.0,
+      "rss_mb": 445.7,
+      "cpu_s": 35.2,
+      "in_flight": 2.0
+    },
+    {
+      "t": 41.9,
+      "lag": 0.141,
+      "ticks": 83.0,
+      "rss_mb": 445.7,
+      "cpu_s": 37.7,
+      "in_flight": 1.0
+    },
+    {
+      "t": 47.8,
+      "lag": 0.235,
+      "ticks": 95.0,
+      "rss_mb": 444.5,
+      "cpu_s": 40.77,
+      "in_flight": 1.0
+    },
+    {
+      "t": 53.5,
+      "lag": 0.016,
+      "ticks": 107.0,
+      "rss_mb": 444.6,
+      "cpu_s": 43.72,
+      "in_flight": 1.0
+    },
+    {
+      "t": 58.7,
+      "lag": 0.125,
+      "ticks": 117.0,
+      "rss_mb": 444.6,
+      "cpu_s": 46.42,
+      "in_flight": 1.0
+    },
+    {
+      "t": 60.2,
+      "lag": 0.0,
+      "ticks": 120.0,
+      "rss_mb": 444.8,
+      "cpu_s": 47.41,
+      "in_flight": 1.0
+    }
+  ]
+}

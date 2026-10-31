@@ -151,7 +151,8 @@ class Copilot:
                         out.append(f"There is no product {pid} in this warehouse.")
             if name == "create_order":
                 for item in a["items"]:
-                    stock = eng.inventory.stock.get(item["product_id"])
+                    pid = item["product_id"]
+                    stock = eng.inventory.stock_of(pid) if pid in eng.inventory else None
                     if stock is not None and stock < item["quantity"]:
                         out.append(f"{item['product_id']} has only {stock} in stock.")
             if name in ("close_aisle", "open_aisle"):
@@ -336,7 +337,7 @@ class Copilot:
                 data["pending"] = [o.to_dict() for o in pending[:20]]
             elif name == "get_inventory":
                 pid = a["product_id"]
-                answers.append(f"{pid}: {eng.inventory.stock[pid]} units in stock.")
+                answers.append(f"{pid}: {eng.inventory.stock_of(pid)} units in stock.")
             elif name == "get_warehouse_state":
                 s = eng.state(include_inventory=False)
                 busy = sum(r["status"] not in ("IDLE", "PARKED") for r in s["robots"])

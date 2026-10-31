@@ -91,6 +91,14 @@ def readiness(simulator) -> tuple[bool, dict]:
     return ready, checks
 
 
+def _process():
+    try:
+        import psutil
+    except ImportError:  # optional: the process metrics are left out
+        return None
+    return psutil.Process()
+
+
 def collect(simulator, limiter=None) -> str:
     eng = simulator.engine
     f: list[Family] = list(http_metrics.families())
@@ -103,6 +111,19 @@ def collect(simulator, limiter=None) -> str:
     fam("up_seconds", "gauge", "Seconds since the backend started").add(
         round(time.time() - http_metrics.started, 1)
     )
+    # ----- the process (standard Prometheus names; memory trend for soak tests)
+    proc = _process()
+    if proc is not None:
+        with proc.oneshot():
+            mem, cpu = proc.memory_info(), proc.cpu_times()
+            threads = proc.num_threads()
+        f.append(Family("process_resident_memory_bytes", "gauge", "Resident memory").add(mem.rss))
+        f.append(
+            Family("process_cpu_seconds_total", "counter", "User and system CPU time").add(
+                round(cpu.user + cpu.system, 2)
+            )
+        )
+        f.append(Family("process_threads", "gauge", "Operating-system threads").add(threads))
     # ----- simulator loop
     fam("sim_running", "gauge", "1 while the simulation runs").add(int(eng.running))
     fam("sim_tick", "gauge", "Simulated time in ticks").add(eng.time)

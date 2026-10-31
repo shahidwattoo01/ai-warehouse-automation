@@ -10,6 +10,7 @@ WMS is never changed by two requests at once.
 from __future__ import annotations
 
 import datetime as dt
+import time
 from typing import Annotated, Literal
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Response
@@ -90,10 +91,20 @@ def _rows(wms, **filters) -> list[dict]:
 
 
 # ----- overview ----------------------------------------------------------------------------------
+# Every open screen polls the KPIs, and they take ~80 ms on the large layout (stock of every
+# SKU). They only change when the warehouse does, so one answer serves all callers for the same
+# tick; the second limit keeps changes made while paused (receipts, counts) visible within 1 s.
+_kpi_cache: dict = {"key": None, "at": 0.0, "value": None}
+
+
 @router.get("/kpis", dependencies=[need("wms:view")])
 async def kpis() -> dict:
     wms = _wms()
-    return {**wms.kpis(), "date": wms.inv.date().isoformat(), "tick": wms.inv.tick}
+    key, now = (id(wms), wms.inv.tick), time.monotonic()
+    if _kpi_cache["key"] != key or now - _kpi_cache["at"] > 1.0:
+        value = {**wms.kpis(), "date": wms.inv.date().isoformat(), "tick": wms.inv.tick}
+        _kpi_cache.update(key=key, at=now, value=value)
+    return _kpi_cache["value"]
 
 
 @router.get("/alerts", dependencies=[need("wms:view")])

@@ -41,14 +41,12 @@ async def list_orders() -> list[dict]:
 async def create_order(body: CreateOrderRequest) -> dict:
     """Create an order as an operator. With no items, random in-stock products are picked."""
     engine = simulator.engine
-    stock = engine.inventory.stock
     for item in body.items:
         if item.product_id not in engine.inventory:
             raise _error(422, "unknown_product", f"No product {item.product_id} in this warehouse")
-        if stock[item.product_id] < item.quantity:
-            raise _error(
-                409, "out_of_stock", f"{item.product_id} has only {stock[item.product_id]} in stock"
-            )
+        have = engine.inventory.stock_of(item.product_id)
+        if have < item.quantity:
+            raise _error(409, "out_of_stock", f"{item.product_id} has only {have} in stock")
     if body.robot_id:
         robot = engine.robots.get(body.robot_id)
         if robot is None:

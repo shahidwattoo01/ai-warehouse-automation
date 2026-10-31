@@ -236,7 +236,10 @@ def test_inventory_scan_opens_the_item(page):
     box.fill(first["gtin"])
     box.press("Enter")
     page.get_by_text(f"GTIN {first['gtin']}", exact=True).wait_for()
-    assert page.locator(f'img[alt="ean13 {first["gtin"]}"]').count() == 1
+    # The barcode is fetched separately (protected SVG) after the item opens: wait for it.
+    image = page.locator(f'img[alt="ean13 {first["gtin"]}"]')
+    image.wait_for()
+    assert image.count() == 1
 
 
 def test_anonymous_visitors_are_sent_to_the_login(browser):

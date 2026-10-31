@@ -1,0 +1,23 @@
+# Response-time and stability targets for the load tests (tests/load/loadtest.py,
+# docs/load_testing.md). A run passes when every measured value meets its target.
+
+api:
+  error_rate_max: 0.01          # share of requests answered 5xx or not at all (429 counted apart)
+  groups:
+    # Small reads the screens poll every few seconds (KPIs, alerts, status, short lists).
+    light: {p95_ms: 250, p99_ms: 600}
+    # Large answers: the full warehouse state, inventory, locations, task lists.
+    heavy: {p95_ms: 1200, p99_ms: 2500}
+
+stream:
+  connect_p95_ms: 1500          # WebSocket open + auth + first layout frame
+  frame_gap_p95_ms: 1200        # ticks arrive every 500 ms at speed 1 (2 Hz)
+  dropped_clients_max: 0        # clients the server closed during the run
+
+simulator:
+  loop_lag_p95_s: 0.25          # how late tick passes start while under load
+  tick_rate_min_share: 0.9      # ticks done / ticks scheduled during the run
+
+soak:
+  rss_growth_max_mb_per_hour: 60   # backend memory trend (linear fit) over the soak
+  min_minutes_for_trend: 10        # shorter runs report the trend but do not judge it

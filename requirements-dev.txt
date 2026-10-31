@@ -3,7 +3,8 @@
 
 # --- Tests and code quality ---
 pytest==9.1.1
-httpx==0.28.1            # FastAPI TestClient
+httpx==0.28.1            # FastAPI TestClient, load tests (tests/load)
+websockets==17.2         # load tests: live-stream clients (also pulled in by uvicorn[standard])
 ruff==0.17.0             # linter and formatter (pyproject.toml)
 pip-audit==2.10.1        # known-vulnerability scan of the installed packages
 

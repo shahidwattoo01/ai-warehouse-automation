@@ -60,6 +60,10 @@ class WmsStock:
         """Available to promise per product (what can still be ordered)."""
         return {sku: max(0, self.wms.atp(sku)) for sku in sorted(self.face)}
 
+    def stock_of(self, product_id: str) -> int:
+        """One product's available to promise (`stock` computes every product: use this for one)."""
+        return max(0, self.wms.atp(product_id))
+
     def in_stock(self, min_units: int = 3) -> list[str]:
         """Products that can take an order line (up to 3 units), in a stable order."""
         return [s for s in sorted(self.face) if self.wms.atp(s) >= min_units]

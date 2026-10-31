@@ -9,19 +9,22 @@ that goal. Fields are cached per goal and invalidated whenever the set of closed
 
 from __future__ import annotations
 
-from collections import deque
+from collections import OrderedDict, deque
 
 from simulation.warehouse.grid import Grid
 
 Cell = tuple[int, int]
 UNREACHABLE = -1
-MAX_CACHED = 2048
+# Each field holds every reachable cell (~4,000 on the large layout, ~0.4 MB); 2,048 of them could
+# reach ~750 MB as orders visit new racks (found by the soak test, docs/load_testing.md). The
+# least recently used go first; a miss costs one backwards search (~13 ms on the large layout).
+MAX_CACHED = 256
 
 
 class DistanceFields:
     def __init__(self, grid: Grid) -> None:
         self.grid = grid
-        self._fields: dict[Cell, dict[Cell, int]] = {}
+        self._fields: OrderedDict[Cell, dict[Cell, int]] = OrderedDict()
         self._closed: set[Cell] = set(grid.closed)
 
     def _fresh(self) -> None:
@@ -34,6 +37,7 @@ class DistanceFields:
         self._fresh()
         cached = self._fields.get(goal)
         if cached is not None:
+            self._fields.move_to_end(goal)
             return cached
         grid = self.grid
         dist = {goal: 0}
@@ -50,8 +54,8 @@ class DistanceFields:
                     continue  # a route may not pass through a parking bay
                 dist[prev] = dist[current] + 1
                 queue.append(prev)
-        if len(self._fields) >= MAX_CACHED:
-            self._fields.clear()
+        while len(self._fields) >= MAX_CACHED:
+            self._fields.popitem(last=False)
         self._fields[goal] = dist
         return dist
 

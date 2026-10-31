@@ -42,6 +42,9 @@ class Inventory:
                 self.face[product_id] = face
                 self.stock[product_id] = rng.randint(20, 120)
 
+    def stock_of(self, product_id: str) -> int:
+        return self.stock[product_id]
+
     def __contains__(self, product_id: str) -> bool:
         return product_id in self.face
 
