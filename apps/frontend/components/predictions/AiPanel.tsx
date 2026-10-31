@@ -90,7 +90,9 @@ function Breakdown({ demand }: { demand: Predictions["demand"] }) {
  * Phase 3 on the dashboard: the four trained models running on the live simulation, with how
  * accurate each one is on this run (the simulator knows the truth) next to its offline test score.
  */
-export function AiPanel() {
+/** compact: the dashboard's AI tab (the four headline cards, two per row); the full panel with
+ *  the per-zone / per-priority forecast and the model names is on the Analytics page. */
+export function AiPanel({ compact = false }: { compact?: boolean }) {
   const p = useSim((s) => s.predictions);
   const time = useSim((s) => s.state?.time ?? 0);
   const orders = useSim((s) => s.state?.orders);
@@ -119,11 +121,13 @@ export function AiPanel() {
 
   return (
     <section>
-      <div className="mb-2 flex items-baseline justify-between">
-        <h2 className="text-base font-semibold">AI predictions · live models</h2>
-        <span className="text-xs text-muted">Live accuracy is measured on this run against what really happens</span>
-      </div>
-      <div className="grid grid-cols-4 gap-4">
+      {!compact && (
+        <div className="mb-2 flex items-baseline justify-between">
+          <h2 className="text-base font-semibold">AI predictions · live models</h2>
+          <span className="text-xs text-muted">Live accuracy is measured on this run against what really happens</span>
+        </div>
+      )}
+      <div className={`grid gap-4 ${compact ? "grid-cols-1 2xl:grid-cols-2" : "grid-cols-4"}`}>
         <Card
           title={`Demand forecast · ${hourLabel(p.demand.hour)}–${hourLabel(p.demand.hour + 1)}`}
           foot={
@@ -219,8 +223,13 @@ export function AiPanel() {
           </ul>
         </Card>
       </div>
-      <Breakdown demand={p.demand} />
-      {p.algorithms && (
+      {!compact && <Breakdown demand={p.demand} />}
+      {compact && (
+        <p className="mt-2 text-[11px] text-muted">
+          Live accuracy is measured on this run. Forecasts per zone and priority, and the models used: Analytics.
+        </p>
+      )}
+      {!compact && p.algorithms && (
         <p className="mt-2 text-[11px] text-muted">
           Models:{" "}
           {Object.entries(p.algorithms)

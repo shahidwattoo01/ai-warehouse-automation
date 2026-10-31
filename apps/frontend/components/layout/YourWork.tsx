@@ -41,19 +41,26 @@ export function YourWork() {
   }, [seesWms]);
 
   if (!user) return null;
+  const n = (count: number, one: string, many: string) => `${count} ${count === 1 ? one : many}`;
   const robots = state?.robots ?? [];
   const faults = robots.filter((r) => r.status === "FAULT").length;
   const paused = robots.filter((r) => r.status === "PAUSED").length;
   const pending = state?.orders.filter((o) => o.status === "PENDING").length ?? 0;
   const items: Item[] = [];
   if (can("wms:count_approve") && pendingCounts)
-    items.push({ text: `${pendingCounts} count differences wait for your approval`, href: "/inventory", urgent: true });
-  if (can("robots:command") && faults) items.push({ text: `${faults} robots in fault`, href: "/fleet", urgent: true });
-  if (can("robots:command") && paused) items.push({ text: `${paused} robots paused`, href: "/fleet", urgent: false });
+    items.push({
+      text: `${n(pendingCounts, "count difference waits", "count differences wait")} for your approval`,
+      href: "/inventory",
+      urgent: true,
+    });
+  if (can("robots:command") && faults)
+    items.push({ text: `${n(faults, "robot", "robots")} in fault`, href: "/fleet", urgent: true });
+  if (can("robots:command") && paused)
+    items.push({ text: `${n(paused, "robot", "robots")} paused`, href: "/fleet", urgent: false });
   if (can("orders:assign") && pending >= 20)
-    items.push({ text: `${pending} orders waiting for a robot`, href: "/orders", urgent: true });
+    items.push({ text: `${n(pending, "order", "orders")} waiting for a robot`, href: "/orders", urgent: true });
   if (seesWms && waitingStock)
-    items.push({ text: `${waitingStock} orders waiting for stock`, href: "/inventory", urgent: false });
+    items.push({ text: `${n(waitingStock, "order", "orders")} waiting for stock`, href: "/inventory", urgent: false });
 
   return (
     <section className="mb-4 flex flex-wrap items-center gap-x-4 gap-y-2 rounded-card border border-border bg-surface px-4 py-3 text-sm">

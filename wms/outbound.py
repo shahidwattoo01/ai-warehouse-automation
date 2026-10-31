@@ -902,7 +902,19 @@ class Outbound:
         status = Counter(r.status for r in self.orders.values())
         shipped = m["orders_shipped"]
         o2s = self._order_to_ship
+        upcoming = [t for t in self.trips.values() if t.status == "SCHEDULED"]
+        nxt = min(upcoming, key=lambda t: (t.departs, t.trip_id)) if upcoming else None
         return {
+            "next_truck": None
+            if nxt is None
+            else {
+                "trip_id": nxt.trip_id,
+                "carrier": self.carriers[nxt.carrier].name,
+                "service": self.carriers[nxt.carrier].service,
+                "departs_at": self.clock(nxt.departs),
+                "minutes": round((nxt.departs - self.inv.tick) * 60 / self.tph),
+                "cartons_loaded": len(nxt.cartons),
+            },
             "release_mode": self.cfg["release_mode"],
             "orders_by_status": dict(status),
             "orders_on_hold": status.get("ON_HOLD", 0),

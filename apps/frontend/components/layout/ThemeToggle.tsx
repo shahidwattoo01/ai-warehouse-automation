@@ -22,7 +22,8 @@ export function ThemeToggle() {
       title={dark ? "Light mode" : "Dark mode"}
       className="flex items-center gap-2 rounded-control border border-border px-3 py-1.5 text-sm"
     >
-      {dark ? <Sun size={16} /> : <Moon size={16} />} {dark ? "Light" : "Dark"}
+      {dark ? <Sun size={16} /> : <Moon size={16} />}
+      <span className="hidden 2xl:inline">{dark ? "Light" : "Dark"}</span>
     </button>
   );
 }

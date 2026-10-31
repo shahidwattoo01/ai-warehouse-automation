@@ -20,6 +20,7 @@ export interface WmsKpis {
   dock_to_stock_ticks: number | null;
   open_tasks: Record<string, number>;
   on_hold_units: number;
+  outbound?: import("./outbound").OutboundKpis;
   date: string;
   tick: number;
 }

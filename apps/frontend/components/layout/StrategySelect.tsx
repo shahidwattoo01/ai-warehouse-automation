@@ -27,7 +27,7 @@ export function StrategySelect() {
       className="flex items-center gap-1.5 text-xs text-muted"
       title={current ? presets[current]?.description : undefined}
     >
-      Strategy
+      <span className="hidden 2xl:inline">Strategy</span>
       <select
         aria-label="Decision strategy"
         value={current ?? ""}
@@ -40,7 +40,7 @@ export function StrategySelect() {
             setBusy(false);
           }
         }}
-        className="max-w-[230px] rounded-control border border-border bg-surface px-2 py-1.5 text-sm text-ink"
+        className="max-w-[140px] rounded-control 2xl:max-w-[230px] border border-border bg-surface px-2 py-1.5 text-sm text-ink"
       >
         {current === null && <option value="">Custom</option>}
         {Object.entries(presets).map(([id, p]) => (

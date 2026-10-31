@@ -12,11 +12,15 @@ export function UserMenu() {
   if (!user) return null;
   return (
     <div className="flex items-center gap-2 border-l border-border pl-3">
-      <Link href="/account" title="My account" className="flex items-center gap-2 hover:text-accent">
+      <Link
+        href="/account"
+        title={`${user.full_name} · ${user.role_label} (my account)`}
+        className="flex items-center gap-2 hover:text-accent"
+      >
         <UserRound size={16} className="text-muted" />
-        <div className="leading-tight">
-          <div className="text-sm font-medium">{user.full_name}</div>
-          <div className="text-[11px] text-muted">{user.role_label}</div>
+        <div className="hidden max-w-[150px] leading-tight lg:block">
+          <div className="truncate text-sm font-medium">{user.full_name}</div>
+          <div className="truncate text-[11px] text-muted">{user.role_label}</div>
         </div>
       </Link>
       <button

@@ -159,6 +159,14 @@ export interface Wave {
 }
 
 export interface OutboundKpis {
+  next_truck: {
+    trip_id: string;
+    carrier: string;
+    service: string;
+    departs_at: string;
+    minutes: number;
+    cartons_loaded: number;
+  } | null;
   release_mode: "continuous" | "wave";
   orders_by_status: Partial<Record<OrderStatus, number>>;
   orders_on_hold: number;

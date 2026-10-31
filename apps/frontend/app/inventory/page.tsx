@@ -75,7 +75,7 @@ export default function InventoryPage() {
 
   if (mode === "simple") return <SimpleInventory />;
   return (
-    <Screen title="Inventory · warehouse management">
+    <Screen title="Inventory">
       <div className="mb-4 flex flex-wrap items-center gap-3">
         <nav className="flex flex-wrap gap-1">
           {TABS.map(([id, label]) => (

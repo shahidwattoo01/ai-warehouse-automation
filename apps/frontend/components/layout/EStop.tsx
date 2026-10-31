@@ -46,7 +46,7 @@ export function EStopButton() {
       disabled={busy || engaged}
       title="Emergency stop: every robot stops where it is"
       aria-label="Emergency stop"
-      className="flex items-center gap-1.5 rounded-control border-2 border-red-700 bg-red-600 px-3 py-1.5 text-sm font-bold uppercase tracking-wide text-white shadow-sm hover:bg-red-700 disabled:opacity-60"
+      className="flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-control border-2 border-red-700 bg-red-600 px-3 py-1.5 text-sm font-bold uppercase tracking-wide text-white shadow-sm hover:bg-red-700 disabled:opacity-60"
     >
       <OctagonX size={16} /> E-stop
     </button>

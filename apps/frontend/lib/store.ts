@@ -54,8 +54,10 @@ export const useSim = create<SimStore>((set, get) => ({
         set({ connected: true });
       };
       socket.onclose = async (e) => {
+        // A socket replaced or shut down on purpose (page change, React re-mount in development)
+        // must not mark the live connection as lost: only the current socket reports its state.
+        if (closed || socket !== ws) return;
         set({ connected: false });
-        if (closed) return;
         if (e.code === 4401 && !(await refreshSession())) return; // logged out: stop retrying
         retry = setTimeout(open, delay); // App Flow §10: auto-reconnect
         delay = Math.min(delay * 2, 10_000);

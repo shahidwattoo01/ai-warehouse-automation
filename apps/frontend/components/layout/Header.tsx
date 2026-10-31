@@ -24,9 +24,13 @@ export function Header({ title }: { title: string }) {
     }
   };
   return (
-    <header className="flex h-14 items-center justify-between border-b border-border px-6">
-      <h1 className="text-xl font-semibold">{title}</h1>
-      <div className="flex items-center gap-2">
+    // One line at every width: the title shortens (full text on hover), the controls never wrap
+    // and drop their text labels on narrower screens (icons and tooltips stay).
+    <header className="flex h-14 items-center justify-between gap-4 border-b border-border px-6">
+      <h1 title={title} className="min-w-0 truncate whitespace-nowrap text-lg font-semibold 2xl:text-xl">
+        {title}
+      </h1>
+      <div className="flex shrink-0 items-center gap-2 whitespace-nowrap">
         <EStopButton />
         <Can
           permission="simulation:control"
@@ -40,9 +44,11 @@ export function Header({ title }: { title: string }) {
             onClick={() => void toggle()}
             disabled={pending}
             aria-pressed={running}
+            title={running ? "Pause the simulation" : "Start the simulation"}
             className="flex items-center gap-2 rounded-control border border-border px-3 py-1.5 text-sm disabled:opacity-60"
           >
-            {running ? <Pause size={16} /> : <Play size={16} />} {running ? "Pause" : "Start"}
+            {running ? <Pause size={16} /> : <Play size={16} />}
+            <span className="hidden xl:inline">{running ? "Pause" : "Start"}</span>
           </button>
           <select
             aria-label="Simulation speed"
@@ -71,9 +77,11 @@ export function Header({ title }: { title: string }) {
         <Can permission="copilot:use">
           <a
             href="/copilot"
+            title="Ask Copilot (press /)"
             className="rounded-control border border-accent bg-accent/15 px-3 py-1.5 text-sm font-semibold"
           >
-            Ask Copilot <kbd className="ml-1 font-mono text-muted">/</kbd>
+            <span className="hidden 2xl:inline">Ask </span>Copilot
+            <kbd className="ml-1 hidden font-mono text-muted 2xl:inline">/</kbd>
           </a>
         </Can>
         <UserMenu />

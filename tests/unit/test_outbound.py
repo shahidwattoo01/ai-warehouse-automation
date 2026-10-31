@@ -82,6 +82,7 @@ def test_orders_are_packed_loaded_and_leave_on_their_truck(day):
         assert {TxnType.PICK, TxnType.PACK, TxnType.SHIP} <= types
     k = wms.kpis()["outbound"]
     assert k["orders_shipped"] == len(shipped) and k["on_time_ship_rate"] > 0.9
+    assert k["next_truck"]["minutes"] > 0 and k["next_truck"]["carrier"]
     assert out.confirmations and out.confirmations[0]["tracking"]
 
 

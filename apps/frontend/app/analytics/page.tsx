@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Screen } from "@/components/layout/Screen";
+import { AiPanel } from "@/components/predictions/AiPanel";
 import { api } from "@/lib/api";
 import type { ExperimentResults } from "@/lib/types";
 
@@ -60,7 +61,11 @@ export default function AnalyticsPage() {
   }, []);
 
   return (
-    <Screen title="Analytics · Optimisation experiments">
+    <Screen title="Analytics">
+      <div className="mb-6">
+        <AiPanel />
+      </div>
+      <h2 className="mb-2 text-base font-semibold">Optimisation experiments</h2>
       {error && (
         <div className="rounded-card border border-border bg-surface p-4 text-sm text-muted">
           {error}. Run <code className="font-mono">python scripts/run_experiments.py</code> to create the results.

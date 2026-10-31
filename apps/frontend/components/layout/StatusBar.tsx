@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useSim } from "@/lib/store";
 import { isAbnormal, isActive, needsAttention } from "@/lib/status";
 
@@ -28,12 +29,13 @@ export function StatusBar() {
       <span>
         Orders <b className="tabular text-ink">{pending}</b> pending
       </span>
-      <span
-        className={alerts ? "text-danger" : ""}
-        title="Faulted, paused, below 20% battery, or flagged abnormal by the anomaly model"
+      <Link
+        href="/dashboard?panel=alerts"
+        className={`hover:underline ${alerts ? "text-danger" : ""}`}
+        title="Faulted, paused, below 20% battery, or flagged abnormal by the anomaly model. Click for the list."
       >
         Alerts <b className="tabular">{alerts}</b>
-      </span>
+      </Link>
       <span className="ml-auto font-mono">
         {clock && (
           <span className="mr-4 text-ink" title="Simulated time">

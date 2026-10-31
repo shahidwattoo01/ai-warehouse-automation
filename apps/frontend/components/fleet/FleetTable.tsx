@@ -47,7 +47,8 @@ function robotNumber(id: string) {
  * speed and battery, updated on every simulator tick. Clicking a row selects the robot, which
  * flies the 3D camera to it. `detailed` (Fleet page) adds position, load and pause/resume.
  */
-export function FleetTable({ detailed = false }: { detailed?: boolean }) {
+export function FleetTable({ detailed = false, compact = false }: { detailed?: boolean; compact?: boolean }) {
+  // compact (dashboard side panel): no speed column, so the AI health column stays visible
   const robots = useSim((s) => s.state?.robots ?? NO_ROBOTS);
   const tickInterval = useSim((s) => s.tickInterval);
   const selected = useSim((s) => s.selectedRobot);
@@ -111,7 +112,7 @@ export function FleetTable({ detailed = false }: { detailed?: boolean }) {
               {detailed && <th className="py-1.5 pr-2 font-medium">Position</th>}
               <th className="py-1.5 pr-2 font-medium">Order</th>
               <th className="py-1.5 pr-2 font-medium">Destination</th>
-              <th className="py-1.5 pr-2 text-right font-medium">Speed m/s</th>
+              {!compact && <th className="py-1.5 pr-2 text-right font-medium">Speed m/s</th>}
               <th className="py-1.5 pr-2 font-medium">Battery</th>
               <th className="py-1.5 pr-2 font-medium" title="Anomaly model: last 20 ticks of telemetry">
                 Health (AI)
@@ -165,13 +166,18 @@ export function FleetTable({ detailed = false }: { detailed?: boolean }) {
                       <span className="text-muted">—</span>
                     )}
                   </td>
-                  <td className="py-1.5 pr-2">
+                  <td
+                    className={`py-1.5 pr-2 ${compact ? "max-w-[9rem] truncate" : ""}`}
+                    title={compact ? (r.destination ?? undefined) : undefined}
+                  >
                     {r.destination ?? "—"}
                     {(r.items_left ?? 0) > 1 && <span className="text-muted"> +{(r.items_left ?? 1) - 1}</span>}
                   </td>
-                  <td className="tabular py-1.5 pr-2 text-right">
-                    {speed > 0.05 ? speed.toFixed(1) : <span className="text-muted">0</span>}
-                  </td>
+                  {!compact && (
+                    <td className="tabular py-1.5 pr-2 text-right">
+                      {speed > 0.05 ? speed.toFixed(1) : <span className="text-muted">0</span>}
+                    </td>
+                  )}
                   <td className="py-1.5 pr-2">
                     <span className="inline-flex items-center gap-1.5">
                       <span className="h-1.5 w-8 overflow-hidden rounded-full bg-border">
