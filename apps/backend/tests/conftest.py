@@ -10,6 +10,7 @@ import os
 os.environ["PERSIST_RUNS"] = "false"
 os.environ["AUTH_STORE"] = "memory"  # users of the tests live in memory, never in the real table
 os.environ["JWT_SECRET"] = "tests-only-secret-" + "x" * 40
+os.environ["RATE_LIMIT_ENABLED"] = "false"  # tests call the API in fast loops; test_ratelimit.py
 
 import pytest  # noqa: E402
 

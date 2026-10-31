@@ -17,6 +17,8 @@ robots. The protections below fit that model; the
 | Network exposure | Docker publishes the API (8000), UI (3000) and database (5432) on `127.0.0.1` only; nothing is reachable from other machines | `docker-compose.yml` |
 | Cross-site requests | State-changing requests and the live stream are refused unless they come from an allowed origin (a malicious website cannot pause robots or reset a run through the operator's browser) | `apps/backend/app/core/security.py` |
 | CORS | Only the configured UI origins; credentials (the refresh cookie) only for those origins | `apps/backend/app/main.py` |
+| Rate limiting | Per client address, answered with 429 and `Retry-After`: login and first-time setup 10 per minute (password guessing across accounts; the per-account lockout protects one account), token refresh 30, changes 120, all API requests 600 per minute; `/health` and the live stream exempt. `RATE_LIMIT_SCALE` for a class behind one address; `TRUST_PROXY_HEADERS=true` only behind a reverse proxy | `apps/backend/app/core/ratelimit.py` |
+| Security headers | API: `nosniff`, `X-Frame-Options: DENY`, `Content-Security-Policy: default-src 'none'`, no referrer, token answers `Cache-Control: no-store`, HSTS when `COOKIE_SECURE=true`. UI: a Content Security Policy that allows only the page itself, the API and the Google fonts (no framing, `object-src` only for the label PDFs), `nosniff`, a referrer policy, camera only for the page itself (barcode scanning), no `X-Powered-By` | `apps/backend/app/core/ratelimit.py`, `apps/frontend/next.config.mjs` |
 | Secrets | Database password, `JWT_SECRET` and API keys only in `.env` (git-ignored); `.env.example` holds placeholders; development users' passwords only in the git-ignored `dev_users.local.json` | `.gitignore`, `.env.example` |
 | Input validation | Typed request models (Pydantic) with limits; camera frames limited to 5 MB and decoded safely, clear 4xx errors | `apps/backend/app/schemas/`, `apps/backend/app/api/v1/vision.py` |
 | SQL injection | Parameterised queries only (SQLAlchemy `text()` with bound parameters) | `apps/backend/app/services/run_store.py` |
@@ -25,8 +27,9 @@ robots. The protections below fit that model; the
 | Privacy / telemetry | Ultralytics analytics off (`YOLO_OFFLINE`, `sync=False`), Next.js telemetry off in CI; no personal data in any dataset | `ai/computer_vision/live.py`, CI |
 | Dependencies | Exact versions pinned; known-vulnerability scan (`pip-audit`, `npm audit`) on every CI run | `requirements*.txt`, `.github/workflows/ci.yml` |
 
-**Still missing for a networked deployment:** TLS (set `COOKIE_SECURE=true` behind HTTPS),
-single sign-on with the company identity provider, and rate limiting per address (backlog PR-02).
+**Still missing for a networked deployment:** TLS (set `COOKIE_SECURE=true` behind HTTPS) and
+single sign-on with the company identity provider (backlog PR-02). The rate limits count in
+memory per backend process; several processes need a shared store (Redis, backlog PR-17).
 
 ## Before production
 
@@ -38,7 +41,8 @@ needs, at minimum:
 2. A long random **`JWT_SECRET`** per environment, rotated if it may have leaked (all sessions end).
 3. **Human approval and audit trail** for agent actions (Phase 8: the `agent_actions` table), as
    the copilot already does for its commands.
-4. **Rate limiting** and request size limits at the reverse proxy.
+4. **Request size limits and a second layer of rate limiting** at the reverse proxy (the API's own
+   limits are per process), with `TRUST_PROXY_HEADERS=true` so the API sees client addresses.
 5. **Secrets manager** instead of `.env` files; rotate the database password; least-privilege
    database user for the API.
 6. **Model supply chain:** checksums for model files, and a review step before a new model

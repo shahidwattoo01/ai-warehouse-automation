@@ -16,6 +16,12 @@ from fastapi.middleware.cors import CORSMiddleware  # noqa: E402
 
 from app.api.v1 import api_router  # noqa: E402
 from app.core.config import get_settings  # noqa: E402
+from app.core.ratelimit import (  # noqa: E402
+    RateLimiter,
+    RateLimitMiddleware,
+    SecurityHeadersMiddleware,
+    default_rules,
+)
 from app.core.security import OriginCheckMiddleware  # noqa: E402
 from app.services.simulator import simulator  # noqa: E402
 
@@ -39,6 +45,18 @@ app.add_middleware(
     allow_headers=["Content-Type", "Authorization"],
 )
 app.add_middleware(OriginCheckMiddleware, allowed_origins=settings.cors_list)
+# Added last = runs first: over-limit requests are refused before any other work.
+limiter = RateLimiter(default_rules(settings.api_prefix, settings.rate_limit_scale))
+app.add_middleware(
+    RateLimitMiddleware,
+    limiter=limiter,
+    enabled=settings.rate_limit_enabled,
+    trust_proxy=settings.trust_proxy_headers,
+)
+# Outermost: every answer carries the security headers, refusals included.
+app.add_middleware(
+    SecurityHeadersMiddleware, api_prefix=settings.api_prefix, https=settings.cookie_secure
+)
 app.include_router(api_router, prefix=settings.api_prefix)
 
 

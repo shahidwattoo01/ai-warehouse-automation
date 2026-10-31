@@ -25,7 +25,8 @@ items:
     phase: 12
     priority: high
     effort: S
-    status: planned
+    status: partial
+    evidence: "Rate limits per client (login 10/min, changes 120/min, all 600/min; 429 + Retry-After), security headers on API and UI (CSP, nosniff, no framing, no-store on tokens, HSTS behind HTTPS), secrets from .env only, 15 min access / 7 day refresh sessions; HTTPS itself still to set up at deployment"
 
   # ----- Fleet and execution --------------------------------------------------------------
   - id: PR-03

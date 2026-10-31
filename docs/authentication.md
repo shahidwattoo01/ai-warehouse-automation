@@ -56,6 +56,10 @@ Token about to expire ─► POST /auth/refresh (cookie) ─► new access token
 * Each refresh **replaces** the refresh token; using an old one again ends the whole session
   (it was probably copied).
 * **5 wrong passwords** lock the account for 15 minutes (an admin can unlock it).
+* **Rate limit per address:** at most 10 login attempts per minute from one client address (any
+  usernames), then `429 Too Many Requests` with `Retry-After`. The lockout stops guessing one
+  account's password; the rate limit stops trying one password on many accounts
+  (`app/core/ratelimit.py`, [SECURITY.md](../SECURITY.md)).
 * Disabling a user or changing their role **takes effect at once** (the server re-reads the user
   on every request and ends their sessions).
 * Every login attempt is recorded (`login_events`), visible under Users & roles.

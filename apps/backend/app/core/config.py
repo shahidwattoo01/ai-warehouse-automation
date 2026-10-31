@@ -41,6 +41,13 @@ class Settings(BaseSettings):
     cookie_secure: bool = False  # true behind HTTPS (backlog PR-02): cookies only over TLS
     auth_store: str = "sql"  # sql (users table) | memory (tests)
 
+    # Rate limits per client address (app/core/ratelimit.py). RATE_LIMIT_SCALE multiplies every
+    # limit (e.g. 3 for a training room behind one NAT address). Behind a reverse proxy set
+    # TRUST_PROXY_HEADERS=true so the client address comes from X-Forwarded-For.
+    rate_limit_enabled: bool = True
+    rate_limit_scale: float = 1.0
+    trust_proxy_headers: bool = False
+
     llm_provider: str = ""
     llm_model: str = ""
     llm_api_key: str = ""
