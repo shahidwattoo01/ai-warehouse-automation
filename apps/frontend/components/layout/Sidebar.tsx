@@ -98,7 +98,8 @@ export function Sidebar() {
           {open === false ? <PanelLeftOpen size={18} /> : <PanelLeftClose size={18} />}
         </button>
       </div>
-      <nav className="flex flex-col gap-1 px-3">
+      {/* Scrolls on its own when the menu is taller than the window; the header stays. */}
+      <nav className="flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto px-3 pb-16">
         {nav.map(({ href, label, icon: Icon }) => {
           const active = path?.startsWith(href);
           return (
