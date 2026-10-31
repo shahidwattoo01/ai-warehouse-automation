@@ -60,6 +60,10 @@ class Settings(BaseSettings):
     smtp_from: str = "warehouse-ai@localhost"
     alert_webhook_url: str = ""  # Slack / Teams incoming webhook or any URL taking JSON
 
+    # VDA 5050 robot interface (integration/vda5050): MQTT broker, or empty for the in-process bus
+    vda5050_enabled: bool = True
+    mqtt_url: str = ""  # mqtt://user:password@host:1883 (mqtts:// for TLS)
+
     llm_provider: str = ""
     llm_model: str = ""
     llm_api_key: str = ""

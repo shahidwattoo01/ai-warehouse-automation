@@ -116,7 +116,8 @@ items:
     phase: 10
     priority: high
     effort: M
-    status: planned
+    status: done
+    evidence: "integration/vda5050: every simulated robot a VDA 5050 2.0 vehicle (state, connection, factsheet; order and instantActions acting on the simulator), the platform master control (orders from the dispatcher, node-by-node progress); in-process bus or MQTT (paho, Mosquitto in docker-compose); Integration page. MQTT path tested with a stand-in client, not yet against a live broker"
   - id: PR-13
     area: Integration
     gap: No business system connection

@@ -18,6 +18,7 @@
 | [phase6_nlp.md](phase6_nlp.md) | Phase 6: operator commands — dataset, baselines, DistilBERT, the Copilot and its approval step |
 | [phase7_rag.md](phase7_rag.md) | Phase 7: the knowledge assistant — chunking, hybrid retrieval and reranking, not-covered, the Knowledge page |
 | [wms_inventory.md](wms_inventory.md) | Inventory management (WMS): GS1 barcodes, lots and expiry, receiving and putaway, allocation, replenishment, purchasing, cycle counts, the ledger |
+| [vda5050.md](vda5050.md) | VDA 5050 robot interface: the simulated robots as vehicles, the platform as master control, MQTT or in-process |
 | [alerts.md](alerts.md) | Alert centre: rules, incidents, acknowledge / escalate / resolve, email and webhook notifications |
 | [safety.md](safety.md) | Fleet safety: emergency and zone stops, release and reset, slow zones near people, the safety log, and what stays with certified robot safety (ISO 3691-4, ANSI/RIA R15.08) |
 | [wms_outbound.md](wms_outbound.md) | Outbound: customer orders, holds, cancellations, backorders, waves, packing with weight check, GS1 shipping labels, carrier trucks and cut-offs |

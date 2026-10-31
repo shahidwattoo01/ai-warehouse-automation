@@ -19,6 +19,7 @@ from app.services.alerts import centre as alert_centre
 from app.services.copilot import copilot
 from app.services.predictor import Predictor
 from app.services.run_store import RunStore
+from app.services.vda5050 import vda
 from simulation.environment.engine import SimulationEngine
 
 MAX_QUEUED_FRAMES = 5  # a client this far behind skips frames instead of buffering without limit
@@ -30,6 +31,7 @@ class SimulatorService:
         self.settings = get_settings()
         self.tick_hz = self.settings.sim_tick_hz
         self.engine = self._new_engine()
+        vda.attach(self.engine)  # the robots as VDA 5050 vehicles, the platform as master control
         self.predictor = Predictor()  # Phase 3 models, scored live against the simulator
         self.predictor.attach(self.engine)
         copilot.attach(self.engine)  # Phase 6: operator commands in plain language
@@ -56,6 +58,7 @@ class SimulatorService:
         """Start a fresh run: a new engine with the same layout and seed (stopped, speed 1x)."""
         old, self.engine = self.engine, self._new_engine()
         alert_centre.reset()  # incidents belong to a run
+        vda.attach(self.engine)
         self.predictor.attach(self.engine)
         copilot.attach(self.engine)
         self.optimizer = Optimizer(self.engine, self.predictor, self.strategies)  # same rules
@@ -95,6 +98,7 @@ class SimulatorService:
                 events = engine.tick()
                 self.predictor.after_tick()
                 self.optimizer.after_tick()
+                vda.after_tick(events)
                 if engine.time % EVERY_TICKS == 0:  # alert rules every 3 simulated minutes
                     alert_centre.evaluate(engine, self.predictor.snapshot())
                 if self._subscribers:  # build the frame only if someone is watching

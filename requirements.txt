@@ -45,6 +45,7 @@ anthropic==2.3.0             # optional: Claude-written answers (LLM_PROVIDER=an
 pyjwt==2.15.1                # JWT access tokens (HS256)
 argon2-cffi==25.1.0          # Argon2id password hashing
 argon2-cffi-bindings==26.1.0
+paho-mqtt==2.1.0             # VDA 5050 robot interface over MQTT (EPL-2.0 / EDL-1.0)
 
 # --- Warehouse management (wms/) ---
 reportlab==5.0.1             # GS1 / Code 128 / EAN-13 labels (PDF) and screen barcodes (SVG)
