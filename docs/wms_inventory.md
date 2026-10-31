@@ -74,8 +74,10 @@ every simulated hour ─► demand update (per SKU), purchasing, cycle counts, e
   **inventory record accuracy** are measured rather than assumed.
 * **Holds and quality:** hold or release an item or one lot (e.g. a supplier recall); damaged
   units go to quarantine; expired lots are blocked and scrapped with reason codes.
-* **Returns:** a share of shipped lines come back (RMA), are received on QC hold, inspected,
-  restocked or scrapped.
+* **Returns:** a share of shipped lines come back (RMA), are received on QC hold in RET-01 and
+  inspected: graded *new* or *opened* (back to the pick face) or *damaged* or *defective*
+  (scrapped, `RETURN_SCRAP`), with the inspector, time and a note. Associates grade by what they
+  find; with return inspection switched to manual, people grade them on Inventory → Returns.
 * **Associates** (8) do receiving, putaway, replenishment, counts, quarantine and returns by
   priority (urgent replenishment first), with walking and handling time. Each task type can be
   switched to "by operators" in the Work queue, so the work waits for someone with a scanner.
@@ -113,7 +115,6 @@ recorded run (migration 004). API under `/api/v1/wms`: `kpis`, `alerts`, `items`
 
 ## 7. Not yet (in the professional backlog)
 
-* An inspection screen for returns: returns are inspected automatically today (PR-11).
   (Packing, labels, carriers and cut-offs are done: [wms_outbound.md](wms_outbound.md). Logins
   and roles are done: [authentication.md](authentication.md).)
 * Scan events from simulated handhelds in the 3D view; associates are not drawn walking their

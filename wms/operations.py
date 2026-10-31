@@ -94,6 +94,15 @@ class Count:
         return asdict(self)
 
 
+# Inspection grades of a customer return: (back to stock?, description).
+RETURN_CONDITIONS = {
+    "NEW": (True, "unopened, as new"),
+    "OPENED": (True, "opened, complete and undamaged"),
+    "DAMAGED": (False, "damaged (packaging or product)"),
+    "DEFECTIVE": (False, "does not work"),
+}
+
+
 @dataclass
 class Return:
     rma_id: str
@@ -104,6 +113,12 @@ class Return:
     reason: str
     status: str = "EXPECTED"  # EXPECTED | RECEIVED | RESTOCKED | SCRAPPED
     lot: str | None = None
+    customer_id: str | None = None
+    received_at: int | None = None
+    condition: str | None = None  # RETURN_CONDITIONS, set by the inspection
+    inspected_by: str | None = None
+    inspected_at: int | None = None
+    note: str | None = None
 
     def to_dict(self) -> dict:
         return asdict(self)

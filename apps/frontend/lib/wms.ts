@@ -190,6 +190,31 @@ export interface WmsScanResult {
   putaway_suggestion?: [string, number][];
 }
 
+export interface WmsReturn {
+  rma_id: string;
+  order_id: string;
+  sku: string;
+  item: string;
+  qty: number;
+  reason: string;
+  status: "EXPECTED" | "RECEIVED" | "RESTOCKED" | "SCRAPPED";
+  lot: string | null;
+  customer: string | null;
+  due_at: string | null;
+  received_at_time: string | null;
+  condition: string | null;
+  inspected_by: string | null;
+  inspected_at_time: string | null;
+  note: string | null;
+}
+
+export interface WmsReturns {
+  returns: WmsReturn[];
+  by_status: Record<string, number>;
+  conditions: Record<string, { restock: boolean; label: string }>;
+  auto_inspection: boolean;
+}
+
 type Params = Record<string, string | number | boolean | null | undefined>;
 
 const post = (body: unknown): RequestInit => ({ method: "POST", body: JSON.stringify(body) });
@@ -243,6 +268,9 @@ export const wms = {
       method: "PUT",
       body: JSON.stringify({ auto_tasks }),
     }),
+  returns: (status?: string) => request<WmsReturns>(`/wms/returns${query({ status })}`),
+  inspectReturn: (rma: string, condition: string, note?: string) =>
+    request<WmsReturn>(`/wms/returns/${encodeURIComponent(rma)}/inspect`, post({ condition, note })),
   barcodeUrl: (kind: "ean13" | "code128" | "gs1-128", value: string) =>
     `${API_URL}/wms/barcode.svg${query({ kind, value })}`,
   labelUrl: (path: string) => `${API_URL}/wms/labels/${path}`,

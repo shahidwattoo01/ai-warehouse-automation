@@ -148,6 +148,11 @@ const TONE: Record<string, string> = {
   DAMAGED: "bg-danger/15 text-danger",
   EXPIRED: "bg-danger/15 text-danger",
   A: "bg-accent/20 text-accent",
+  // returns
+  EXPECTED: "bg-accent/10 text-accent",
+  RECEIVED: "bg-warning/15 text-warning",
+  RESTOCKED: "bg-success/15 text-success",
+  SCRAPPED: "bg-border text-muted",
   // outbound
   WAITING_STOCK: "bg-warning/15 text-warning",
   READY: "bg-accent/10 text-accent",

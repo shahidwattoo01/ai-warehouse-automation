@@ -168,3 +168,46 @@ def test_simple_model_is_unchanged_by_default():
     engine = SimulationEngine(seed=5, overrides={"layout": "default"})
     assert not hasattr(engine.inventory, "wms") and engine.inventory.releasable("x")
     random.Random(0)  # (the golden master test checks the full run)
+
+
+# ----- returns inspection -----------------------------------------------------------------------
+def _received_return(reason="changed mind"):
+    from wms.operations import Return
+
+    e = SimulationEngine(seed=5, overrides={"layout": "default", "inventory_model": "wms"})
+    wms = e.inventory.wms
+    wms.cfg["auto_tasks"]["RETURN"] = False  # inspected by a person in the app
+    sku = next(iter(wms.inv.items))
+    rma = Return("RMA-T1", "000001", sku, 1, 0, reason)
+    wms.returns[rma.rma_id] = rma
+    wms._returns_arriving()
+    return wms, rma
+
+
+def test_inspecting_a_return_as_new_restocks_it():
+    wms, rma = _received_return()
+    home = wms.inv.items[rma.sku].home
+    before = wms.inv.qty(rma.sku, location=home)
+    assert rma.status == "RECEIVED" and rma.received_at is not None
+    wms.inspect_return(rma.rma_id, "OPENED", "box opened, all parts there", "sara")
+    assert rma.status == "RESTOCKED" and rma.condition == "OPENED" and rma.inspected_by == "sara"
+    assert wms.inv.qty(rma.sku, location=home) == before + 1
+    with pytest.raises(InventoryError):
+        wms.inspect_return(rma.rma_id, "NEW", None, "sara")  # already done
+
+
+def test_inspecting_a_damaged_return_scraps_it_with_a_reason():
+    wms, rma = _received_return()
+    wms.inspect_return(rma.rma_id, "DEFECTIVE", "does not switch on", "sara")
+    assert rma.status == "SCRAPPED"
+    scrap = [t for t in wms.inv.ledger if t.ref == rma.rma_id and t.type == TxnType.ADJUST]
+    assert scrap and scrap[-1].reason == "RETURN_SCRAP" and scrap[-1].user == "sara"
+    with pytest.raises(InventoryError):
+        wms.inspect_return("RMA-NOPE", "NEW", None, "sara")
+
+
+def test_associates_grade_returns_by_what_they_find():
+    wms, rma = _received_return("damaged in transit")
+    task = next(t for t in wms.tasks.values() if t.data.get("rma") == rma.rma_id)
+    wms._do_return(task, "AS01")
+    assert rma.condition == "DAMAGED" and rma.status == "SCRAPPED" and rma.inspected_by == "AS01"

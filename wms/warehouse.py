@@ -27,7 +27,15 @@ from collections import Counter, defaultdict, deque
 from wms.inventory import AVAILABLE, Inventory, InventoryError
 from wms.master import build_items, build_locations, suppliers
 from wms.model import LocationType, StockKey, StockStatus, TxnType
-from wms.operations import TASK_CREW, Count, POLine, PurchaseOrder, Return, Task
+from wms.operations import (
+    RETURN_CONDITIONS,
+    TASK_CREW,
+    Count,
+    POLine,
+    PurchaseOrder,
+    Return,
+    Task,
+)
 from wms.outbound import Outbound
 
 DEFAULTS = {
@@ -783,6 +791,8 @@ class Warehouse:
             if units and self.rng.random() < self.cfg["return_rate"]:
                 arrives = self.inv.tick + self.rng.randint(4, 24) * self.tph
                 rma = Return(self._id("RMA"), order_id, sku, 1, arrives, self.rng.choice(reasons))
+                rec = self.out.orders.get(order_id)
+                rma.customer_id = rec.customer_id if rec else None
                 self.returns[rma.rma_id] = rma
 
     def _returns_arriving(self) -> None:
@@ -799,12 +809,40 @@ class Warehouse:
                     ref=rma.rma_id,
                     status=StockStatus.QC_HOLD,
                 )
-                rma.status = "RECEIVED"
+                rma.status, rma.received_at = "RECEIVED", self.inv.tick
                 self._task("RETURN", rma=rma.rma_id)
 
-    def _do_return(self, task: Task, user: str, resaleable: bool | None = None) -> str:
+    def inspect_return(self, rma_id: str, condition: str, note: str | None, user: str) -> Return:
+        """A person inspects a received return in the app: grade it, restock or scrap it."""
+        rma = self.returns.get(rma_id)
+        if rma is None:
+            raise InventoryError(f"unknown return {rma_id}")
+        if condition not in RETURN_CONDITIONS:
+            raise InventoryError(f"unknown condition {condition}")
+        if rma.status != "RECEIVED":
+            raise InventoryError(f"{rma_id} is {rma.status.lower()}, not waiting for inspection")
+        task = next(
+            (t for t in self.tasks.values() if t.type == "RETURN" and t.data.get("rma") == rma_id),
+            None,
+        )
+        if task and task.status == "IN_PROGRESS":
+            raise InventoryError(f"{task.assignee} is inspecting {rma_id} now")
+        if task is None:
+            task = self._task("RETURN", rma=rma_id)
+        task.status, task.assignee, task.done_at = "DONE", user, self.inv.tick
+        task.result = self._do_return(task, user, condition, note)
+        return rma
+
+    def _do_return(
+        self, task: Task, user: str, condition: str | None = None, note: str | None = None
+    ) -> str:
         rma = self.returns[task.data["rma"]]
-        ok = (rma.reason != "damaged in transit") if resaleable is None else resaleable
+        # Associates grade by what they find: a parcel damaged in transit is damaged; the rest
+        # comes back as new (the simulation has no hidden condition beyond the return reason).
+        condition = condition or ("DAMAGED" if rma.reason == "damaged in transit" else "NEW")
+        ok = RETURN_CONDITIONS[condition][0]
+        rma.condition, rma.inspected_by, rma.inspected_at = condition, user, self.inv.tick
+        rma.note = note
         if ok:
             self.inv.set_status(
                 rma.sku,

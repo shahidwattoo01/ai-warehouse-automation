@@ -615,11 +615,54 @@ async def update_settings(body: SettingsIn) -> dict:
     return _settings(wms)
 
 
+def _return_row(wms, r) -> dict:
+    customer = wms.out.customers.get(r.customer_id) if r.customer_id else None
+    return {
+        **r.to_dict(),
+        "item": wms.inv.items[r.sku].name,
+        "customer": customer.name if customer else None,
+        "due_at": wms.out.clock(r.due),
+        "received_at_time": wms.out.clock(r.received_at),
+        "inspected_at_time": wms.out.clock(r.inspected_at),
+    }
+
+
 @router.get("/returns", dependencies=[need("wms:view")])
-async def returns() -> list[dict]:
-    return [
-        r.to_dict() for r in sorted(_wms().returns.values(), key=lambda r: r.rma_id, reverse=True)
-    ][:200]
+async def returns(status: str | None = None) -> dict:
+    """Customer returns, newest first; status RECEIVED = waiting for inspection."""
+    from wms.operations import RETURN_CONDITIONS
+
+    wms = _wms()
+    rows = [r for r in wms.returns.values() if status in (None, r.status)]
+    rows.sort(key=lambda r: r.rma_id, reverse=True)
+    counts: dict[str, int] = {}
+    for r in wms.returns.values():
+        counts[r.status] = counts.get(r.status, 0) + 1
+    return {
+        "returns": [_return_row(wms, r) for r in rows[:300]],
+        "by_status": counts,
+        "conditions": {k: {"restock": v[0], "label": v[1]} for k, v in RETURN_CONDITIONS.items()},
+        "auto_inspection": wms.cfg["auto_tasks"].get("RETURN", True),
+    }
+
+
+class InspectIn(BaseModel):
+    condition: Literal["NEW", "OPENED", "DAMAGED", "DEFECTIVE"]
+    note: str | None = Field(None, max_length=200)
+
+
+@router.post("/returns/{rma_id}/inspect")
+async def inspect_return(
+    rma_id: str, body: InspectIn, who: Annotated[Principal, Depends(require("wms:receive"))]
+) -> dict:
+    """Grade a received return: as new or opened goes back to its pick face, damaged or
+    defective is scrapped (RETURN_RESTOCK / RETURN_SCRAP in the ledger)."""
+    wms = _wms()
+    try:
+        rma = wms.inspect_return(rma_id, body.condition, body.note, who.username)
+    except InventoryError as err:
+        raise _bad(err) from err
+    return _return_row(wms, rma)
 
 
 # ----- outbound: customer orders, packing, loading, departures ---------------------------------

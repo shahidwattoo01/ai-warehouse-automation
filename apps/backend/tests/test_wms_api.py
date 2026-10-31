@@ -220,3 +220,21 @@ def test_outbound_settings_and_lists(client, wms):
     assert len(client.get(f"{API}/outbound/customers").json()) == 60
     assert client.get(f"{API}/outbound/carriers").json()[0]["departures"]
     assert "outbound" in client.get(f"{API}/kpis").json()
+
+
+def test_returns_list_and_inspection(client, wms):
+    from wms.operations import Return
+
+    wms.cfg["auto_tasks"]["RETURN"] = False
+    sku = next(iter(wms.inv.items))
+    wms.returns["RMA-API1"] = Return("RMA-API1", "000001", sku, 1, 0, "wrong size")
+    wms._returns_arriving()
+    page = client.get(f"{API}/returns", params={"status": "RECEIVED"}).json()
+    assert any(r["rma_id"] == "RMA-API1" for r in page["returns"])
+    assert page["conditions"]["NEW"]["restock"] and not page["conditions"]["DAMAGED"]["restock"]
+    done = client.post(f"{API}/returns/RMA-API1/inspect", json={"condition": "NEW"}).json()
+    assert done["status"] == "RESTOCKED" and done["inspected_by"] == "test-admin"
+    again = client.post(f"{API}/returns/RMA-API1/inspect", json={"condition": "NEW"})
+    assert again.status_code == 422
+    bad = client.post(f"{API}/returns/RMA-API1/inspect", json={"condition": "SHINY"})
+    assert bad.status_code == 422
