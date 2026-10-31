@@ -51,6 +51,15 @@ class Settings(BaseSettings):
     # Network label printers for ZPL (app/services/printers.py): name=host[:port],...
     label_printers: str = ""
 
+    # Alert notifications (app/services/alerts.py; rules in configs/alert_rules.yaml).
+    alert_email_to: str = ""  # comma-separated recipients; empty: no email
+    smtp_host: str = ""
+    smtp_port: int = 587
+    smtp_user: str = ""
+    smtp_password: str = ""
+    smtp_from: str = "warehouse-ai@localhost"
+    alert_webhook_url: str = ""  # Slack / Teams incoming webhook or any URL taking JSON
+
     llm_provider: str = ""
     llm_model: str = ""
     llm_api_key: str = ""

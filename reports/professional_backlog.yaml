@@ -17,7 +17,7 @@ items:
     priority: high
     effort: M
     status: done
-    evidence: "JWT access + rotating refresh tokens, 5 roles / 21 permissions on every endpoint, user admin page, login audit; docs/authentication.md"
+    evidence: "JWT access + rotating refresh tokens, 5 roles / 23 permissions on every endpoint, user admin page, login audit; docs/authentication.md"
   - id: PR-02
     area: Security
     gap: Local-only hardening
@@ -293,7 +293,8 @@ items:
     phase: 10
     priority: medium
     effort: S
-    status: planned
+    status: done
+    evidence: "Alert centre: 10 rules (configs/alert_rules.yaml) on robots, AI, safety, orders, stock, trucks and counts; one incident per subject with acknowledge, escalate and resolve, flap damping, history in alert_incidents (migration 007); screen, email (SMTP) and webhook notifications with an outcome log; Alerts page, dashboard tab, status bar; docs/alerts.md"
   - id: PR-33
     area: WMS
     gap: One warehouse and one stock owner are assumed everywhere

@@ -258,7 +258,14 @@ export interface ExperimentResults {
 
 export type StreamMessage =
   | { type: "layout"; layout: LayoutSnapshot }
-  | { type: "tick"; state: WarehouseState; predictions?: Predictions; strategy?: Strategy; events: unknown[] };
+  | {
+      type: "tick";
+      state: WarehouseState;
+      predictions?: Predictions;
+      strategy?: Strategy;
+      alerts?: { open: number; acknowledged: number; critical: number; escalated: number };
+      events: unknown[];
+    };
 
 /** Phase 5 object detector (apps/backend/app/api/v1/vision.py). */
 export interface VisionStatus {

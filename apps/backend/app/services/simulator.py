@@ -14,6 +14,8 @@ import time
 
 from ai.optimization.optimizer import BASELINE, Optimizer
 from app.core.config import get_settings
+from app.services.alerts import EVERY_TICKS
+from app.services.alerts import centre as alert_centre
 from app.services.copilot import copilot
 from app.services.predictor import Predictor
 from app.services.run_store import RunStore
@@ -53,6 +55,7 @@ class SimulatorService:
     async def reset(self) -> None:
         """Start a fresh run: a new engine with the same layout and seed (stopped, speed 1x)."""
         old, self.engine = self.engine, self._new_engine()
+        alert_centre.reset()  # incidents belong to a run
         self.predictor.attach(self.engine)
         copilot.attach(self.engine)
         self.optimizer = Optimizer(self.engine, self.predictor, self.strategies)  # same rules
@@ -92,10 +95,14 @@ class SimulatorService:
                 events = engine.tick()
                 self.predictor.after_tick()
                 self.optimizer.after_tick()
+                if engine.time % EVERY_TICKS == 0:  # alert rules every 3 simulated minutes
+                    alert_centre.evaluate(engine, self.predictor.snapshot())
                 if self._subscribers:  # build the frame only if someone is watching
                     self._broadcast(self.tick_message(events))
+                incidents = alert_centre.take_changed()
                 if self.store:
                     self.store.collect(engine, events)
+                    self.store.add_incidents(incidents)
                     self.store.add_predictions(*self.predictor.drain())
                 else:
                     self.predictor.drain()  # nothing records them: drop instead of piling up
@@ -136,6 +143,7 @@ class SimulatorService:
                 "type": "tick",
                 "state": state,
                 "predictions": self.predictor.snapshot(),
+                "alerts": alert_centre.summary(),
                 "strategy": {"preset": self.preset, **self.strategies},
                 "events": [e.to_dict() for e in events or []],
             }

@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { pagePermission, useAuth } from "@/lib/auth";
 import {
+  Bell,
   Bot,
   BookOpen,
   Boxes,
@@ -30,6 +31,7 @@ const NAV = [
   { href: "/analytics", label: "Analytics", icon: LineChart },
   { href: "/copilot", label: "Copilot", icon: MessageSquare },
   { href: "/knowledge", label: "Knowledge", icon: BookOpen },
+  { href: "/alerts", label: "Alerts", icon: Bell },
   { href: "/safety", label: "Safety", icon: ShieldAlert },
   { href: "/admin/users", label: "Users & roles", icon: ShieldCheck },
 ];

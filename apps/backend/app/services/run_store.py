@@ -125,6 +125,19 @@ VALUES (:run_id, :sku, :location, :lot, :status, :lpn, :qty, :tick)
 ON CONFLICT (run_id, sku, location, lot, status, lpn) DO UPDATE
 SET qty = EXCLUDED.qty, updated_tick = EXCLUDED.updated_tick""")
 
+SQL_UPSERT_INCIDENTS = text("""
+INSERT INTO alert_incidents (run_id, alert_id, rule, subject, severity, title, status, escalated,
+                             opened_tick, acknowledged_by, acknowledged_at, resolved_by,
+                             resolved_tick, history)
+VALUES (:run_id, :alert_id, :rule, :subject, :severity, :title, :status, :escalated, :opened_tick,
+        :acknowledged_by, CAST(:acknowledged_at AS timestamptz), :resolved_by, :resolved_tick,
+        CAST(:history AS jsonb))
+ON CONFLICT (run_id, alert_id) DO UPDATE SET
+  title = EXCLUDED.title, status = EXCLUDED.status, escalated = EXCLUDED.escalated,
+  acknowledged_by = EXCLUDED.acknowledged_by, acknowledged_at = EXCLUDED.acknowledged_at,
+  resolved_by = EXCLUDED.resolved_by, resolved_tick = EXCLUDED.resolved_tick,
+  history = EXCLUDED.history""")
+
 SQL_INSERT_SAFETY = text("""
 INSERT INTO safety_events (run_id, seq, tick, kind, severity, text, robot_id, zone, x, y,
                            user_name, detail)
@@ -147,6 +160,7 @@ class Batch:
     wms_txns: list[dict] = field(default_factory=list)  # WMS ledger lines (inventory_model: wms)
     wms_stock: dict[tuple, dict] = field(default_factory=dict)  # latest balance per stock key
     safety: list[dict] = field(default_factory=list)  # safety event log (e-stops, near misses)
+    incidents: dict[str, dict] = field(default_factory=dict)  # alert centre (latest per alert)
 
     def empty(self) -> bool:
         return not (
@@ -162,6 +176,7 @@ class Batch:
             or self.wms_txns
             or self.wms_stock
             or self.safety
+            or self.incidents
         )
 
 
@@ -411,6 +426,33 @@ class RunStore:
             "items": len(order.items),
         }
 
+    def add_incidents(self, incidents: list) -> None:
+        """Queue alert-centre incidents that changed (opened, acknowledged, escalated, resolved)."""
+        if not (self.enabled and self.run_id):
+            return
+        for inc in incidents:
+            self._batch.incidents[inc.alert_id] = {
+                "run_id": self.run_id,
+                **{
+                    k: getattr(inc, k)
+                    for k in (
+                        "alert_id",
+                        "rule",
+                        "subject",
+                        "severity",
+                        "title",
+                        "status",
+                        "escalated",
+                        "opened_tick",
+                        "acknowledged_by",
+                        "acknowledged_at",
+                        "resolved_by",
+                        "resolved_tick",
+                    )
+                },  # fmt: skip
+                "history": json.dumps(inc.history),
+            }
+
     def add_predictions(self, records: list[dict], alerts: list[dict]) -> None:
         """Queue finished predictions (input, output, actual) and new alerts for the next write."""
         if not (self.enabled and self.run_id):
@@ -462,6 +504,7 @@ class RunStore:
             (SQL_INSERT_WMS_TXNS, b.wms_txns),
             (SQL_UPSERT_WMS_STOCK, list(b.wms_stock.values())),
             (SQL_INSERT_SAFETY, b.safety),
+            (SQL_UPSERT_INCIDENTS, list(b.incidents.values())),
         ]
         try:
             with self._lock, self.db.begin() as conn:

@@ -13,7 +13,12 @@ export function StatusBar() {
   const robots = state?.robots ?? [];
   const pending = state?.orders.filter((o) => o.status === "PENDING").length ?? 0;
   const health = useSim((s) => s.predictions?.robots);
-  const alerts = robots.filter((r) => needsAttention(r) || isAbnormal(r.robot_id, health)).length;
+  const centre = useSim((s) => s.alerts);
+  // The alert centre's active incidents; before its first summary, the robots needing attention.
+  const alerts = centre
+    ? centre.open + centre.acknowledged
+    : robots.filter((r) => needsAttention(r) || isAbnormal(r.robot_id, health)).length;
+  const urgent = centre ? centre.critical > 0 || centre.escalated > 0 : alerts > 0;
   const clock = state?.clock;
 
   return (
@@ -30,11 +35,16 @@ export function StatusBar() {
         Orders <b className="tabular text-ink">{pending}</b> pending
       </span>
       <Link
-        href="/dashboard?panel=alerts"
-        className={`hover:underline ${alerts ? "text-danger" : ""}`}
-        title="Faulted, paused, below 20% battery, or flagged abnormal by the anomaly model. Click for the list."
+        href="/alerts"
+        className={`hover:underline ${urgent ? "text-danger" : alerts ? "text-warning" : ""}`}
+        title={
+          centre
+            ? `${centre.open} open, ${centre.acknowledged} acknowledged, ${centre.critical} critical, ${centre.escalated} escalated`
+            : "Robots needing attention"
+        }
       >
         Alerts <b className="tabular">{alerts}</b>
+        {centre?.escalated ? <span className="ml-1">({centre.escalated} escalated)</span> : null}
       </Link>
       <span className="ml-auto font-mono">
         {clock && (

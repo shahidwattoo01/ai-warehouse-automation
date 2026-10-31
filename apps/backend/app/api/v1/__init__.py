@@ -4,6 +4,7 @@ from fastapi import APIRouter
 
 from app.api.v1 import (
     agents,
+    alerts,
     analytics,
     auth,
     copilot,
@@ -37,3 +38,4 @@ api_router.include_router(copilot.router)
 api_router.include_router(analytics.router)
 api_router.include_router(wms.router)
 api_router.include_router(safety.router)
+api_router.include_router(alerts.router)

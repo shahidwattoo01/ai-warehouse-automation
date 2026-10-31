@@ -22,6 +22,8 @@ recorded under the person who made it. Decision record: [ADR 009](adr/009-jwt-rb
 | `simulation:control` (start, pause, reset, speed, strategy) | ✓ | ✓ | ✓ | | |
 | `robots:command` (pause / resume / reroute, aisles) | ✓ | ✓ | ✓ | | |
 | `safety:reset` (release and reset an emergency stop, slow zones) | ✓ | ✓ | ✓ | | |
+| `alerts:handle` (acknowledge and resolve alerts) | ✓ | ✓ | ✓ | ✓ | |
+| `alerts:configure` (alert rules, thresholds, notifications) | ✓ | ✓ | | | |
 | `orders:create`, `orders:assign` | ✓ | ✓ | ✓ | | |
 | `orders:manage` (hold, release, cancel, ship partial) | ✓ | ✓ | ✓ | | |
 | `vision:use` (run detection) | ✓ | ✓ | ✓ | | |

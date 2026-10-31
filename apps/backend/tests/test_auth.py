@@ -83,6 +83,8 @@ ENDPOINTS = [
     ("post", "/wms/outbound/orders/NOPE/hold", {"reason": "test hold"}, "orders:manage"),
     ("post", "/wms/outbound/load", {"sscc": "000000000000000000"}, "wms:ship"),
     ("post", "/safety/release", {}, "safety:reset"),  # 409 when allowed: no stop is active
+    ("post", "/alerts/AL-NOPE/acknowledge", {}, "alerts:handle"),  # 404 when allowed
+    ("put", "/alerts/rules/robot_fault", {"enabled": True}, "alerts:configure"),
     ("get", "/users", None, "users:manage"),
     ("post", "/copilot/actions/none/approve", None, "copilot:approve"),
 ]

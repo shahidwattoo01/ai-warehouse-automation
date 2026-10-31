@@ -164,6 +164,7 @@ export const PAGE_PERMISSION: [string, string][] = [
   ["/fleet", "dashboard:view"],
   ["/orders", "dashboard:view"],
   ["/safety", "dashboard:view"],
+  ["/alerts", "dashboard:view"],
 ];
 
 export function pagePermission(path: string): string | null {

@@ -14,6 +14,8 @@ interface SimStore {
   predictions: Predictions | null;
   /** Phase 4 decision rules in use, sent with every tick. */
   strategy: Strategy | null;
+  /** Alert centre summary (open / acknowledged / critical / escalated), sent with every tick. */
+  alerts: { open: number; acknowledged: number; critical: number; escalated: number } | null;
   connected: boolean;
   selectedRobot: string | null;
   lastTickAt: number;
@@ -32,6 +34,7 @@ export const useSim = create<SimStore>((set, get) => ({
   state: null,
   predictions: null,
   strategy: null,
+  alerts: null,
   connected: false,
   selectedRobot: null,
   lastTickAt: 0,
@@ -79,6 +82,7 @@ export const useSim = create<SimStore>((set, get) => ({
             state: msg.state,
             predictions: msg.predictions ?? null,
             strategy: msg.strategy ?? null,
+            alerts: msg.alerts ?? null,
             lastTickAt: now,
             tickInterval: next,
           });

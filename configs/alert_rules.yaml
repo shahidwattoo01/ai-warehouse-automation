@@ -1,0 +1,93 @@
+# Alert rules of the alert centre (apps/backend/app/services/alerts.py, backlog PR-32).
+#
+# Each rule watches one condition. While it holds, one incident is open per subject (a robot,
+# an order queue, the fleet); it closes by itself when the condition clears. An incident nobody
+# acknowledges within `escalate_after_min` simulated minutes is escalated.
+#
+#   severity       critical | warning | info
+#   threshold      the number the rule compares with (unit in `unit`)
+#   notify         channels when the incident opens: screen (always), email, webhook
+#   escalate_to    channels when it escalates
+#   confirm_checks the condition must hold in this many checks in a row before an incident opens
+#                  (default 1); clear_checks: absent this many checks before it resolves (default 2)
+# Changes made on the Alerts page apply until the backend restarts; edit this file to keep them.
+
+rules:
+  robot_fault:
+    name: Robot in fault
+    severity: critical
+    threshold: null
+    escalate_after_min: 5
+    notify: [screen, webhook]
+    escalate_to: [email, webhook]
+  battery_critical:
+    name: Battery critically low
+    severity: warning
+    threshold: 10
+    unit: "%"
+    escalate_after_min: 10
+    notify: [screen]
+    escalate_to: [email]
+  robot_abnormal:
+    name: Robot behaving abnormally (AI)
+    severity: warning
+    threshold: null
+    confirm_checks: 2           # the anomaly flag flickers; open only when it persists
+    escalate_after_min: 20
+    notify: [screen]
+    escalate_to: [email]
+  emergency_stop:
+    name: Emergency stop engaged
+    severity: critical
+    threshold: null
+    escalate_after_min: 2
+    notify: [screen, email, webhook]
+    escalate_to: [email, webhook]
+  order_backlog:
+    name: Orders waiting for a robot
+    severity: warning
+    threshold: 40
+    unit: orders
+    escalate_after_min: 15
+    notify: [screen]
+    escalate_to: [email]
+  late_rate:
+    name: Late orders above target
+    severity: warning
+    threshold: 10
+    unit: "%"
+    escalate_after_min: 30
+    notify: [screen]
+    escalate_to: [email]
+  near_misses:
+    name: Near misses this hour
+    severity: warning
+    threshold: 5
+    unit: per hour
+    escalate_after_min: 30
+    notify: [screen]
+    escalate_to: [email]
+  waiting_stock:
+    name: Orders waiting for stock
+    severity: warning
+    threshold: 10
+    unit: orders
+    escalate_after_min: 30
+    notify: [screen]
+    escalate_to: [email]
+  truck_at_risk:
+    name: Truck leaving with orders not loaded
+    severity: warning
+    threshold: 30
+    unit: minutes to departure
+    escalate_after_min: 15
+    notify: [screen, webhook]
+    escalate_to: [email, webhook]
+  counts_to_approve:
+    name: Count differences waiting for approval
+    severity: info
+    threshold: 1
+    unit: counts
+    escalate_after_min: 60
+    notify: [screen]
+    escalate_to: []

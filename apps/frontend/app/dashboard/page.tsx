@@ -77,7 +77,10 @@ function Dashboard() {
   const pending = state?.orders.filter((o) => o.status === "PENDING").length ?? 0;
   const active = robots.filter(isActive).length;
   const faults = robots.filter((r) => r.status === "FAULT").length;
-  const alerts = robots.filter((r) => needsAttention(r) || isAbnormal(r.robot_id, health)).length;
+  const centre = useSim((st) => st.alerts);
+  const alerts = centre
+    ? centre.open + centre.acknowledged
+    : robots.filter((r) => needsAttention(r) || isAbnormal(r.robot_id, health)).length;
   const late = kpis?.late_percent ?? 0;
   const out = w?.outbound;
   const onTime = out?.on_time_ship_rate;
