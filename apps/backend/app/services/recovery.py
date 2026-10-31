@@ -202,8 +202,17 @@ class Recovery:
             raise ValueError(f"format {data.get('format')} is not {FORMAT}")
         return data
 
+    @staticmethod
+    def _trial(data: dict) -> None:
+        """Run a copy of the saved engine for a few ticks before trusting it: a snapshot written
+        by older code may unpickle fine and still fail on its first tick."""
+        engine = pickle.loads(pickle.dumps(data["engine"]))
+        engine.running = True
+        for _ in range(3):
+            engine.tick()
+
     def load(self) -> dict | None:
-        """The newest readable snapshot, or None. Bad files are renamed `.rejected`."""
+        """The newest snapshot that loads and runs, or None. Bad files are renamed `.rejected`."""
         if not self.enabled:
             return None
         for path in (self.path, self.path.with_suffix(".prev")):
@@ -211,6 +220,7 @@ class Recovery:
                 continue
             try:
                 data = self._read(path)
+                self._trial(data)
                 log.info("Found warehouse state from %s (tick %s)", data["saved_at"], data["tick"])
                 return data
             except Exception as err:  # unreadable, foreign, or from incompatible code

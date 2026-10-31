@@ -11,6 +11,7 @@ from app.api.v1 import (
     erp,
     events,
     inventory,
+    mlops,
     navigation,
     orders,
     prediction,
@@ -45,3 +46,4 @@ api_router.include_router(alerts.router)
 api_router.include_router(vda5050.router)
 api_router.include_router(erp.router)
 api_router.include_router(events.router)
+api_router.include_router(mlops.router)

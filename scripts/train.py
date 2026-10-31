@@ -188,6 +188,11 @@ def run(name: str, save: bool) -> bool:
         print(f"✗ {name}: the notebook ran ({minutes:.1f} min) but did not write {stale}")
         return False
     print(f"✓ {name}: {minutes:.1f} min · {headline(kind)}")
+    if name in ("eta", "late_risk"):  # drift is judged against the training data (docs/mlops.md)
+        import subprocess
+
+        subprocess.run([sys.executable, str(ROOT / "scripts" / "mlops.py"), "--build-reference"],
+                       check=False)  # fmt: skip
     return True
 
 

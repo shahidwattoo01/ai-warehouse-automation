@@ -33,6 +33,7 @@ PERMISSIONS: dict[str, str] = {
     "wms:count_approve": "Approve or reject count differences (supervisor)",
     "wms:ship": "Pack, check and load cartons onto carrier trucks",
     "wms:settings": "Choose which work the associates do automatically; order release mode",
+    "models:manage": "Retrain, promote and roll back the AI models",
     "users:manage": "Create users, change roles, disable accounts, reset passwords",
 }
 

@@ -21,6 +21,7 @@ from app.services.alerts import centre as alert_centre
 from app.services.erp import erp
 from app.services.events import events_service
 from app.services.knowledge import knowledge
+from app.services.mlops import mlops
 from app.services.vda5050 import vda
 
 LOOP_STALE_SECONDS = 5.0  # the loop runs every 0.5 s or faster; 5 s silent means it is stuck
@@ -241,6 +242,22 @@ def collect(simulator, limiter=None) -> str:
         fam("rate_limited_total", "counter", "Requests refused by the rate limiter").add(
             limiter.refused
         )
+    # ----- AI models (MLOps)
+    status_of = fam("model_status", "gauge", "1 for each live model's current drift status")
+    error = fam("model_live_error", "gauge", "Live error: ETA MAE (ticks), late-risk recall")
+    psi_max = fam("model_input_psi_max", "gauge", "Largest input shift (PSI) vs training data")
+    version = fam("model_production_version", "gauge", "Production version number")
+    for model, mon in mlops.monitors.items():
+        check = mon.last or {}
+        for state in ("NOT_ENOUGH_DATA", "OK", "WARN", "DRIFT"):
+            status_of.add(int(check.get("status") == state), model=model, status=state)
+        perf = check.get("performance") or {}
+        error.add(perf.get("live_mae") if model == "eta" else perf.get("live_recall"), model=model)
+        psi_max.add(check.get("max_psi"), model=model)
+        version.add(int(mlops.registry.production(model)["version"][1:]), model=model)
+    retrains = fam("model_retrains_total", "counter", "Retrainings and their outcome")
+    for key, n in mlops.counts.items():
+        retrains.add(n, result=key)
     kb = knowledge.status()
     fam("knowledge_base_loaded", "gauge", "1 when the knowledge base is loaded").add(
         int(kb["loaded"])

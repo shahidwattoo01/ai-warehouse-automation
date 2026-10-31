@@ -453,6 +453,22 @@ class RunStore:
                 "history": json.dumps(inc.history),
             }
 
+    def register_models(self, models: list[dict]) -> None:
+        """A model version promoted during the run (MLOps): register it and record its
+        predictions under it from now on (blocking: call from a worker thread)."""
+        if not self.enabled:
+            return
+        try:
+            with self._lock, self.db.begin() as conn:
+                for m in models:
+                    conn.execute(SQL_RETIRE_OTHER_VERSIONS, m)
+                    row = {**m, "metrics": json.dumps(m["metrics"])}
+                    self._model_ids[m["model_name"]] = str(
+                        conn.execute(SQL_UPSERT_MODEL, row).scalar_one()
+                    )
+        except Exception:
+            log.exception("Could not register model versions")
+
     def add_predictions(self, records: list[dict], alerts: list[dict]) -> None:
         """Queue finished predictions (input, output, actual) and new alerts for the next write."""
         if not (self.enabled and self.run_id):

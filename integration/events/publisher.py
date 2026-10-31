@@ -41,6 +41,8 @@ CATALOG = {
     "robot_fault, settings ...",
     "alerts/{event}": "Alert centre incident: opened, acknowledged, escalated, resolved",
     "inventory/alert": "Warehouse message: short pick, damaged receipt, expiry, missed truck ...",
+    "models/{event}": "Model operations: status_ok, status_warn, status_drift, retrain_started, "
+    "candidate_rejected, candidate_ready, promoted, rolled_back, retrain_failed",
 }
 
 

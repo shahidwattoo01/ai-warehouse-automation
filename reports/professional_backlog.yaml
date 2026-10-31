@@ -181,7 +181,8 @@ items:
     phase: 11
     priority: medium
     effort: M
-    status: planned
+    status: done
+    evidence: "Drift of the ETA and late-risk models (input PSI, live error vs test and vs go-live), confirmed drift retrains on old + live data, a 5-test gate, versioned registry with promotion and rollback, AI models page; experiment: slower picking detected, v2/v3 promoted, 10-18 % better than v1; docs/mlops.md"
 
   # ----- AI realism -------------------------------------------------------------------------
   - id: PR-20

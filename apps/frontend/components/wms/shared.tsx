@@ -151,6 +151,17 @@ const TONE: Record<string, string> = {
   // ERP sales orders
   ACCEPTED: "bg-success/15 text-success",
   REJECTED: "bg-danger/15 text-danger",
+  // AI models (drift and versions)
+  OK: "bg-success/15 text-success",
+  WARN: "bg-warning/15 text-warning",
+  DRIFT: "bg-danger/15 text-danger",
+  NOT_ENOUGH_DATA: "bg-border/70 text-muted",
+  PRODUCTION: "bg-success/15 text-success",
+  CANDIDATE: "bg-accent/15 text-accent",
+  ARCHIVED: "bg-border text-muted",
+  RUNNING: "bg-accent/15 text-accent",
+  DONE: "bg-success/10 text-success",
+  FAILED: "bg-danger/15 text-danger",
   // returns
   EXPECTED: "bg-accent/10 text-accent",
   RECEIVED: "bg-warning/15 text-warning",

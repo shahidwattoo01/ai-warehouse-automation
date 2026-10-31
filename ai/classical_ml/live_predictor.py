@@ -119,6 +119,15 @@ class Predictor:
             )
         self.engine: SimulationEngine | None = None
 
+    def use_version(self, key: str, obj, version: str, artifact_path: str, metrics: dict) -> dict:
+        """Replace the live `eta` or `late` model by another version (MLOps promotion or
+        rollback). Call between ticks; orders already predicted keep their prediction."""
+        self.models[key] = obj
+        entry = {"model_name": key, "version": version, "artifact_path": artifact_path,
+                 "metrics": metrics}  # fmt: skip
+        self.versions = [v for v in self.versions if v["model_name"] != key] + [entry]
+        return entry
+
     def _has(self, key: str) -> bool:
         return key in self.models or key in self.deep
 

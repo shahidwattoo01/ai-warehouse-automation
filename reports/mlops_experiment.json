@@ -1,0 +1,1881 @@
+{
+  "layout": "default",
+  "pick_ticks": 30,
+  "changed_at": 6000,
+  "seconds": 134,
+  "timeline": [
+    {
+      "tick": 120,
+      "eta_version": "v1",
+      "status": "NOT_ENOUGH_DATA",
+      "live_mae": null,
+      "start_mae": null,
+      "samples": 3
+    },
+    {
+      "tick": 240,
+      "eta_version": "v1",
+      "status": "NOT_ENOUGH_DATA",
+      "live_mae": null,
+      "start_mae": null,
+      "samples": 7
+    },
+    {
+      "tick": 360,
+      "eta_version": "v1",
+      "status": "NOT_ENOUGH_DATA",
+      "live_mae": null,
+      "start_mae": null,
+      "samples": 9
+    },
+    {
+      "tick": 480,
+      "eta_version": "v1",
+      "status": "NOT_ENOUGH_DATA",
+      "live_mae": null,
+      "start_mae": null,
+      "samples": 18
+    },
+    {
+      "tick": 600,
+      "eta_version": "v1",
+      "status": "NOT_ENOUGH_DATA",
+      "live_mae": null,
+      "start_mae": null,
+      "samples": 24
+    },
+    {
+      "tick": 720,
+      "eta_version": "v1",
+      "status": "NOT_ENOUGH_DATA",
+      "live_mae": null,
+      "start_mae": null,
+      "samples": 27
+    },
+    {
+      "tick": 840,
+      "eta_version": "v1",
+      "status": "NOT_ENOUGH_DATA",
+      "live_mae": null,
+      "start_mae": null,
+      "samples": 29
+    },
+    {
+      "tick": 960,
+      "eta_version": "v1",
+      "status": "NOT_ENOUGH_DATA",
+      "live_mae": null,
+      "start_mae": null,
+      "samples": 34
+    },
+    {
+      "tick": 1080,
+      "eta_version": "v1",
+      "status": "NOT_ENOUGH_DATA",
+      "live_mae": null,
+      "start_mae": null,
+      "samples": 38
+    },
+    {
+      "tick": 1200,
+      "eta_version": "v1",
+      "status": "NOT_ENOUGH_DATA",
+      "live_mae": null,
+      "start_mae": null,
+      "samples": 43
+    },
+    {
+      "tick": 1320,
+      "eta_version": "v1",
+      "status": "NOT_ENOUGH_DATA",
+      "live_mae": null,
+      "start_mae": null,
+      "samples": 50
+    },
+    {
+      "tick": 1440,
+      "eta_version": "v1",
+      "status": "NOT_ENOUGH_DATA",
+      "live_mae": null,
+      "start_mae": null,
+      "samples": 52
+    },
+    {
+      "tick": 1560,
+      "eta_version": "v1",
+      "status": "NOT_ENOUGH_DATA",
+      "live_mae": null,
+      "start_mae": null,
+      "samples": 55
+    },
+    {
+      "tick": 1680,
+      "eta_version": "v1",
+      "status": "NOT_ENOUGH_DATA",
+      "live_mae": null,
+      "start_mae": null,
+      "samples": 61
+    },
+    {
+      "tick": 1800,
+      "eta_version": "v1",
+      "status": "NOT_ENOUGH_DATA",
+      "live_mae": null,
+      "start_mae": null,
+      "samples": 65
+    },
+    {
+      "tick": 1920,
+      "eta_version": "v1",
+      "status": "NOT_ENOUGH_DATA",
+      "live_mae": null,
+      "start_mae": null,
+      "samples": 70
+    },
+    {
+      "tick": 2040,
+      "eta_version": "v1",
+      "status": "NOT_ENOUGH_DATA",
+      "live_mae": null,
+      "start_mae": null,
+      "samples": 74
+    },
+    {
+      "tick": 2160,
+      "eta_version": "v1",
+      "status": "NOT_ENOUGH_DATA",
+      "live_mae": null,
+      "start_mae": null,
+      "samples": 80
+    },
+    {
+      "tick": 2280,
+      "eta_version": "v1",
+      "status": "NOT_ENOUGH_DATA",
+      "live_mae": null,
+      "start_mae": null,
+      "samples": 82
+    },
+    {
+      "tick": 2400,
+      "eta_version": "v1",
+      "status": "NOT_ENOUGH_DATA",
+      "live_mae": null,
+      "start_mae": null,
+      "samples": 85
+    },
+    {
+      "tick": 2520,
+      "eta_version": "v1",
+      "status": "NOT_ENOUGH_DATA",
+      "live_mae": null,
+      "start_mae": null,
+      "samples": 88
+    },
+    {
+      "tick": 2640,
+      "eta_version": "v1",
+      "status": "NOT_ENOUGH_DATA",
+      "live_mae": null,
+      "start_mae": null,
+      "samples": 94
+    },
+    {
+      "tick": 2760,
+      "eta_version": "v1",
+      "status": "NOT_ENOUGH_DATA",
+      "live_mae": null,
+      "start_mae": null,
+      "samples": 100
+    },
+    {
+      "tick": 2880,
+      "eta_version": "v1",
+      "status": "NOT_ENOUGH_DATA",
+      "live_mae": null,
+      "start_mae": null,
+      "samples": 102
+    },
+    {
+      "tick": 3000,
+      "eta_version": "v1",
+      "status": "NOT_ENOUGH_DATA",
+      "live_mae": null,
+      "start_mae": null,
+      "samples": 109
+    },
+    {
+      "tick": 3120,
+      "eta_version": "v1",
+      "status": "NOT_ENOUGH_DATA",
+      "live_mae": null,
+      "start_mae": null,
+      "samples": 118
+    },
+    {
+      "tick": 3240,
+      "eta_version": "v1",
+      "status": "NOT_ENOUGH_DATA",
+      "live_mae": null,
+      "start_mae": null,
+      "samples": 127
+    },
+    {
+      "tick": 3360,
+      "eta_version": "v1",
+      "status": "NOT_ENOUGH_DATA",
+      "live_mae": null,
+      "start_mae": null,
+      "samples": 144
+    },
+    {
+      "tick": 3480,
+      "eta_version": "v1",
+      "status": "WARN",
+      "live_mae": 24.1,
+      "start_mae": null,
+      "samples": 155
+    },
+    {
+      "tick": 3600,
+      "eta_version": "v1",
+      "status": "WARN",
+      "live_mae": 23.7,
+      "start_mae": null,
+      "samples": 168
+    },
+    {
+      "tick": 3720,
+      "eta_version": "v1",
+      "status": "WARN",
+      "live_mae": 23.4,
+      "start_mae": null,
+      "samples": 180
+    },
+    {
+      "tick": 3840,
+      "eta_version": "v1",
+      "status": "WARN",
+      "live_mae": 23.1,
+      "start_mae": null,
+      "samples": 196
+    },
+    {
+      "tick": 3960,
+      "eta_version": "v1",
+      "status": "WARN",
+      "live_mae": 24.0,
+      "start_mae": null,
+      "samples": 207
+    },
+    {
+      "tick": 4080,
+      "eta_version": "v1",
+      "status": "WARN",
+      "live_mae": 24.0,
+      "start_mae": null,
+      "samples": 222
+    },
+    {
+      "tick": 4200,
+      "eta_version": "v1",
+      "status": "WARN",
+      "live_mae": 24.1,
+      "start_mae": null,
+      "samples": 237
+    },
+    {
+      "tick": 4320,
+      "eta_version": "v1",
+      "status": "WARN",
+      "live_mae": 23.4,
+      "start_mae": null,
+      "samples": 257
+    },
+    {
+      "tick": 4440,
+      "eta_version": "v1",
+      "status": "WARN",
+      "live_mae": 23.4,
+      "start_mae": null,
+      "samples": 267
+    },
+    {
+      "tick": 4560,
+      "eta_version": "v1",
+      "status": "WARN",
+      "live_mae": 23.0,
+      "start_mae": null,
+      "samples": 285
+    },
+    {
+      "tick": 4680,
+      "eta_version": "v1",
+      "status": "WARN",
+      "live_mae": 22.8,
+      "start_mae": null,
+      "samples": 298
+    },
+    {
+      "tick": 4800,
+      "eta_version": "v1",
+      "status": "WARN",
+      "live_mae": 22.9,
+      "start_mae": 22.9,
+      "samples": 311
+    },
+    {
+      "tick": 4920,
+      "eta_version": "v1",
+      "status": "WARN",
+      "live_mae": 22.3,
+      "start_mae": 22.9,
+      "samples": 328
+    },
+    {
+      "tick": 5040,
+      "eta_version": "v1",
+      "status": "WARN",
+      "live_mae": 22.4,
+      "start_mae": 22.9,
+      "samples": 342
+    },
+    {
+      "tick": 5160,
+      "eta_version": "v1",
+      "status": "WARN",
+      "live_mae": 22.4,
+      "start_mae": 22.9,
+      "samples": 355
+    },
+    {
+      "tick": 5280,
+      "eta_version": "v1",
+      "status": "WARN",
+      "live_mae": 23.4,
+      "start_mae": 22.9,
+      "samples": 368
+    },
+    {
+      "tick": 5400,
+      "eta_version": "v1",
+      "status": "WARN",
+      "live_mae": 23.5,
+      "start_mae": 22.9,
+      "samples": 381
+    },
+    {
+      "tick": 5520,
+      "eta_version": "v1",
+      "status": "WARN",
+      "live_mae": 23.9,
+      "start_mae": 22.9,
+      "samples": 391
+    },
+    {
+      "tick": 5640,
+      "eta_version": "v1",
+      "status": "WARN",
+      "live_mae": 24.2,
+      "start_mae": 22.9,
+      "samples": 400
+    },
+    {
+      "tick": 5760,
+      "eta_version": "v1",
+      "status": "WARN",
+      "live_mae": 25.9,
+      "start_mae": 22.9,
+      "samples": 400
+    },
+    {
+      "tick": 5880,
+      "eta_version": "v1",
+      "status": "WARN",
+      "live_mae": 26.3,
+      "start_mae": 22.9,
+      "samples": 400
+    },
+    {
+      "tick": 6000,
+      "eta_version": "v1",
+      "status": "WARN",
+      "live_mae": 26.8,
+      "start_mae": 22.9,
+      "samples": 400
+    },
+    {
+      "tick": 6120,
+      "eta_version": "v1",
+      "status": "WARN",
+      "live_mae": 26.5,
+      "start_mae": 22.9,
+      "samples": 400
+    },
+    {
+      "tick": 6240,
+      "eta_version": "v1",
+      "status": "WARN",
+      "live_mae": 26.2,
+      "start_mae": 22.9,
+      "samples": 400
+    },
+    {
+      "tick": 6360,
+      "eta_version": "v1",
+      "status": "WARN",
+      "live_mae": 25.5,
+      "start_mae": 22.9,
+      "samples": 400
+    },
+    {
+      "tick": 6480,
+      "eta_version": "v1",
+      "status": "WARN",
+      "live_mae": 25.9,
+      "start_mae": 22.9,
+      "samples": 400
+    },
+    {
+      "tick": 6600,
+      "eta_version": "v1",
+      "status": "WARN",
+      "live_mae": 27.0,
+      "start_mae": 22.9,
+      "samples": 400
+    },
+    {
+      "tick": 6720,
+      "eta_version": "v1",
+      "status": "WARN",
+      "live_mae": 29.3,
+      "start_mae": 22.9,
+      "samples": 400
+    },
+    {
+      "tick": 6840,
+      "eta_version": "v1",
+      "status": "WARN",
+      "live_mae": 29.6,
+      "start_mae": 22.9,
+      "samples": 400
+    },
+    {
+      "tick": 6960,
+      "eta_version": "v1",
+      "status": "WARN",
+      "live_mae": 30.9,
+      "start_mae": 22.9,
+      "samples": 400
+    },
+    {
+      "tick": 7080,
+      "eta_version": "v1",
+      "status": "WARN",
+      "live_mae": 30.4,
+      "start_mae": 22.9,
+      "samples": 400
+    },
+    {
+      "tick": 7200,
+      "eta_version": "v1",
+      "status": "WARN",
+      "live_mae": 29.7,
+      "start_mae": 22.9,
+      "samples": 400
+    },
+    {
+      "tick": 7320,
+      "eta_version": "v1",
+      "status": "WARN",
+      "live_mae": 30.5,
+      "start_mae": 22.9,
+      "samples": 400
+    },
+    {
+      "tick": 7440,
+      "eta_version": "v1",
+      "status": "WARN",
+      "live_mae": 30.3,
+      "start_mae": 22.9,
+      "samples": 400
+    },
+    {
+      "tick": 7560,
+      "eta_version": "v1",
+      "status": "WARN",
+      "live_mae": 30.8,
+      "start_mae": 22.9,
+      "samples": 400
+    },
+    {
+      "tick": 7680,
+      "eta_version": "v1",
+      "status": "WARN",
+      "live_mae": 30.9,
+      "start_mae": 22.9,
+      "samples": 400
+    },
+    {
+      "tick": 7800,
+      "eta_version": "v1",
+      "status": "WARN",
+      "live_mae": 31.5,
+      "start_mae": 22.9,
+      "samples": 400
+    },
+    {
+      "tick": 7920,
+      "eta_version": "v1",
+      "status": "WARN",
+      "live_mae": 31.3,
+      "start_mae": 22.9,
+      "samples": 400
+    },
+    {
+      "tick": 8040,
+      "eta_version": "v1",
+      "status": "WARN",
+      "live_mae": 31.8,
+      "start_mae": 22.9,
+      "samples": 400
+    },
+    {
+      "tick": 8160,
+      "eta_version": "v1",
+      "status": "DRIFT",
+      "live_mae": 33.0,
+      "start_mae": 22.9,
+      "samples": 400
+    },
+    {
+      "tick": 8280,
+      "eta_version": "v2",
+      "status": "DRIFT",
+      "live_mae": 32.9,
+      "start_mae": 22.9,
+      "samples": 400
+    },
+    {
+      "tick": 8400,
+      "eta_version": "v2",
+      "status": "NOT_ENOUGH_DATA",
+      "live_mae": null,
+      "start_mae": null,
+      "samples": 10
+    },
+    {
+      "tick": 8520,
+      "eta_version": "v2",
+      "status": "NOT_ENOUGH_DATA",
+      "live_mae": null,
+      "start_mae": null,
+      "samples": 21
+    },
+    {
+      "tick": 8640,
+      "eta_version": "v2",
+      "status": "NOT_ENOUGH_DATA",
+      "live_mae": null,
+      "start_mae": null,
+      "samples": 30
+    },
+    {
+      "tick": 8760,
+      "eta_version": "v2",
+      "status": "NOT_ENOUGH_DATA",
+      "live_mae": null,
+      "start_mae": null,
+      "samples": 40
+    },
+    {
+      "tick": 8880,
+      "eta_version": "v2",
+      "status": "NOT_ENOUGH_DATA",
+      "live_mae": null,
+      "start_mae": null,
+      "samples": 49
+    },
+    {
+      "tick": 9000,
+      "eta_version": "v2",
+      "status": "NOT_ENOUGH_DATA",
+      "live_mae": null,
+      "start_mae": null,
+      "samples": 60
+    },
+    {
+      "tick": 9120,
+      "eta_version": "v2",
+      "status": "NOT_ENOUGH_DATA",
+      "live_mae": null,
+      "start_mae": null,
+      "samples": 73
+    },
+    {
+      "tick": 9240,
+      "eta_version": "v2",
+      "status": "NOT_ENOUGH_DATA",
+      "live_mae": null,
+      "start_mae": null,
+      "samples": 81
+    },
+    {
+      "tick": 9360,
+      "eta_version": "v2",
+      "status": "NOT_ENOUGH_DATA",
+      "live_mae": null,
+      "start_mae": null,
+      "samples": 93
+    },
+    {
+      "tick": 9480,
+      "eta_version": "v2",
+      "status": "NOT_ENOUGH_DATA",
+      "live_mae": null,
+      "start_mae": null,
+      "samples": 102
+    },
+    {
+      "tick": 9600,
+      "eta_version": "v2",
+      "status": "NOT_ENOUGH_DATA",
+      "live_mae": null,
+      "start_mae": null,
+      "samples": 112
+    },
+    {
+      "tick": 9720,
+      "eta_version": "v2",
+      "status": "NOT_ENOUGH_DATA",
+      "live_mae": null,
+      "start_mae": null,
+      "samples": 124
+    },
+    {
+      "tick": 9840,
+      "eta_version": "v2",
+      "status": "NOT_ENOUGH_DATA",
+      "live_mae": null,
+      "start_mae": null,
+      "samples": 132
+    },
+    {
+      "tick": 9960,
+      "eta_version": "v2",
+      "status": "NOT_ENOUGH_DATA",
+      "live_mae": null,
+      "start_mae": null,
+      "samples": 141
+    },
+    {
+      "tick": 10080,
+      "eta_version": "v2",
+      "status": "NOT_ENOUGH_DATA",
+      "live_mae": null,
+      "start_mae": null,
+      "samples": 148
+    },
+    {
+      "tick": 10200,
+      "eta_version": "v2",
+      "status": "WARN",
+      "live_mae": 40.6,
+      "start_mae": null,
+      "samples": 158
+    },
+    {
+      "tick": 10320,
+      "eta_version": "v2",
+      "status": "WARN",
+      "live_mae": 41.2,
+      "start_mae": null,
+      "samples": 165
+    },
+    {
+      "tick": 10440,
+      "eta_version": "v2",
+      "status": "WARN",
+      "live_mae": 46.2,
+      "start_mae": null,
+      "samples": 172
+    },
+    {
+      "tick": 10560,
+      "eta_version": "v2",
+      "status": "WARN",
+      "live_mae": 47.1,
+      "start_mae": null,
+      "samples": 181
+    },
+    {
+      "tick": 10680,
+      "eta_version": "v2",
+      "status": "WARN",
+      "live_mae": 46.7,
+      "start_mae": null,
+      "samples": 190
+    },
+    {
+      "tick": 10800,
+      "eta_version": "v2",
+      "status": "WARN",
+      "live_mae": 47.5,
+      "start_mae": null,
+      "samples": 197
+    },
+    {
+      "tick": 10920,
+      "eta_version": "v2",
+      "status": "WARN",
+      "live_mae": 48.2,
+      "start_mae": null,
+      "samples": 205
+    },
+    {
+      "tick": 11040,
+      "eta_version": "v2",
+      "status": "WARN",
+      "live_mae": 48.2,
+      "start_mae": null,
+      "samples": 216
+    },
+    {
+      "tick": 11160,
+      "eta_version": "v2",
+      "status": "WARN",
+      "live_mae": 47.3,
+      "start_mae": null,
+      "samples": 225
+    },
+    {
+      "tick": 11280,
+      "eta_version": "v2",
+      "status": "WARN",
+      "live_mae": 46.6,
+      "start_mae": null,
+      "samples": 236
+    },
+    {
+      "tick": 11400,
+      "eta_version": "v2",
+      "status": "WARN",
+      "live_mae": 45.9,
+      "start_mae": null,
+      "samples": 249
+    },
+    {
+      "tick": 11520,
+      "eta_version": "v2",
+      "status": "WARN",
+      "live_mae": 44.8,
+      "start_mae": null,
+      "samples": 258
+    },
+    {
+      "tick": 11640,
+      "eta_version": "v2",
+      "status": "WARN",
+      "live_mae": 43.9,
+      "start_mae": null,
+      "samples": 275
+    },
+    {
+      "tick": 11760,
+      "eta_version": "v2",
+      "status": "WARN",
+      "live_mae": 43.1,
+      "start_mae": null,
+      "samples": 285
+    },
+    {
+      "tick": 11880,
+      "eta_version": "v2",
+      "status": "WARN",
+      "live_mae": 43.2,
+      "start_mae": null,
+      "samples": 293
+    },
+    {
+      "tick": 12000,
+      "eta_version": "v2",
+      "status": "WARN",
+      "live_mae": 42.8,
+      "start_mae": null,
+      "samples": 299
+    },
+    {
+      "tick": 12120,
+      "eta_version": "v2",
+      "status": "WARN",
+      "live_mae": 44.2,
+      "start_mae": 44.2,
+      "samples": 308
+    },
+    {
+      "tick": 12240,
+      "eta_version": "v2",
+      "status": "WARN",
+      "live_mae": 44.6,
+      "start_mae": 44.2,
+      "samples": 314
+    },
+    {
+      "tick": 12360,
+      "eta_version": "v2",
+      "status": "WARN",
+      "live_mae": 44.6,
+      "start_mae": 44.2,
+      "samples": 323
+    },
+    {
+      "tick": 12480,
+      "eta_version": "v2",
+      "status": "WARN",
+      "live_mae": 46.4,
+      "start_mae": 44.2,
+      "samples": 332
+    },
+    {
+      "tick": 12600,
+      "eta_version": "v2",
+      "status": "WARN",
+      "live_mae": 46.0,
+      "start_mae": 44.2,
+      "samples": 341
+    },
+    {
+      "tick": 12720,
+      "eta_version": "v2",
+      "status": "WARN",
+      "live_mae": 45.7,
+      "start_mae": 44.2,
+      "samples": 354
+    },
+    {
+      "tick": 12840,
+      "eta_version": "v2",
+      "status": "WARN",
+      "live_mae": 45.1,
+      "start_mae": 44.2,
+      "samples": 362
+    },
+    {
+      "tick": 12960,
+      "eta_version": "v2",
+      "status": "WARN",
+      "live_mae": 45.2,
+      "start_mae": 44.2,
+      "samples": 370
+    },
+    {
+      "tick": 13080,
+      "eta_version": "v2",
+      "status": "WARN",
+      "live_mae": 45.6,
+      "start_mae": 44.2,
+      "samples": 374
+    },
+    {
+      "tick": 13200,
+      "eta_version": "v2",
+      "status": "WARN",
+      "live_mae": 46.1,
+      "start_mae": 44.2,
+      "samples": 386
+    },
+    {
+      "tick": 13320,
+      "eta_version": "v2",
+      "status": "WARN",
+      "live_mae": 46.3,
+      "start_mae": 44.2,
+      "samples": 396
+    },
+    {
+      "tick": 13440,
+      "eta_version": "v2",
+      "status": "WARN",
+      "live_mae": 46.0,
+      "start_mae": 44.2,
+      "samples": 400
+    },
+    {
+      "tick": 13560,
+      "eta_version": "v2",
+      "status": "WARN",
+      "live_mae": 45.6,
+      "start_mae": 44.2,
+      "samples": 400
+    },
+    {
+      "tick": 13680,
+      "eta_version": "v2",
+      "status": "WARN",
+      "live_mae": 47.3,
+      "start_mae": 44.2,
+      "samples": 400
+    },
+    {
+      "tick": 13800,
+      "eta_version": "v2",
+      "status": "DRIFT",
+      "live_mae": 48.7,
+      "start_mae": 44.2,
+      "samples": 400
+    },
+    {
+      "tick": 13920,
+      "eta_version": "v3",
+      "status": "DRIFT",
+      "live_mae": 49.0,
+      "start_mae": 44.2,
+      "samples": 400
+    },
+    {
+      "tick": 14040,
+      "eta_version": "v3",
+      "status": "NOT_ENOUGH_DATA",
+      "live_mae": null,
+      "start_mae": null,
+      "samples": 10
+    },
+    {
+      "tick": 14160,
+      "eta_version": "v3",
+      "status": "NOT_ENOUGH_DATA",
+      "live_mae": null,
+      "start_mae": null,
+      "samples": 15
+    },
+    {
+      "tick": 14280,
+      "eta_version": "v3",
+      "status": "NOT_ENOUGH_DATA",
+      "live_mae": null,
+      "start_mae": null,
+      "samples": 29
+    },
+    {
+      "tick": 14400,
+      "eta_version": "v3",
+      "status": "NOT_ENOUGH_DATA",
+      "live_mae": null,
+      "start_mae": null,
+      "samples": 38
+    },
+    {
+      "tick": 14520,
+      "eta_version": "v3",
+      "status": "NOT_ENOUGH_DATA",
+      "live_mae": null,
+      "start_mae": null,
+      "samples": 46
+    },
+    {
+      "tick": 14640,
+      "eta_version": "v3",
+      "status": "NOT_ENOUGH_DATA",
+      "live_mae": null,
+      "start_mae": null,
+      "samples": 55
+    },
+    {
+      "tick": 14760,
+      "eta_version": "v3",
+      "status": "NOT_ENOUGH_DATA",
+      "live_mae": null,
+      "start_mae": null,
+      "samples": 64
+    },
+    {
+      "tick": 14880,
+      "eta_version": "v3",
+      "status": "NOT_ENOUGH_DATA",
+      "live_mae": null,
+      "start_mae": null,
+      "samples": 76
+    },
+    {
+      "tick": 15000,
+      "eta_version": "v3",
+      "status": "NOT_ENOUGH_DATA",
+      "live_mae": null,
+      "start_mae": null,
+      "samples": 85
+    },
+    {
+      "tick": 15120,
+      "eta_version": "v3",
+      "status": "NOT_ENOUGH_DATA",
+      "live_mae": null,
+      "start_mae": null,
+      "samples": 93
+    },
+    {
+      "tick": 15240,
+      "eta_version": "v3",
+      "status": "NOT_ENOUGH_DATA",
+      "live_mae": null,
+      "start_mae": null,
+      "samples": 102
+    },
+    {
+      "tick": 15360,
+      "eta_version": "v3",
+      "status": "NOT_ENOUGH_DATA",
+      "live_mae": null,
+      "start_mae": null,
+      "samples": 112
+    },
+    {
+      "tick": 15480,
+      "eta_version": "v3",
+      "status": "NOT_ENOUGH_DATA",
+      "live_mae": null,
+      "start_mae": null,
+      "samples": 122
+    },
+    {
+      "tick": 15600,
+      "eta_version": "v3",
+      "status": "NOT_ENOUGH_DATA",
+      "live_mae": null,
+      "start_mae": null,
+      "samples": 133
+    },
+    {
+      "tick": 15720,
+      "eta_version": "v3",
+      "status": "NOT_ENOUGH_DATA",
+      "live_mae": null,
+      "start_mae": null,
+      "samples": 141
+    },
+    {
+      "tick": 15840,
+      "eta_version": "v3",
+      "status": "WARN",
+      "live_mae": 44.5,
+      "start_mae": null,
+      "samples": 151
+    },
+    {
+      "tick": 15960,
+      "eta_version": "v3",
+      "status": "WARN",
+      "live_mae": 43.8,
+      "start_mae": null,
+      "samples": 160
+    },
+    {
+      "tick": 16080,
+      "eta_version": "v3",
+      "status": "WARN",
+      "live_mae": 42.5,
+      "start_mae": null,
+      "samples": 169
+    },
+    {
+      "tick": 16200,
+      "eta_version": "v3",
+      "status": "WARN",
+      "live_mae": 44.2,
+      "start_mae": null,
+      "samples": 176
+    },
+    {
+      "tick": 16320,
+      "eta_version": "v3",
+      "status": "WARN",
+      "live_mae": 45.8,
+      "start_mae": null,
+      "samples": 186
+    },
+    {
+      "tick": 16440,
+      "eta_version": "v3",
+      "status": "WARN",
+      "live_mae": 45.6,
+      "start_mae": null,
+      "samples": 194
+    },
+    {
+      "tick": 16560,
+      "eta_version": "v3",
+      "status": "WARN",
+      "live_mae": 47.6,
+      "start_mae": null,
+      "samples": 199
+    },
+    {
+      "tick": 16680,
+      "eta_version": "v3",
+      "status": "WARN",
+      "live_mae": 52.8,
+      "start_mae": null,
+      "samples": 209
+    },
+    {
+      "tick": 16800,
+      "eta_version": "v3",
+      "status": "WARN",
+      "live_mae": 53.2,
+      "start_mae": null,
+      "samples": 218
+    },
+    {
+      "tick": 16920,
+      "eta_version": "v3",
+      "status": "WARN",
+      "live_mae": 53.4,
+      "start_mae": null,
+      "samples": 226
+    },
+    {
+      "tick": 17040,
+      "eta_version": "v3",
+      "status": "WARN",
+      "live_mae": 54.1,
+      "start_mae": null,
+      "samples": 234
+    },
+    {
+      "tick": 17160,
+      "eta_version": "v3",
+      "status": "WARN",
+      "live_mae": 53.7,
+      "start_mae": null,
+      "samples": 243
+    },
+    {
+      "tick": 17280,
+      "eta_version": "v3",
+      "status": "WARN",
+      "live_mae": 54.2,
+      "start_mae": null,
+      "samples": 253
+    },
+    {
+      "tick": 17400,
+      "eta_version": "v3",
+      "status": "WARN",
+      "live_mae": 54.1,
+      "start_mae": null,
+      "samples": 260
+    },
+    {
+      "tick": 17520,
+      "eta_version": "v3",
+      "status": "WARN",
+      "live_mae": 54.6,
+      "start_mae": null,
+      "samples": 268
+    },
+    {
+      "tick": 17640,
+      "eta_version": "v3",
+      "status": "WARN",
+      "live_mae": 54.0,
+      "start_mae": null,
+      "samples": 279
+    },
+    {
+      "tick": 17760,
+      "eta_version": "v3",
+      "status": "WARN",
+      "live_mae": 53.4,
+      "start_mae": null,
+      "samples": 290
+    },
+    {
+      "tick": 17880,
+      "eta_version": "v3",
+      "status": "WARN",
+      "live_mae": 52.6,
+      "start_mae": null,
+      "samples": 297
+    },
+    {
+      "tick": 18000,
+      "eta_version": "v3",
+      "status": "WARN",
+      "live_mae": 53.1,
+      "start_mae": 53.1,
+      "samples": 308
+    },
+    {
+      "tick": 18120,
+      "eta_version": "v3",
+      "status": "WARN",
+      "live_mae": 52.1,
+      "start_mae": 53.1,
+      "samples": 322
+    },
+    {
+      "tick": 18240,
+      "eta_version": "v3",
+      "status": "WARN",
+      "live_mae": 51.6,
+      "start_mae": 53.1,
+      "samples": 330
+    },
+    {
+      "tick": 18360,
+      "eta_version": "v3",
+      "status": "WARN",
+      "live_mae": 51.6,
+      "start_mae": 53.1,
+      "samples": 342
+    },
+    {
+      "tick": 18480,
+      "eta_version": "v3",
+      "status": "WARN",
+      "live_mae": 51.0,
+      "start_mae": 53.1,
+      "samples": 353
+    },
+    {
+      "tick": 18600,
+      "eta_version": "v3",
+      "status": "WARN",
+      "live_mae": 50.7,
+      "start_mae": 53.1,
+      "samples": 364
+    },
+    {
+      "tick": 18720,
+      "eta_version": "v3",
+      "status": "WARN",
+      "live_mae": 50.1,
+      "start_mae": 53.1,
+      "samples": 373
+    },
+    {
+      "tick": 18840,
+      "eta_version": "v3",
+      "status": "WARN",
+      "live_mae": 49.7,
+      "start_mae": 53.1,
+      "samples": 382
+    },
+    {
+      "tick": 18960,
+      "eta_version": "v3",
+      "status": "WARN",
+      "live_mae": 49.1,
+      "start_mae": 53.1,
+      "samples": 393
+    },
+    {
+      "tick": 19080,
+      "eta_version": "v3",
+      "status": "WARN",
+      "live_mae": 48.3,
+      "start_mae": 53.1,
+      "samples": 400
+    },
+    {
+      "tick": 19200,
+      "eta_version": "v3",
+      "status": "WARN",
+      "live_mae": 47.6,
+      "start_mae": 53.1,
+      "samples": 400
+    },
+    {
+      "tick": 19320,
+      "eta_version": "v3",
+      "status": "WARN",
+      "live_mae": 47.8,
+      "start_mae": 53.1,
+      "samples": 400
+    },
+    {
+      "tick": 19440,
+      "eta_version": "v3",
+      "status": "WARN",
+      "live_mae": 47.6,
+      "start_mae": 53.1,
+      "samples": 400
+    },
+    {
+      "tick": 19560,
+      "eta_version": "v3",
+      "status": "WARN",
+      "live_mae": 49.5,
+      "start_mae": 53.1,
+      "samples": 400
+    },
+    {
+      "tick": 19680,
+      "eta_version": "v3",
+      "status": "WARN",
+      "live_mae": 50.0,
+      "start_mae": 53.1,
+      "samples": 400
+    },
+    {
+      "tick": 19800,
+      "eta_version": "v3",
+      "status": "WARN",
+      "live_mae": 49.7,
+      "start_mae": 53.1,
+      "samples": 400
+    },
+    {
+      "tick": 19920,
+      "eta_version": "v3",
+      "status": "WARN",
+      "live_mae": 49.3,
+      "start_mae": 53.1,
+      "samples": 400
+    },
+    {
+      "tick": 20040,
+      "eta_version": "v3",
+      "status": "WARN",
+      "live_mae": 49.3,
+      "start_mae": 53.1,
+      "samples": 400
+    },
+    {
+      "tick": 20160,
+      "eta_version": "v3",
+      "status": "WARN",
+      "live_mae": 49.5,
+      "start_mae": 53.1,
+      "samples": 400
+    },
+    {
+      "tick": 20280,
+      "eta_version": "v3",
+      "status": "WARN",
+      "live_mae": 49.4,
+      "start_mae": 53.1,
+      "samples": 400
+    },
+    {
+      "tick": 20400,
+      "eta_version": "v3",
+      "status": "WARN",
+      "live_mae": 49.4,
+      "start_mae": 53.1,
+      "samples": 400
+    },
+    {
+      "tick": 20520,
+      "eta_version": "v3",
+      "status": "WARN",
+      "live_mae": 47.3,
+      "start_mae": 53.1,
+      "samples": 400
+    },
+    {
+      "tick": 20640,
+      "eta_version": "v3",
+      "status": "WARN",
+      "live_mae": 47.8,
+      "start_mae": 53.1,
+      "samples": 400
+    },
+    {
+      "tick": 20760,
+      "eta_version": "v3",
+      "status": "WARN",
+      "live_mae": 50.0,
+      "start_mae": 53.1,
+      "samples": 400
+    },
+    {
+      "tick": 20880,
+      "eta_version": "v3",
+      "status": "WARN",
+      "live_mae": 50.4,
+      "start_mae": 53.1,
+      "samples": 400
+    },
+    {
+      "tick": 21000,
+      "eta_version": "v3",
+      "status": "WARN",
+      "live_mae": 49.9,
+      "start_mae": 53.1,
+      "samples": 400
+    },
+    {
+      "tick": 21120,
+      "eta_version": "v3",
+      "status": "WARN",
+      "live_mae": 49.8,
+      "start_mae": 53.1,
+      "samples": 400
+    },
+    {
+      "tick": 21240,
+      "eta_version": "v3",
+      "status": "WARN",
+      "live_mae": 49.3,
+      "start_mae": 53.1,
+      "samples": 400
+    },
+    {
+      "tick": 21360,
+      "eta_version": "v3",
+      "status": "WARN",
+      "live_mae": 49.3,
+      "start_mae": 53.1,
+      "samples": 400
+    },
+    {
+      "tick": 21480,
+      "eta_version": "v3",
+      "status": "WARN",
+      "live_mae": 47.7,
+      "start_mae": 53.1,
+      "samples": 400
+    },
+    {
+      "tick": 21600,
+      "eta_version": "v3",
+      "status": "WARN",
+      "live_mae": 46.7,
+      "start_mae": 53.1,
+      "samples": 400
+    },
+    {
+      "tick": 21720,
+      "eta_version": "v3",
+      "status": "WARN",
+      "live_mae": 45.0,
+      "start_mae": 53.1,
+      "samples": 400
+    },
+    {
+      "tick": 21840,
+      "eta_version": "v3",
+      "status": "WARN",
+      "live_mae": 44.4,
+      "start_mae": 53.1,
+      "samples": 400
+    },
+    {
+      "tick": 21960,
+      "eta_version": "v3",
+      "status": "WARN",
+      "live_mae": 41.8,
+      "start_mae": 53.1,
+      "samples": 400
+    },
+    {
+      "tick": 22080,
+      "eta_version": "v3",
+      "status": "WARN",
+      "live_mae": 41.6,
+      "start_mae": 53.1,
+      "samples": 400
+    },
+    {
+      "tick": 22200,
+      "eta_version": "v3",
+      "status": "WARN",
+      "live_mae": 40.4,
+      "start_mae": 53.1,
+      "samples": 400
+    },
+    {
+      "tick": 22320,
+      "eta_version": "v3",
+      "status": "WARN",
+      "live_mae": 39.5,
+      "start_mae": 53.1,
+      "samples": 400
+    },
+    {
+      "tick": 22440,
+      "eta_version": "v3",
+      "status": "WARN",
+      "live_mae": 39.3,
+      "start_mae": 53.1,
+      "samples": 400
+    },
+    {
+      "tick": 22560,
+      "eta_version": "v3",
+      "status": "WARN",
+      "live_mae": 38.0,
+      "start_mae": 53.1,
+      "samples": 400
+    },
+    {
+      "tick": 22680,
+      "eta_version": "v3",
+      "status": "WARN",
+      "live_mae": 37.7,
+      "start_mae": 53.1,
+      "samples": 400
+    },
+    {
+      "tick": 22800,
+      "eta_version": "v3",
+      "status": "WARN",
+      "live_mae": 37.7,
+      "start_mae": 53.1,
+      "samples": 400
+    },
+    {
+      "tick": 22920,
+      "eta_version": "v3",
+      "status": "WARN",
+      "live_mae": 38.0,
+      "start_mae": 53.1,
+      "samples": 400
+    },
+    {
+      "tick": 23040,
+      "eta_version": "v3",
+      "status": "WARN",
+      "live_mae": 37.2,
+      "start_mae": 53.1,
+      "samples": 400
+    },
+    {
+      "tick": 23160,
+      "eta_version": "v3",
+      "status": "WARN",
+      "live_mae": 36.5,
+      "start_mae": 53.1,
+      "samples": 400
+    },
+    {
+      "tick": 23280,
+      "eta_version": "v3",
+      "status": "WARN",
+      "live_mae": 36.6,
+      "start_mae": 53.1,
+      "samples": 400
+    },
+    {
+      "tick": 23400,
+      "eta_version": "v3",
+      "status": "WARN",
+      "live_mae": 36.7,
+      "start_mae": 53.1,
+      "samples": 400
+    },
+    {
+      "tick": 23520,
+      "eta_version": "v3",
+      "status": "WARN",
+      "live_mae": 39.4,
+      "start_mae": 53.1,
+      "samples": 400
+    },
+    {
+      "tick": 23640,
+      "eta_version": "v3",
+      "status": "WARN",
+      "live_mae": 41.2,
+      "start_mae": 53.1,
+      "samples": 400
+    },
+    {
+      "tick": 23760,
+      "eta_version": "v3",
+      "status": "WARN",
+      "live_mae": 41.1,
+      "start_mae": 53.1,
+      "samples": 400
+    },
+    {
+      "tick": 23880,
+      "eta_version": "v3",
+      "status": "WARN",
+      "live_mae": 40.9,
+      "start_mae": 53.1,
+      "samples": 400
+    },
+    {
+      "tick": 24000,
+      "eta_version": "v3",
+      "status": "WARN",
+      "live_mae": 40.3,
+      "start_mae": 53.1,
+      "samples": 400
+    }
+  ],
+  "events": [
+    {
+      "at": 1793451950.1346877,
+      "event": "status_warn",
+      "model": "eta",
+      "text": "major shift of input fleet_busy (PSI 7.67)",
+      "by": null
+    },
+    {
+      "at": 1793451950.1426878,
+      "event": "status_warn",
+      "model": "late",
+      "text": "major shift of input fleet_busy (PSI 7.67)",
+      "by": null
+    },
+    {
+      "at": 1793451966.548448,
+      "event": "status_drift",
+      "model": "late",
+      "text": "major shift of input fleet_busy (PSI 7.43); catches 66% of late orders (test 87%)",
+      "by": null
+    },
+    {
+      "at": 1793451967.5349686,
+      "event": "status_warn",
+      "model": "late",
+      "text": "major shift of input fleet_busy (PSI 7.48); catches 71% of late orders (test 87%)",
+      "by": null
+    },
+    {
+      "at": 1793451978.973006,
+      "event": "status_drift",
+      "model": "eta",
+      "text": "major shift of input fleet_busy (PSI 8.58); live error 33 ticks is 1.44x its error when it went live",
+      "by": null
+    },
+    {
+      "at": 1793451979.5775259,
+      "event": "retrain_started",
+      "model": "eta",
+      "text": "drift: major shift of input fleet_busy (PSI 8.58); live error 33 ticks is 1.44x its error when it went live",
+      "by": "auto"
+    },
+    {
+      "at": 1793451985.1591966,
+      "event": "promoted",
+      "model": "eta",
+      "text": "v2 in production",
+      "by": "gate"
+    },
+    {
+      "at": 1793451995.0983145,
+      "event": "status_warn",
+      "model": "eta",
+      "text": "major shift of input pending_orders (PSI 9.59)",
+      "by": null
+    },
+    {
+      "at": 1793452013.2904208,
+      "event": "status_drift",
+      "model": "eta",
+      "text": "major shift of input pending_orders (PSI 9.59); live error 49 ticks is 1.41x the test error",
+      "by": null
+    },
+    {
+      "at": 1793452014.0144618,
+      "event": "retrain_started",
+      "model": "eta",
+      "text": "drift: major shift of input pending_orders (PSI 9.59); live error 49 ticks is 1.41x the test error",
+      "by": "auto"
+    },
+    {
+      "at": 1793452020.618802,
+      "event": "promoted",
+      "model": "eta",
+      "text": "v3 in production",
+      "by": "gate"
+    },
+    {
+      "at": 1793452031.1813812,
+      "event": "status_warn",
+      "model": "eta",
+      "text": "major shift of input pending_orders (PSI 9.64)",
+      "by": null
+    }
+  ],
+  "versions": {
+    "eta": [
+      {
+        "version": "v1",
+        "status": "archived",
+        "created": null,
+        "file": "models/eta_v1.joblib",
+        "report": "models/eta_v1_report.json",
+        "reference": "models/eta_v1_reference.json",
+        "trained_on": "dataset v3",
+        "test": {
+          "MAE": 38.824,
+          "RMSE": 55.331,
+          "R2": 0.564
+        },
+        "history": [
+          {
+            "at": null,
+            "event": "trained by notebook"
+          },
+          {
+            "at": "2026-10-31T13:06:25+00:00",
+            "event": "replaced by v2",
+            "by": "gate"
+          }
+        ]
+      },
+      {
+        "version": "v2",
+        "file": "C:/Users/shahi/AppData/Local/Temp/tmpbhnx1hku/models/eta_v2.joblib",
+        "report": "C:/Users/shahi/AppData/Local/Temp/tmpbhnx1hku/models/eta_v2_report.json",
+        "reference": "C:/Users/shahi/AppData/Local/Temp/tmpbhnx1hku/models/eta_v2_reference.json",
+        "trained_on": "40000 old + 442 live rows",
+        "test": {
+          "MAE": 34.662
+        },
+        "baseline": {
+          "MAE": 34.662
+        },
+        "gate": [
+          {
+            "test": "schema",
+            "passed": true,
+            "detail": "21 input features, as production"
+          },
+          {
+            "test": "sane output",
+            "passed": true,
+            "detail": "ETA 33-187 ticks"
+          },
+          {
+            "test": "better now",
+            "passed": true,
+            "detail": "recent MAE 34.7 vs 40.0 (+13.4%)"
+          },
+          {
+            "test": "not worse before",
+            "passed": true,
+            "detail": "test MAE 39.0 vs 38.8 (+0.5%)"
+          },
+          {
+            "test": "fast enough",
+            "passed": true,
+            "detail": "7.76 ms per prediction"
+          }
+        ],
+        "passed": true,
+        "reason": "drift: major shift of input fleet_busy (PSI 8.58); live error 33 ticks is 1.44x its error when it went live",
+        "status": "archived",
+        "created": "2026-10-31T13:06:25+00:00",
+        "history": [
+          {
+            "at": "2026-10-31T13:06:25+00:00",
+            "event": "trained",
+            "reason": "drift: major shift of input fleet_busy (PSI 8.58); live error 33 ticks is 1.44x its error when it went live"
+          },
+          {
+            "at": "2026-10-31T13:06:25+00:00",
+            "event": "promoted",
+            "by": "gate"
+          },
+          {
+            "at": "2026-10-31T13:07:00+00:00",
+            "event": "replaced by v3",
+            "by": "gate"
+          }
+        ]
+      },
+      {
+        "version": "v3",
+        "file": "C:/Users/shahi/AppData/Local/Temp/tmpbhnx1hku/models/eta_v3.joblib",
+        "report": "C:/Users/shahi/AppData/Local/Temp/tmpbhnx1hku/models/eta_v3_report.json",
+        "reference": "C:/Users/shahi/AppData/Local/Temp/tmpbhnx1hku/models/eta_v3_reference.json",
+        "trained_on": "40000 old + 746 live rows",
+        "test": {
+          "MAE": 41.992
+        },
+        "baseline": {
+          "MAE": 41.992
+        },
+        "gate": [
+          {
+            "test": "schema",
+            "passed": true,
+            "detail": "21 input features, as production"
+          },
+          {
+            "test": "sane output",
+            "passed": true,
+            "detail": "ETA 36-192 ticks"
+          },
+          {
+            "test": "better now",
+            "passed": true,
+            "detail": "recent MAE 42.0 vs 52.0 (+19.3%)"
+          },
+          {
+            "test": "not worse before",
+            "passed": true,
+            "detail": "test MAE 39.3 vs 39.0 (+0.7%)"
+          },
+          {
+            "test": "fast enough",
+            "passed": true,
+            "detail": "13.919 ms per prediction"
+          }
+        ],
+        "passed": true,
+        "reason": "drift: major shift of input pending_orders (PSI 9.59); live error 49 ticks is 1.41x the test error",
+        "status": "production",
+        "created": "2026-10-31T13:07:00+00:00",
+        "history": [
+          {
+            "at": "2026-10-31T13:07:00+00:00",
+            "event": "trained",
+            "reason": "drift: major shift of input pending_orders (PSI 9.59); live error 49 ticks is 1.41x the test error"
+          },
+          {
+            "at": "2026-10-31T13:07:00+00:00",
+            "event": "promoted",
+            "by": "gate"
+          }
+        ]
+      }
+    ],
+    "late": [
+      {
+        "version": "v1",
+        "status": "production",
+        "created": null,
+        "file": "models/late_risk_v1.joblib",
+        "report": "models/late_risk_v1_report.json",
+        "reference": "models/late_risk_v1_reference.json",
+        "trained_on": "dataset v3",
+        "test": {
+          "accuracy": 0.959,
+          "precision": 0.937,
+          "recall": 0.866,
+          "F1": 0.9,
+          "ROC-AUC": 0.988
+        },
+        "history": [
+          {
+            "at": null,
+            "event": "trained by notebook"
+          }
+        ]
+      }
+    ]
+  },
+  "shadow": {
+    "v1": {
+      "orders": 177,
+      "mae_served": 40.5,
+      "mae_if_v1": 40.5
+    },
+    "v2": {
+      "orders": 435,
+      "mae_served": 49.2,
+      "mae_if_v1": 54.6
+    },
+    "v3": {
+      "orders": 768,
+      "mae_served": 45.2,
+      "mae_if_v1": 55.1
+    }
+  }
+}

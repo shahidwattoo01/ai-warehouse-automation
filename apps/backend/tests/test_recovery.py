@@ -195,3 +195,19 @@ def test_backup_manifest_detects_damage(tmp_path, monkeypatch):
         (tmp_path / f"warehouse_ai_2026010{i}_000000.dump").write_bytes(b"x")
     backup_db.prune(tmp_path, "warehouse_ai", keep=2)
     assert len(list(tmp_path.glob("*.dump"))) == 2
+
+
+def test_snapshot_that_cannot_run_is_set_aside(world, tmp_path, monkeypatch):
+    """A snapshot from older code can unpickle and still fail on its first tick: it is tried on
+    a copy first, rejected, and the warehouse starts fresh instead of a dead loop."""
+    sim = world
+    run(sim, 20)
+    sim.recovery.write(sim.recovery.capture(sim), 20)
+
+    def broken_tick(self):
+        raise AttributeError("'dict' object has no attribute 'move_to_end'")
+
+    monkeypatch.setattr(SimulationEngine, "tick", broken_tick)
+    assert sim.recovery.load() is None
+    assert (tmp_path / "warehouse_state.rejected").exists()
+    assert "move_to_end" in sim.recovery.status()["last_error"]

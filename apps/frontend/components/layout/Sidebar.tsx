@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { pagePermission, useAuth } from "@/lib/auth";
 import {
   Bell,
+  BrainCircuit,
   Bot,
   BookOpen,
   Boxes,
@@ -32,6 +33,7 @@ const NAV = [
   { href: "/rf", label: "Handheld", icon: Smartphone },
   { href: "/vision", label: "Vision", icon: Cctv },
   { href: "/analytics", label: "Analytics", icon: LineChart },
+  { href: "/models", label: "AI models", icon: BrainCircuit },
   { href: "/copilot", label: "Copilot", icon: MessageSquare },
   { href: "/knowledge", label: "Knowledge", icon: BookOpen },
   { href: "/integration", label: "Integration", icon: Plug },

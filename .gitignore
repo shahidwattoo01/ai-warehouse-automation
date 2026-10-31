@@ -47,3 +47,6 @@ data/state/
 
 # Database backups (scripts/backup_db.py)
 backups/
+
+# Retrained model versions and the model registry (docs/mlops.md)
+data/mlops/

@@ -22,6 +22,7 @@ from app.services.copilot import copilot
 from app.services.erp import erp
 from app.services.events import events_service
 from app.services.leader import LeaderLock
+from app.services.mlops import mlops
 from app.services.predictor import Predictor
 from app.services.recovery import Recovery, snapshot_key
 from app.services.run_store import RunStore
@@ -50,6 +51,7 @@ class SimulatorService:
         self._task: asyncio.Task | None = None
         self._subscribers: set[asyncio.Queue[str]] = set()
         self.store = RunStore(self.settings.database_url) if self.settings.persist_runs else None
+        mlops.attach(self.predictor, self.store)  # drift monitoring and retraining (PR-19)
         self._last_flush = time.monotonic()
         # Loop health for /ready and /metrics: when the loop last ran, how late it was, tick cost.
         self.loop_heartbeat = time.monotonic()
@@ -132,6 +134,7 @@ class SimulatorService:
         self.loop_heartbeat = time.monotonic()
         if self._task is None:
             self._task = asyncio.create_task(self._run())
+            self._task.add_done_callback(_report_crash)
         self.role = "active"
         self.publish_state()
 
@@ -224,12 +227,14 @@ class SimulatorService:
                     self._broadcast(self.tick_message(events))
                 incidents = alert_centre.take_changed()
                 events_service.after_tick(events, incidents)
+                records, model_alerts = self.predictor.drain()
+                mlops.observe(records)  # finished predictions: the drift monitors' data
+                mlops.after_tick(engine.time)
+                events_service.publish_models(mlops.take_events(), engine.time)
                 if self.store:
                     self.store.collect(engine, events)
                     self.store.add_incidents(incidents)
-                    self.store.add_predictions(*self.predictor.drain())
-                else:
-                    self.predictor.drain()  # nothing records them: drop instead of piling up
+                    self.store.add_predictions(records, model_alerts)
                 cost = time.perf_counter() - began
                 self.ticks_total += 1
                 self.tick_seconds_total += cost
@@ -291,6 +296,14 @@ class SimulatorService:
 
     def unsubscribe(self, queue: asyncio.Queue[str]) -> None:
         self._subscribers.discard(queue)
+
+
+def _report_crash(task: asyncio.Task) -> None:
+    """The loop never ends on its own: if it does, say why (otherwise asyncio stays silent)."""
+    if not task.cancelled() and task.exception() is not None:
+        logging.getLogger(__name__).critical(
+            "The simulator loop stopped", exc_info=task.exception()
+        )
 
 
 simulator = SimulatorService()

@@ -27,6 +27,11 @@ class DistanceFields:
         self._fields: OrderedDict[Cell, dict[Cell, int]] = OrderedDict()
         self._closed: set[Cell] = set(grid.closed)
 
+    def __setstate__(self, state: dict) -> None:
+        """Snapshots saved before the cache became least-recently-used hold a plain dict."""
+        state["_fields"] = OrderedDict(state.get("_fields", {}))
+        self.__dict__.update(state)
+
     def _fresh(self) -> None:
         if self.grid.closed != self._closed:  # an aisle opened/closed, a hazard appeared/cleared
             self._fields.clear()

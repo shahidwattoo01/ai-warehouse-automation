@@ -1,0 +1,41 @@
+# Model operations (docs/mlops.md): drift monitoring of the live models, retraining and the
+# promotion gate. Monitored: the order models (ETA and late risk), whose outcomes arrive within
+# minutes; demand and anomaly are scored live on the dashboard but not retrained here yet.
+
+monitor:
+  window: 400               # recent finished predictions per model that the checks look at
+  min_samples: 150          # fewer than this: status NOT_ENOUGH_DATA, nothing is judged
+  check_every_ticks: 120    # five checks per simulated hour (ticks_per_hour 600)
+  baseline_samples: 300     # the first check with this many outcomes fixes the version's own
+                            # live error, which later checks are compared with too
+
+drift:
+  # Population Stability Index of each input feature, live window vs the training data.
+  # Common rule of thumb: < 0.1 stable, 0.1-0.25 moderate shift, > 0.25 major shift.
+  psi_warn: 0.1
+  psi_drift: 0.25
+  # Calendar inputs are constant over a window of a few hours (one weekday, one promo state, a
+  # few hours of the day): a short window always "differs" from a year of training data. That is
+  # seasonality, not drift, so these are not compared.
+  psi_ignore: [hour_sin, hour_cos, day_of_week, is_weekend, is_promo_day]
+  # Live error vs the error on the training test set (ETA: MAE ratio; late risk: recall drop).
+  eta_mae_ratio_warn: 1.2
+  eta_mae_ratio_drift: 1.4
+  late_recall_drop_warn: 0.10
+  late_recall_drop_drift: 0.20
+  late_min_positives: 30    # recall is only judged with at least this many late orders
+  confirm_checks: 2         # DRIFT this many checks in a row before retraining starts
+
+retrain:
+  auto: true                # start retraining when drift is confirmed
+  keep_live: 5000           # finished live predictions kept per model as training data
+  live_weight: 3.0          # a live example counts as much as this many old ones
+  holdout_share: 0.3        # the newest share of live data is kept out to judge the candidate
+  cooldown_ticks: 1200      # no new automatic retrain within two simulated hours of the last
+
+gate:
+  # A candidate replaces the production model only when every test passes.
+  auto_promote: true
+  min_improvement: 0.03     # on the recent holdout: at least 3 % lower MAE (ETA) / higher F1
+  max_regression: 0.15      # on the original test set: at most 15 % worse (old conditions)
+  max_latency_ms: 20        # one prediction, median of 200

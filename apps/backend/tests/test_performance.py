@@ -126,3 +126,16 @@ def test_distance_cache_is_bounded_and_keeps_recent_goals(monkeypatch):
     assert goals[0] in fields._fields and goals[1] not in fields._fields  # oldest went first
     start = next(iter(first))
     assert fields.distance(start, goals[1]) >= 0  # evicted fields are simply recomputed
+
+
+def test_distance_cache_from_an_older_snapshot_still_works():
+    """Snapshots saved before the cache became LRU hold a plain dict (PR-17 restore)."""
+    import pickle
+
+    e = SimulationEngine(seed=7, overrides={"layout": "default", "inventory_model": "simple"})
+    goal = tuple(next(iter(e.inventory.face.values())))
+    e.distances.field(goal)
+    e.distances._fields = dict(e.distances._fields)  # as the old code stored it
+    restored = pickle.loads(pickle.dumps(e.distances))
+    other = tuple(list(e.inventory.face.values())[1])
+    assert restored.field(goal) and restored.field(other)  # move_to_end works again

@@ -48,6 +48,14 @@ class EventService:
         self._safety_seq = 0
         self._alert_seq = 0
 
+    def publish_models(self, model_events: list[dict], tick: int) -> None:
+        """Model operations (drift, retraining, promotion) as models/{event}."""
+        if self.publisher is None:
+            return
+        for e in model_events:
+            data = {"text": e["text"], "by": e["by"]}
+            self.publisher.publish(f"models/{e['event']}", e["model"], data, tick)
+
     def after_tick(self, events: list, incidents: list) -> None:
         if self.publisher is None:
             return
