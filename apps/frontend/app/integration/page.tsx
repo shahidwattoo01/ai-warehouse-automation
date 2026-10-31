@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { ErpPanel } from "@/components/integration/ErpPanel";
 import { Screen } from "@/components/layout/Screen";
 import { ErrorNote, Panel, td, th } from "@/components/wms/shared";
 import { request } from "@/lib/api";
@@ -237,6 +238,7 @@ export default function IntegrationPage() {
               </div>
             </Panel>
           </div>
+          <ErpPanel />
         </div>
       )}
     </Screen>

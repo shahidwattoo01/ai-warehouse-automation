@@ -53,6 +53,7 @@ export interface CustomerOrderRow {
   backordered: number;
   missed: number;
   parent: string | null;
+  external_ref: string | null;
   wave: string | null;
   station: string | null;
   shipped_at: string | null;

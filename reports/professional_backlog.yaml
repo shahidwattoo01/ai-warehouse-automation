@@ -125,7 +125,8 @@ items:
     phase: 10
     priority: high
     effort: M
-    status: planned
+    status: done
+    evidence: "integration/erp: sales orders pulled from the ERP or pushed to an HMAC-signed webhook, checked and imported exactly once (ERP customer and number kept), acknowledged or rejected; outbox with idempotency keys and retries for ship confirmations and hourly stock levels; mock ERP in-process or as a REST server (tested over HTTP); ERP panel; docs/erp.md"
   - id: PR-14
     area: Integration
     gap: No scanning

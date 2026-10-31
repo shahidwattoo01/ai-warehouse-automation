@@ -64,6 +64,13 @@ class Settings(BaseSettings):
     vda5050_enabled: bool = True
     mqtt_url: str = ""  # mqtt://user:password@host:1883 (mqtts:// for TLS)
 
+    # ERP connection (integration/erp): a REST ERP, or the in-process mock ERP when ERP_URL is empty
+    erp_enabled: bool = True
+    erp_url: str = ""  # e.g. http://127.0.0.1:8100 for `python -m integration.erp.mock_erp`
+    erp_api_key: str = ""
+    erp_webhook_secret: str = ""  # signs pushed orders (POST /api/v1/erp/webhooks/orders)
+    erp_poll_minutes: int = 5  # simulated minutes between pulls of released sales orders
+
     llm_provider: str = ""
     llm_model: str = ""
     llm_api_key: str = ""

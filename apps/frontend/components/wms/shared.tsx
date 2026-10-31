@@ -148,6 +148,9 @@ const TONE: Record<string, string> = {
   DAMAGED: "bg-danger/15 text-danger",
   EXPIRED: "bg-danger/15 text-danger",
   A: "bg-accent/20 text-accent",
+  // ERP sales orders
+  ACCEPTED: "bg-success/15 text-success",
+  REJECTED: "bg-danger/15 text-danger",
   // returns
   EXPECTED: "bg-accent/10 text-accent",
   RECEIVED: "bg-warning/15 text-warning",

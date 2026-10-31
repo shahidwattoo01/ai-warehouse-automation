@@ -79,6 +79,7 @@ class CustomerOrder:
     partial: bool = False
     missed: int = 0  # trucks missed
     cancel_reason: str | None = None
+    external_ref: str | None = None  # the business system's order number (ERP)
     history: list[dict] = field(default_factory=list)
 
     def log(self, tick: int, event: str, user: str = "system", note: str | None = None) -> None:
@@ -161,6 +162,8 @@ class Outbound:
         self.backorders: dict[str, Backorder] = {}
         self.confirmations: deque = deque(maxlen=500)  # ship confirmations for an ERP
         self._children: deque = deque()  # backorder groups waiting for the simulator's order
+        # Orders from a business system: order id -> (customer id, external order number)
+        self.preset: dict[str, tuple[str, str]] = {}
         self._new_orders: list[dict] = []
         self._next_wave = 0
         self._due = 0  # earliest departure not yet processed (no scan of trips before then)
@@ -206,11 +209,13 @@ class Outbound:
     def register(self, order, waiting: bool) -> CustomerOrder:
         """A new simulator order (already allocated by the warehouse)."""
         priority = order.priority.value
-        parent = None
+        parent = external = None
         if order.source == "BACKORDER" and self._children:
             parent, customer_id, bo_ids = self._children.popleft()
             for bo in bo_ids:
                 self.backorders[bo].child = order.order_id
+        elif order.order_id in self.preset:
+            customer_id, external = self.preset.pop(order.order_id)
         else:
             ids = sorted(self.customers)
             customer_id = ids[zlib.crc32(order.order_id.encode()) % len(ids)]
@@ -235,6 +240,7 @@ class Outbound:
             status="WAITING_STOCK" if waiting else "READY",
             parent=parent,
         )
+        rec.external_ref = external if order.source == "ERP" else None
         self.orders[rec.order_id] = rec
         self.trip(carrier, departs)
         rec.log(self.inv.tick, "CREATED", note=f"{order.source.lower()} order, {rec.status}")
@@ -841,6 +847,7 @@ class Outbound:
             "backordered": sum(ln.backordered for ln in rec.lines),
             "missed": rec.missed,
             "parent": rec.parent,
+            "external_ref": rec.external_ref,
             "wave": rec.wave,
             "station": rec.station,
             "shipped_at": self.clock(rec.shipped),

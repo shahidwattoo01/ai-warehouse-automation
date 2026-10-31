@@ -17,6 +17,7 @@ from app.core.config import get_settings
 from app.services.alerts import EVERY_TICKS
 from app.services.alerts import centre as alert_centre
 from app.services.copilot import copilot
+from app.services.erp import erp
 from app.services.predictor import Predictor
 from app.services.run_store import RunStore
 from app.services.vda5050 import vda
@@ -32,6 +33,7 @@ class SimulatorService:
         self.tick_hz = self.settings.sim_tick_hz
         self.engine = self._new_engine()
         vda.attach(self.engine)  # the robots as VDA 5050 vehicles, the platform as master control
+        erp.attach(self.engine)  # sales orders in, shipments and stock out
         self.predictor = Predictor()  # Phase 3 models, scored live against the simulator
         self.predictor.attach(self.engine)
         copilot.attach(self.engine)  # Phase 6: operator commands in plain language
@@ -59,6 +61,7 @@ class SimulatorService:
         old, self.engine = self.engine, self._new_engine()
         alert_centre.reset()  # incidents belong to a run
         vda.attach(self.engine)
+        erp.attach(self.engine)
         self.predictor.attach(self.engine)
         copilot.attach(self.engine)
         self.optimizer = Optimizer(self.engine, self.predictor, self.strategies)  # same rules
@@ -99,6 +102,7 @@ class SimulatorService:
                 self.predictor.after_tick()
                 self.optimizer.after_tick()
                 vda.after_tick(events)
+                erp.after_tick()
                 if engine.time % EVERY_TICKS == 0:  # alert rules every 3 simulated minutes
                     alert_centre.evaluate(engine, self.predictor.snapshot())
                 if self._subscribers:  # build the frame only if someone is watching

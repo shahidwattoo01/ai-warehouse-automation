@@ -8,6 +8,7 @@ from app.api.v1 import (
     analytics,
     auth,
     copilot,
+    erp,
     inventory,
     navigation,
     orders,
@@ -41,3 +42,4 @@ api_router.include_router(wms.router)
 api_router.include_router(safety.router)
 api_router.include_router(alerts.router)
 api_router.include_router(vda5050.router)
+api_router.include_router(erp.router)

@@ -89,6 +89,7 @@ export function CustomerOrders({ onResult }: { onResult: (m: { ok: boolean; text
                   <td className={`${td} font-mono text-xs`}>
                     {r.order_id}
                     {r.parent && <span className="ml-1 text-[10px] text-muted">backorder</span>}
+                    {r.external_ref && <div className="text-[10px] text-muted">ERP {r.external_ref}</div>}
                   </td>
                   <td className={td}>
                     <Badge value={r.status} />
