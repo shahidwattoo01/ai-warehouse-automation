@@ -18,6 +18,7 @@ from app.services.alerts import EVERY_TICKS
 from app.services.alerts import centre as alert_centre
 from app.services.copilot import copilot
 from app.services.erp import erp
+from app.services.events import events_service
 from app.services.predictor import Predictor
 from app.services.run_store import RunStore
 from app.services.vda5050 import vda
@@ -34,6 +35,7 @@ class SimulatorService:
         self.engine = self._new_engine()
         vda.attach(self.engine)  # the robots as VDA 5050 vehicles, the platform as master control
         erp.attach(self.engine)  # sales orders in, shipments and stock out
+        events_service.attach(self.engine)  # platform events for other systems (message bus)
         self.predictor = Predictor()  # Phase 3 models, scored live against the simulator
         self.predictor.attach(self.engine)
         copilot.attach(self.engine)  # Phase 6: operator commands in plain language
@@ -62,6 +64,7 @@ class SimulatorService:
         alert_centre.reset()  # incidents belong to a run
         vda.attach(self.engine)
         erp.attach(self.engine)
+        events_service.attach(self.engine)
         self.predictor.attach(self.engine)
         copilot.attach(self.engine)
         self.optimizer = Optimizer(self.engine, self.predictor, self.strategies)  # same rules
@@ -108,6 +111,7 @@ class SimulatorService:
                 if self._subscribers:  # build the frame only if someone is watching
                     self._broadcast(self.tick_message(events))
                 incidents = alert_centre.take_changed()
+                events_service.after_tick(events, incidents)
                 if self.store:
                     self.store.collect(engine, events)
                     self.store.add_incidents(incidents)

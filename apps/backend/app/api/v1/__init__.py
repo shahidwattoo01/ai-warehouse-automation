@@ -9,6 +9,7 @@ from app.api.v1 import (
     auth,
     copilot,
     erp,
+    events,
     inventory,
     navigation,
     orders,
@@ -43,3 +44,4 @@ api_router.include_router(safety.router)
 api_router.include_router(alerts.router)
 api_router.include_router(vda5050.router)
 api_router.include_router(erp.router)
+api_router.include_router(events.router)

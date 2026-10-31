@@ -72,7 +72,9 @@ class Safety:
         **detail,
     ) -> dict:
         eng = self.engine
+        self.metrics["seq"] += 1
         entry = {
+            "seq": self.metrics["seq"],  # running number: readers know what they have seen
             "tick": eng.time,
             "kind": kind,
             "severity": severity,

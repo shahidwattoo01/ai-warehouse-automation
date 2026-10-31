@@ -143,7 +143,8 @@ items:
     phase: 10
     priority: medium
     effort: M
-    status: planned
+    status: done
+    evidence: "integration/events: robot, order and outbound status, floor, safety, alert and warehouse events as CloudEvents 1.0 on warehouse/v1/{category}/{event} (MQTT or in-process), Server-Sent Events stream with login, replay after a sequence, event catalogue; Event stream panel; docs/events.md. Kafka not added"
 
   # ----- Operations ------------------------------------------------------------------------
   - id: PR-16

@@ -169,7 +169,11 @@ class Warehouse:
         return f"{prefix}-{self.seq[prefix]:06d}"
 
     def _alert(self, level: str, text: str, ref: str | None = None) -> None:
-        self.alerts.appendleft({"tick": self.inv.tick, "level": level, "text": text, "ref": ref})
+        self.metrics["alert_seq"] += 1
+        self.alerts.appendleft(
+            {"seq": self.metrics["alert_seq"], "tick": self.inv.tick, "level": level,
+             "text": text, "ref": ref}
+        )  # fmt: skip
 
     def _popularity(self) -> dict[str, float]:
         """Zipf-like demand: a deterministic shuffle ranks the SKUs; weight 1 / (rank + 10).

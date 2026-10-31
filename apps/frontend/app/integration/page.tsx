@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { ErpPanel } from "@/components/integration/ErpPanel";
+import { EventsPanel } from "@/components/integration/EventsPanel";
 import { Screen } from "@/components/layout/Screen";
 import { ErrorNote, Panel, td, th } from "@/components/wms/shared";
 import { request } from "@/lib/api";
@@ -239,6 +240,7 @@ export default function IntegrationPage() {
             </Panel>
           </div>
           <ErpPanel />
+          <EventsPanel />
         </div>
       )}
     </Screen>
