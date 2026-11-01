@@ -9,6 +9,7 @@ import { Ledger, Work } from "@/components/wms/Ledger";
 import { Locations } from "@/components/wms/Locations";
 import { Overview } from "@/components/wms/Overview";
 import { Receiving } from "@/components/wms/Receiving";
+import { Labour } from "@/components/wms/Labour";
 import { Returns } from "@/components/wms/Returns";
 import { ErrorNote, ScanBox } from "@/components/wms/shared";
 import { SimpleInventory } from "@/components/wms/SimpleInventory";
@@ -22,6 +23,7 @@ const TABS = [
   ["counts", "Cycle counts"],
   ["returns", "Returns"],
   ["work", "Work queue"],
+  ["labour", "Labour"],
   ["ledger", "Ledger"],
 ] as const;
 type Tab = (typeof TABS)[number][0];
@@ -113,6 +115,7 @@ export default function InventoryPage() {
           {tab === "counts" && <Counts user={user} />}
           {tab === "returns" && <Returns />}
           {tab === "work" && <Work />}
+          {tab === "labour" && <Labour />}
           {tab === "ledger" && <Ledger />}
         </>
       )}

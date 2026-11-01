@@ -71,7 +71,7 @@ finished order ──► window of the last 400 predictions with their real outc
 | sane output | Finite predictions; ETA above 0; probabilities between 0 and 1 |
 | better now | On the newest live outcomes (kept out of training): MAE at least 3 % lower, or F1 at least 0.03 higher |
 | not worse before | On the original test split: at most 15 % worse. The model must not forget the warehouse it was built for |
-| fast enough | Median of one prediction under 20 ms |
+| fast enough | Median of one prediction under 50 ms (a prediction is made per assigned order) |
 
 A rejected candidate can never be promoted, even by hand.
 

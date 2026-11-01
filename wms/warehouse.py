@@ -26,6 +26,7 @@ from collections import Counter, defaultdict, deque
 
 from wms import rf
 from wms.inventory import AVAILABLE, Inventory, InventoryError
+from wms.labour import Labour
 from wms.master import build_items, build_locations, suppliers
 from wms.model import LocationType, StockKey, StockStatus, TxnType
 from wms.operations import (
@@ -145,6 +146,9 @@ class Warehouse:
             self.associates[f"LD{i + 1:02d}"] = {
                 "task": None, "until": 0, "x": lane.x, "y": lane.y, "crew": "dock",
             }  # fmt: skip
+        # Standards and rates (wms/labour.py). Seeded from the generator's state without drawing
+        # from it, so every other random choice of the WMS stays as it was.
+        self.labour = Labour(self, seed=str(hash(rng.getstate())))
         self.waiting: dict[str, list[tuple[int, str, int]]] = {}  # order -> (line, sku, missing)
         self.ordered: dict[str, dict[int, list]] = {}  # order -> line -> [sku, units allocated]
         self.popularity = self._popularity()
@@ -938,6 +942,9 @@ class Warehouse:
                 except InventoryError as err:
                     task.result, task.status = f"failed: {err}", "CANCELLED"
                 task.done_at = self.inv.tick
+                if task.data.get("_standard") is not None:
+                    self.labour.done(name, task.type, task.data.pop("_standard"),
+                                     task.started, self.inv.tick)  # fmt: skip
                 a["task"] = None
                 self.metrics[f"tasks_{task.type.lower()}"] += 1
         idle = [n for n, a in sorted(self.associates.items()) if a["task"] is None]
@@ -969,12 +976,11 @@ class Warehouse:
             taken.add(task.task_id)
             x, y = self._task_location(task)
             walk = (abs(a["x"] - x) + abs(a["y"] - y)) / self.cfg["walk_m_per_tick"]
-            handling = self.cfg["handling_ticks"][task.type]
-            if task.type == "PACK":
-                handling += self.cfg["pack_ticks_per_unit"] * task.data.get("units", 1)
+            standard = self.labour.standard_ticks(task.type, walk, task.data.get("units", 1))
+            task.data["_standard"] = standard  # booked as earned time when done
             a["task"], a["until"], a["x"], a["y"] = (
                 task.task_id,
-                self.inv.tick + int(walk) + handling,
+                self.inv.tick + self.labour.actual_ticks(name, standard),
                 x,
                 y,
             )

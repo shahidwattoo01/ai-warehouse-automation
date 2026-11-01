@@ -295,7 +295,8 @@ items:
     phase: 11
     priority: low
     effort: M
-    status: planned
+    status: done
+    evidence: "Engineered standards per task, personal pace per associate, performance / utilisation / productivity per person, crew and 8-hour shift, shift handover (open work, people below 85 %), Labour tab and API; docs/labour.md"
   - id: PR-32
     area: Operations
     gap: Stock-outs, faults and count differences only appear on screen

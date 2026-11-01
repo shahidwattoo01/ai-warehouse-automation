@@ -107,6 +107,13 @@ async def kpis() -> dict:
     return _kpi_cache["value"]
 
 
+@router.get("/labour", dependencies=[need("wms:view")])
+async def labour(shift: int | None = Query(None, ge=0)) -> dict:
+    """Labour standards and rates per associate and crew for a shift (default: the current
+    one), with the handover: open work and people below 85 % of standard (docs/labour.md)."""
+    return _wms().labour.report(shift)
+
+
 @router.get("/alerts", dependencies=[need("wms:view")])
 async def alerts(limit: int = Query(50, le=200)) -> list[dict]:
     return list(_wms().alerts)[:limit]
