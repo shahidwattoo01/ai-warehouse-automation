@@ -65,7 +65,8 @@ export default function AlertsPage() {
   return (
     <Screen title="Alerts">
       <ErrorNote text={error} />
-      <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(420px,42%)]">
+      {/* Side by side only on wide screens; the rules table needs ~640 px. */}
+      <div className="grid items-start gap-4 2xl:grid-cols-[minmax(0,1fr)_minmax(560px,45%)]">
         <Panel
           title={
             summary
@@ -91,94 +92,96 @@ export default function AlertsPage() {
           </div>
         </Panel>
 
-        <div className="space-y-4">
+        <div className="min-w-0 space-y-4">
           <Panel title="Rules">
             <p className="mb-2 text-xs text-muted">
               Checked every 3 simulated minutes. Not acknowledged within the escalation time: escalated and notified
               again. Changes last until the backend restarts (defaults: configs/alert_rules.yaml).
             </p>
-            <table className="w-full text-xs">
-              <thead>
-                <tr>
-                  <th className={th}>On</th>
-                  <th className={th}>Rule</th>
-                  <th className={th}>Threshold</th>
-                  <th className={th}>Escalate</th>
-                  <th className={th}>Notify</th>
-                  <th className={th}>Escalate to</th>
-                </tr>
-              </thead>
-              <tbody>
-                {Object.entries(rules).map(([id, r]) => (
-                  <tr key={id} className="border-t border-border">
-                    <td className={td}>
-                      <input
-                        type="checkbox"
-                        checked={r.enabled}
-                        disabled={!canConfigure}
-                        onChange={(e) => void change(id, { enabled: e.target.checked })}
-                        aria-label={`${r.name} on`}
-                      />
-                    </td>
-                    <td className={td}>
-                      <span
-                        className={`mr-1 inline-block h-2 w-2 rounded-full ${r.severity === "critical" ? "bg-danger" : r.severity === "warning" ? "bg-warning" : "bg-muted"}`}
-                      />
-                      {r.name}
-                    </td>
-                    <td className={td}>
-                      {r.threshold === null ? (
-                        <span className="text-muted">—</span>
-                      ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-xs">
+                <thead>
+                  <tr>
+                    <th className={th}>On</th>
+                    <th className={th}>Rule</th>
+                    <th className={th}>Threshold</th>
+                    <th className={th}>Escalate</th>
+                    <th className={th}>Notify</th>
+                    <th className={th}>Escalate to</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {Object.entries(rules).map(([id, r]) => (
+                    <tr key={id} className="border-t border-border">
+                      <td className={td}>
+                        <input
+                          type="checkbox"
+                          checked={r.enabled}
+                          disabled={!canConfigure}
+                          onChange={(e) => void change(id, { enabled: e.target.checked })}
+                          aria-label={`${r.name} on`}
+                        />
+                      </td>
+                      <td className={td}>
+                        <span
+                          className={`mr-1 inline-block h-2 w-2 rounded-full ${r.severity === "critical" ? "bg-danger" : r.severity === "warning" ? "bg-warning" : "bg-muted"}`}
+                        />
+                        {r.name}
+                      </td>
+                      <td className={td}>
+                        {r.threshold === null ? (
+                          <span className="text-muted">—</span>
+                        ) : (
+                          <input
+                            type="number"
+                            defaultValue={r.threshold}
+                            disabled={!canConfigure}
+                            onBlur={(e) =>
+                              Number(e.target.value) !== r.threshold &&
+                              void change(id, { threshold: Number(e.target.value) })
+                            }
+                            className="w-16 rounded border border-border bg-canvas px-1"
+                            aria-label={`${r.name} threshold`}
+                          />
+                        )}{" "}
+                        <span className="text-muted">{r.unit}</span>
+                      </td>
+                      <td className={td}>
                         <input
                           type="number"
-                          defaultValue={r.threshold}
+                          defaultValue={r.escalate_after_min}
                           disabled={!canConfigure}
                           onBlur={(e) =>
-                            Number(e.target.value) !== r.threshold &&
-                            void change(id, { threshold: Number(e.target.value) })
+                            Number(e.target.value) !== r.escalate_after_min &&
+                            void change(id, { escalate_after_min: Number(e.target.value) })
                           }
-                          className="w-16 rounded border border-border bg-canvas px-1"
-                          aria-label={`${r.name} threshold`}
-                        />
-                      )}{" "}
-                      <span className="text-muted">{r.unit}</span>
-                    </td>
-                    <td className={td}>
-                      <input
-                        type="number"
-                        defaultValue={r.escalate_after_min}
-                        disabled={!canConfigure}
-                        onBlur={(e) =>
-                          Number(e.target.value) !== r.escalate_after_min &&
-                          void change(id, { escalate_after_min: Number(e.target.value) })
-                        }
-                        className="w-12 rounded border border-border bg-canvas px-1"
-                        aria-label={`${r.name} escalation minutes`}
-                      />{" "}
-                      min
-                    </td>
-                    {(["notify", "escalate_to"] as const).map((field) => (
-                      <td key={field} className={`${td} whitespace-nowrap`}>
-                        {channels
-                          .filter((c) => c !== "screen")
-                          .map((c) => (
-                            <label key={c} className="mr-2 inline-flex items-center gap-0.5">
-                              <input
-                                type="checkbox"
-                                checked={r[field].includes(c)}
-                                disabled={!canConfigure}
-                                onChange={() => void change(id, { [field]: toggle(r[field], c) })}
-                              />
-                              {c}
-                            </label>
-                          ))}
+                          className="w-12 rounded border border-border bg-canvas px-1"
+                          aria-label={`${r.name} escalation minutes`}
+                        />{" "}
+                        min
                       </td>
-                    ))}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                      {(["notify", "escalate_to"] as const).map((field) => (
+                        <td key={field} className={`${td} whitespace-nowrap`}>
+                          {channels
+                            .filter((c) => c !== "screen")
+                            .map((c) => (
+                              <label key={c} className="mr-2 inline-flex items-center gap-0.5">
+                                <input
+                                  type="checkbox"
+                                  checked={r[field].includes(c)}
+                                  disabled={!canConfigure}
+                                  onChange={() => void change(id, { [field]: toggle(r[field], c) })}
+                                />
+                                {c}
+                              </label>
+                            ))}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </Panel>
 
           <Panel

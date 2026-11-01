@@ -99,7 +99,7 @@ export function Sidebar() {
         </button>
       </div>
       {/* Scrolls on its own when the menu is taller than the window; the header stays. */}
-      <nav className="flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto px-3 pb-16">
+      <nav className="flex min-h-0 flex-1 flex-col gap-1 scroll-quiet overflow-y-auto px-3 pb-16">
         {nav.map(({ href, label, icon: Icon }) => {
           const active = path?.startsWith(href);
           return (

@@ -130,3 +130,12 @@ body {
     animation: none !important;
   }
 }
+
+/* A thin scrollbar that appears only while the pointer is over the area (sidebar menu). */
+.scroll-quiet {
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+}
+.scroll-quiet:hover {
+  scrollbar-color: rgb(var(--muted) / 0.5) transparent;
+}
