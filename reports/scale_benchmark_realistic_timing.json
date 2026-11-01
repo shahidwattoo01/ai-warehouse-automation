@@ -1,0 +1,38 @@
+[
+  {
+    "demand": "fixed",
+    "profile": "realistic_timing",
+    "layout": "large",
+    "robots": 40,
+    "arrival_rate": 0.14,
+    "throughput_per_hour": 80.8,
+    "orders_completed": 404,
+    "avg_completion_ticks": 199.8,
+    "late_percent": 7.7,
+    "utilisation_percent": 76.3,
+    "waiting_at_end": 0,
+    "collisions": 0,
+    "tick_ms_mean": 8.37,
+    "tick_ms_p99": 58.5,
+    "max_speed_realtime": 59.8,
+    "parking_places": 88
+  },
+  {
+    "demand": "fixed",
+    "profile": "realistic_timing",
+    "layout": "large",
+    "robots": 88,
+    "arrival_rate": 0.14,
+    "throughput_per_hour": 81.6,
+    "orders_completed": 408,
+    "avg_completion_ticks": 157.8,
+    "late_percent": 2.5,
+    "utilisation_percent": 33.4,
+    "waiting_at_end": 0,
+    "collisions": 0,
+    "tick_ms_mean": 7.32,
+    "tick_ms_p99": 44.89,
+    "max_speed_realtime": 68.3,
+    "parking_places": 88
+  }
+]

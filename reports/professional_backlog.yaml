@@ -60,7 +60,8 @@ items:
     phase: 11
     priority: medium
     effort: M
-    status: planned
+    status: done
+    evidence: "Scale benchmark: both layouts at 6-88 robots, fixed and fleet-scaled demand; large layout scales to 182 orders/h at 88 robots (its parking limit), small layout tops out at ~120/h; 15.8 ms per tick at 88 robots (~30x real time); docs/scale.md. 100+ robots need a bigger layout (phase 9)"
 
   # ----- Warehouse processes (WMS) -------------------------------------------------------
   - id: PR-07
@@ -192,7 +193,8 @@ items:
     phase: 11
     priority: medium
     effort: M
-    status: planned
+    status: done
+    evidence: "Simulator vs published AMR and DC figures (speed, pick rates, battery, on-time %); two clocks explained; realistic timing profile shows default timing flatters fleet size (40 robots: 7.7 % late instead of 1.7 %); docs/sim_to_real.md. No real site data yet"
   - id: PR-21
     area: AI
     gap: Copilot understands fixed English commands only

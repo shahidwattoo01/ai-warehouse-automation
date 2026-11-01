@@ -84,7 +84,7 @@ class SimulationEngine:
         self.seed = seed if seed is not None else self.config["seed"]
         self.rng = random.Random(self.seed)  # the one source of randomness: runs are reproducible
 
-        self.layout: Layout = load_layout(self.config["layout"])
+        self.layout: Layout = load_layout(self.config["layout"], robots=self.config.get("fleet_size"))
         self.planner: Planner = get_planner(self.config["strategies"]["planner"])
         self.distances = DistanceFields(self.layout.grid)  # cached legal route lengths
         self.events = EventBus()

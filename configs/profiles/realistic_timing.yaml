@@ -1,0 +1,22 @@
+# Sim-to-real calibration profile (backlog PR-20; docs/sim_to_real.md). Not the default: the
+# models and experiments were trained and run on the default timing. Use it to see how far the
+# results move when the handling times match published real-world rates:
+#
+#   python scripts/scale_benchmark.py --profile realistic_timing
+#   SimulationEngine(overrides=yaml.safe_load(open("configs/profiles/realistic_timing.yaml")))
+#
+# One tick is 0.5 s of robot motion (sim_tick_hz 2, 1 m cells: 2 m/s).
+orders:
+  # A person at the rack puts each item into the robot's tote. Goods-to-person and AMR-assisted
+  # picking reach roughly 300-600 lines per hour (6-12 s per line); 8 s per line here.
+  pick_ticks: 16
+  # The tote is handed over at the packing station: ~5 s at the bench (packing itself is done by
+  # the associates, outside the robot's cycle).
+  drop_ticks: 10
+battery:
+  # Real AMRs run ~8-10 h on a charge and need ~2-2.5 h to recharge (ratio ~1:4). Default: a full
+  # battery lasts ~2,000 moves (~17 min of driving) and recharges in ~100 s. Here: ~20,000 moves
+  # (~2.8 h of pure driving; robots also stand, pick and wait) and ~45 min to recharge.
+  drain_per_move: 0.005
+  drain_per_item: 0.002
+  charge_per_tick: 0.019

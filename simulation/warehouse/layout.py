@@ -83,11 +83,25 @@ def _spread(areas: list[ParkingArea], count: int) -> list[Cell]:
         for q in queues:
             if q and len(spawn) < count:
                 spawn.append(q.pop(0))
+    if len(spawn) < count and areas:  # small areas ran out of their share: fill the others
+        taken = set(spawn)
+        spare = [c for area in areas for c in area.cells if c not in taken]
+        spawn += spare[: count - len(spawn)]
+        if len(spawn) < count:
+            raise ValueError(
+                f"{count} robots do not fit: this layout has {len(spawn)} parking places "
+                "(every robot needs one to wait and charge from)"
+            )
     return spawn
 
 
-def load_layout(name: str = "default", config_dir: Path = CONFIG_DIR) -> Layout:
+def load_layout(
+    name: str = "default", config_dir: Path = CONFIG_DIR, robots: int | None = None
+) -> Layout:
+    """`robots` overrides the layout's fleet size (scale runs, docs/scale.md)."""
     raw = yaml.safe_load((config_dir / "layouts" / f"{name}.yaml").read_text())
+    if robots is not None:
+        raw["robots"]["count"] = robots
     grid = Grid(raw["grid"]["width"], raw["grid"]["height"])
 
     zones = [Zone(z["zone_id"], z["name"], tuple(z["bounds"]), z["capacity"]) for z in raw["zones"]]
