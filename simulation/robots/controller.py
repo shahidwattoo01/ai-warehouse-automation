@@ -104,6 +104,27 @@ class RobotController:
         }
 
     # ----- availability -------------------------------------------------------------
+    def cooling_down(self, robot: Robot) -> bool:
+        """SOP-04, when configured (thermal.no_new_orders_above): a robot that reached that
+        temperature takes no new order until it is below thermal.resume_below. Off by default
+        (the datasets and experiments were made without it); the backend switches it on."""
+        cfg = self.engine.config.get("thermal", {})
+        above = cfg.get("no_new_orders_above")
+        if above is None:
+            return False
+        cooling = self.__dict__.setdefault("_cooling", set())
+        if robot.temperature >= above:
+            cooling.add(robot.robot_id)
+        elif robot.temperature < cfg.get("resume_below", above - 5):
+            cooling.discard(robot.robot_id)
+        return robot.robot_id in cooling
+
+    def can_take_order(self, robot: Robot) -> bool:
+        # Track the temperature on every check, busy or not: a robot that overheats while
+        # delivering must still be cooling when it comes free at 58 deg C.
+        cooling = self.cooling_down(robot)
+        return self.available(robot) and not cooling
+
     def available(self, robot: Robot) -> bool:
         """Free for a new order: idle, or just driving to parking (re-taskable on the way)."""
         if robot.status in (RobotStatus.PAUSED, RobotStatus.FAULT):
@@ -126,6 +147,8 @@ class RobotController:
             return f"{robot.robot_id} is busy ({doing})"
         if robot.battery < self.engine.config["battery"]["low_threshold"]:
             return f"{robot.robot_id} battery too low ({robot.battery:.0f}%)"
+        if self.cooling_down(robot):
+            return f"{robot.robot_id} is cooling down ({robot.temperature:.0f} °C, SOP-04)"
         return None
 
     def status_for(self, robot: Robot) -> RobotStatus:

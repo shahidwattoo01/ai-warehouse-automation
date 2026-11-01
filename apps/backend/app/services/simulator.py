@@ -16,6 +16,7 @@ from pathlib import Path
 
 from ai.optimization.optimizer import BASELINE, Optimizer
 from app.core.config import get_settings
+from app.services.agents import agents
 from app.services.alerts import EVERY_TICKS
 from app.services.alerts import centre as alert_centre
 from app.services.copilot import copilot
@@ -44,6 +45,7 @@ class SimulatorService:
         self.predictor = Predictor()  # Phase 3 models, scored live against the simulator
         self.predictor.attach(self.engine)
         copilot.attach(self.engine)  # Phase 6: operator commands in plain language
+        agents.attach(self.engine)  # Phase 8: the operations agent and its tools
         self.strategies = dict(BASELINE)  # Phase 4: the decision rules in use
         self.preset: str | None = "E2"
         self.optimizer = Optimizer(self.engine, self.predictor, self.strategies)
@@ -76,10 +78,12 @@ class SimulatorService:
                 "layout": self.settings.sim_layout,
                 "inventory_model": self.settings.inventory_model,
                 "safety": {"slow_zones": self.settings.safety_slow_zones},
+                "thermal": {"no_new_orders_above": self.settings.thermal_dispatch_limit},
             },
         )
 
     def _attach_services(self) -> None:
+        agents.attach(self.engine)
         vda.attach(self.engine)
         erp.attach(self.engine)
         events_service.attach(self.engine)
@@ -221,6 +225,7 @@ class SimulatorService:
                 self.optimizer.after_tick()
                 vda.after_tick(events)
                 erp.after_tick()
+                agents.after_tick()  # scheduled aisle closures happen when the aisle is clear
                 if engine.time % EVERY_TICKS == 0:  # alert rules every 3 simulated minutes
                     alert_centre.evaluate(engine, self.predictor.snapshot())
                 if self._subscribers:  # build the frame only if someone is watching

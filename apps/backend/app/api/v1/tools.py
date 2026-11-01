@@ -1,16 +1,16 @@
-"""Tools endpoints (TRD Section 7)."""
+"""Tools endpoints (TRD Section 7; Phase 8, docs/phase8_agents.md)."""
 
 from __future__ import annotations
 
 from fastapi import APIRouter
 
-from app.api.v1._phase import not_yet
 from app.core.auth import need
+from app.services.agents import agents
 
 router = APIRouter(prefix="/tools", tags=["tools"])
 
 
 @router.get("", dependencies=[need("copilot:use")])
-def get_tools_0() -> dict:
-    """Tool registry with JSON schemas."""
-    raise not_yet(8, "Tool registry with JSON schemas")
+async def get_tools() -> list[dict]:
+    """The tool registry: name, description, JSON schema of the arguments, read/write, approval."""
+    return agents.registry.schema()

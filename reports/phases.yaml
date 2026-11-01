@@ -105,7 +105,26 @@ phases:
     docs: docs/phase7_rag.md
     experiment: E4d
     kpi_effect: advisory
-  - {id: 8, name: Tools + agents, status: planned, layer: Layer 8}
+  - id: 8
+    name: Tools + agents
+    status: done
+    layer: Layer 8
+    added: >-
+      Operations agent: 15 typed tools (JSON schemas, read/write, approval for every write,
+      validated against the live warehouse), an agent loop with a step budget and an approval
+      gate, an offline planner following the SOPs and a Claude tool-use planner (with an API key),
+      safe aisle closure (scheduled until clear), API and Operations agent panel; SOP-04 enforced
+      in the dispatcher.
+    measured: >-
+      92 simulator situations replayed to the exact state, every write approved, 200 ticks of the
+      warehouse afterwards, the scenario checks applied to what happened.
+    result: >-
+      Task success 97 % (89 of 92), no forbidden tool called, all within the step budget, 1.9 tool
+      calls on average; failures: no free robot, a reference answer that assumed picked items could
+      move, one retrieval miss.
+    docs: docs/phase8_agents.md
+    experiment: agents_eval
+    kpi_effect: advisory
   - {id: 9, name: Multi-agent + RL, status: planned, layer: Layer 9}
   - {id: 10, name: Integration, status: planned, layer: Layer 10}
   - {id: 11, name: Evaluation (E1-E7), status: planned, layer: Layer 11}

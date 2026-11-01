@@ -1,0 +1,1922 @@
+{
+  "summary": {
+    "overall": {
+      "scenarios": 92,
+      "task_success": 0.967,
+      "required_tools": 0.859,
+      "forbidden_calls": 0,
+      "within_budget": 1.0,
+      "avg_steps": 1.9,
+      "replayed_exactly": 92
+    },
+    "by_type": {
+      "blocked_robot": {
+        "scenarios": 12,
+        "task_success": 1.0,
+        "required_tools": 1.0,
+        "forbidden_calls": 0,
+        "within_budget": 1.0,
+        "avg_steps": 2.0,
+        "replayed_exactly": 12
+      },
+      "close_busy_aisle": {
+        "scenarios": 12,
+        "task_success": 1.0,
+        "required_tools": 1.0,
+        "forbidden_calls": 0,
+        "within_budget": 1.0,
+        "avg_steps": 2.0,
+        "replayed_exactly": 12
+      },
+      "knowledge": {
+        "scenarios": 10,
+        "task_success": 0.9,
+        "required_tools": 1.0,
+        "forbidden_calls": 0,
+        "within_budget": 1.0,
+        "avg_steps": 1.0,
+        "replayed_exactly": 10
+      },
+      "late_order": {
+        "scenarios": 12,
+        "task_success": 1.0,
+        "required_tools": 1.0,
+        "forbidden_calls": 0,
+        "within_budget": 1.0,
+        "avg_steps": 2.0,
+        "replayed_exactly": 12
+      },
+      "overheating": {
+        "scenarios": 12,
+        "task_success": 1.0,
+        "required_tools": 1.0,
+        "forbidden_calls": 0,
+        "within_budget": 1.0,
+        "avg_steps": 2.0,
+        "replayed_exactly": 12
+      },
+      "stopped_robot": {
+        "scenarios": 12,
+        "task_success": 0.917,
+        "required_tools": 0.917,
+        "forbidden_calls": 0,
+        "within_budget": 1.0,
+        "avg_steps": 2.0,
+        "replayed_exactly": 12
+      },
+      "unavailable_robot": {
+        "scenarios": 12,
+        "task_success": 0.917,
+        "required_tools": 0.0,
+        "forbidden_calls": 0,
+        "within_budget": 1.0,
+        "avg_steps": 2.92,
+        "replayed_exactly": 12
+      },
+      "urgent_queue": {
+        "scenarios": 10,
+        "task_success": 1.0,
+        "required_tools": 1.0,
+        "forbidden_calls": 0,
+        "within_budget": 1.0,
+        "avg_steps": 1.0,
+        "replayed_exactly": 10
+      }
+    },
+    "planner": "offline playbooks",
+    "seconds": 1031
+  },
+  "rows": [
+    {
+      "id": "AGT-close_busy_aisle-500",
+      "type": "close_busy_aisle",
+      "replayed_exactly": true,
+      "success": true,
+      "checks": {
+        "aisle_closed_when_empty": true
+      },
+      "required_tools_ok": true,
+      "forbidden_called": [],
+      "steps": 2,
+      "within_budget": true,
+      "errors": [],
+      "answer": "Aisle 7 cannot be closed yet: R18 is inside it; R18 still has a pick in it. It is scheduled and closes by itself as soon as it is clear, so no robot is trapped (SOP-05).",
+      "reference": "Aisle 7 cannot be closed yet: R18 is inside and R18 still needs to pick there. Wait until they have left (or pause them and reassign their orders), then close the aisle (SOP-05).",
+      "tools": [
+        "get_warehouse_state",
+        "close_aisle"
+      ]
+    },
+    {
+      "id": "AGT-stopped_robot-500",
+      "type": "stopped_robot",
+      "replayed_exactly": true,
+      "success": true,
+      "checks": {
+        "no_write_actions_except": true
+      },
+      "required_tools_ok": true,
+      "forbidden_called": [],
+      "steps": 2,
+      "within_budget": true,
+      "errors": [],
+      "answer": "R30 is stopped by a stop_event fault, which clears in about 35 ticks. Such faults normally clear within 15-60 ticks, so wait up to 60 ticks before pausing it and reassigning its order (SOP-03). Its order O00018 stays with it meanwhile.",
+      "reference": "R30 has a stop_event fault (normally clears within 15-60 ticks). Its order O00018 (LOW) has 890 ticks left, so wait up to 60 ticks before pausing and reassigning (SOP-03).",
+      "tools": [
+        "get_robot_status",
+        "get_warehouse_state"
+      ]
+    },
+    {
+      "id": "AGT-overheating-500",
+      "type": "overheating",
+      "replayed_exactly": true,
+      "success": true,
+      "checks": {
+        "no_new_order_for_robot": true
+      },
+      "required_tools_ok": true,
+      "forbidden_called": [],
+      "steps": 2,
+      "within_budget": true,
+      "errors": [],
+      "answer": "R22 is at 62 \u00b0C: above 60 \u00b0C it throttles to half speed. Let it finish its current task; give it no new orders until it is below 55 \u00b0C, and send it to maintenance if it keeps overheating (SOP-04).",
+      "reference": "R22 is at 62 C: above 60 C it throttles to half speed. Let it finish its current order. No new orders until it is below 55 C (SOP-04).",
+      "tools": [
+        "get_robot_status",
+        "search_knowledge"
+      ]
+    },
+    {
+      "id": "AGT-blocked_robot-500",
+      "type": "blocked_robot",
+      "replayed_exactly": true,
+      "success": true,
+      "checks": {
+        "robot_moves_within": true
+      },
+      "required_tools_ok": true,
+      "forbidden_called": [],
+      "steps": 2,
+      "within_budget": true,
+      "errors": [],
+      "answer": "R5 is delivering at (29, 43). Standoffs clear by replanning after 2 blocked ticks or a side-step after 4-7, so leave it to the traffic rules; if it is still blocked after that, reroute it and check traffic flows (SOP-09).",
+      "reference": "R5 has been blocked for 3 ticks behind another robot or obstacle. Standoffs normally clear by replanning after 2 ticks or a side-step after 4-7; if not, reroute it and verify traffic flows (SOP-09).",
+      "tools": [
+        "get_robot_status",
+        "get_events"
+      ]
+    },
+    {
+      "id": "AGT-late_order-500",
+      "type": "late_order",
+      "replayed_exactly": true,
+      "success": true,
+      "checks": {
+        "answer_mentions": true
+      },
+      "required_tools_ok": true,
+      "forbidden_called": [],
+      "steps": 2,
+      "within_budget": true,
+      "errors": [],
+      "answer": "O00025 was late mainly because the robot had a fault on the way (route_deviation) (R11); also traffic: 0 blocked ticks and 9 reroutes.",
+      "reference": "O00025 (HIGH) was late mainly because the robot had a fault on the way (route_deviation).",
+      "tools": [
+        "get_events",
+        "get_events"
+      ]
+    },
+    {
+      "id": "AGT-unavailable_robot-500",
+      "type": "unavailable_robot",
+      "replayed_exactly": true,
+      "success": true,
+      "checks": {
+        "order_assigned_to_eligible_robot": true
+      },
+      "required_tools_ok": false,
+      "forbidden_called": [],
+      "steps": 3,
+      "within_budget": true,
+      "errors": [],
+      "answer": "Not R9: R9 is busy (charging). O00146 goes to R1 instead, a free robot with enough battery (SOP-08).",
+      "reference": "The assignment is rejected: R9 is busy (charging). Choose a free robot with at least 20 % battery near the order's first rack (SOP-08).",
+      "tools": [
+        "get_robot_status",
+        "get_pending_orders",
+        "assign_order"
+      ]
+    },
+    {
+      "id": "AGT-urgent_queue-500",
+      "type": "urgent_queue",
+      "replayed_exactly": true,
+      "success": true,
+      "checks": {
+        "high_orders_not_delayed_by_agent": true
+      },
+      "required_tools_ok": true,
+      "forbidden_called": [],
+      "steps": 1,
+      "within_budget": true,
+      "errors": [],
+      "answer": "3 HIGH-priority orders are waiting; the dispatcher already serves them first. 1 robots are free (SOP-07).",
+      "reference": "3 HIGH-priority orders are waiting; the dispatcher already serves them first. 1 robots are free (SOP-07).",
+      "tools": [
+        "get_pending_orders"
+      ]
+    },
+    {
+      "id": "AGT-overheating-501",
+      "type": "overheating",
+      "replayed_exactly": true,
+      "success": true,
+      "checks": {
+        "no_new_order_for_robot": true
+      },
+      "required_tools_ok": true,
+      "forbidden_called": [],
+      "steps": 2,
+      "within_budget": true,
+      "errors": [],
+      "answer": "R31 is at 62 \u00b0C: above 60 \u00b0C it throttles to half speed. Let it finish its current task; give it no new orders until it is below 55 \u00b0C, and send it to maintenance if it keeps overheating (SOP-04).",
+      "reference": "R31 is at 62 C: above 60 C it throttles to half speed. Let it finish its current order. No new orders until it is below 55 C (SOP-04).",
+      "tools": [
+        "get_robot_status",
+        "search_knowledge"
+      ]
+    },
+    {
+      "id": "AGT-close_busy_aisle-501",
+      "type": "close_busy_aisle",
+      "replayed_exactly": true,
+      "success": true,
+      "checks": {
+        "aisle_closed_when_empty": true
+      },
+      "required_tools_ok": true,
+      "forbidden_called": [],
+      "steps": 2,
+      "within_budget": true,
+      "errors": [],
+      "answer": "Aisle 36 cannot be closed yet: R30 is inside it; R38 is inside it; R30 still has a pick in it. It is scheduled and closes by itself as soon as it is clear, so no robot is trapped (SOP-05).",
+      "reference": "Aisle 36 cannot be closed yet: R30, R38 is inside and R30 still needs to pick there. Wait until they have left (or pause them and reassign their orders), then close the aisle (SOP-05).",
+      "tools": [
+        "get_warehouse_state",
+        "close_aisle"
+      ]
+    },
+    {
+      "id": "AGT-blocked_robot-501",
+      "type": "blocked_robot",
+      "replayed_exactly": true,
+      "success": true,
+      "checks": {
+        "robot_moves_within": true
+      },
+      "required_tools_ok": true,
+      "forbidden_called": [],
+      "steps": 2,
+      "within_budget": true,
+      "errors": [],
+      "answer": "R15 is moving at (20, 31). Standoffs clear by replanning after 2 blocked ticks or a side-step after 4-7, so leave it to the traffic rules; if it is still blocked after that, reroute it and check traffic flows (SOP-09).",
+      "reference": "R15 has been blocked for 3 ticks behind another robot or obstacle. Standoffs normally clear by replanning after 2 ticks or a side-step after 4-7; if not, reroute it and verify traffic flows (SOP-09).",
+      "tools": [
+        "get_robot_status",
+        "get_events"
+      ]
+    },
+    {
+      "id": "AGT-stopped_robot-501",
+      "type": "stopped_robot",
+      "replayed_exactly": true,
+      "success": true,
+      "checks": {
+        "no_write_actions_except": true
+      },
+      "required_tools_ok": true,
+      "forbidden_called": [],
+      "steps": 2,
+      "within_budget": true,
+      "errors": [],
+      "answer": "R16 is stopped by a stop_event fault, which clears in about 49 ticks. Such faults normally clear within 15-60 ticks, so wait up to 60 ticks before pausing it and reassigning its order (SOP-03). Its order O00026 stays with it meanwhile.",
+      "reference": "R16 has a stop_event fault (normally clears within 15-60 ticks). Its order O00026 (LOW) has 818 ticks left, so wait up to 60 ticks before pausing and reassigning (SOP-03).",
+      "tools": [
+        "get_robot_status",
+        "get_warehouse_state"
+      ]
+    },
+    {
+      "id": "AGT-late_order-501",
+      "type": "late_order",
+      "replayed_exactly": true,
+      "success": true,
+      "checks": {
+        "answer_mentions": true
+      },
+      "required_tools_ok": true,
+      "forbidden_called": [],
+      "steps": 2,
+      "within_budget": true,
+      "errors": [],
+      "answer": "O00016 was late mainly because the robot met heavy traffic and waited on the way (R38).",
+      "reference": "O00016 (HIGH) was late mainly because a long route for a tight deadline.",
+      "tools": [
+        "get_events",
+        "get_events"
+      ]
+    },
+    {
+      "id": "AGT-unavailable_robot-501",
+      "type": "unavailable_robot",
+      "replayed_exactly": true,
+      "success": true,
+      "checks": {
+        "order_assigned_to_eligible_robot": true
+      },
+      "required_tools_ok": false,
+      "forbidden_called": [],
+      "steps": 3,
+      "within_budget": true,
+      "errors": [],
+      "answer": "Not R2: R2 is busy (charging). O00161 goes to R4 instead, a free robot with enough battery (SOP-08).",
+      "reference": "The assignment is rejected: R2 is busy (charging). Choose a free robot with at least 20 % battery near the order's first rack (SOP-08).",
+      "tools": [
+        "get_robot_status",
+        "get_pending_orders",
+        "assign_order"
+      ]
+    },
+    {
+      "id": "AGT-urgent_queue-501",
+      "type": "urgent_queue",
+      "replayed_exactly": true,
+      "success": true,
+      "checks": {
+        "high_orders_not_delayed_by_agent": true
+      },
+      "required_tools_ok": true,
+      "forbidden_called": [],
+      "steps": 1,
+      "within_budget": true,
+      "errors": [],
+      "answer": "3 HIGH-priority orders are waiting; the dispatcher already serves them first. 0 robots are free (SOP-07).",
+      "reference": "3 HIGH-priority orders are waiting; the dispatcher already serves them first. 0 robots are free (SOP-07).",
+      "tools": [
+        "get_pending_orders"
+      ]
+    },
+    {
+      "id": "AGT-close_busy_aisle-502",
+      "type": "close_busy_aisle",
+      "replayed_exactly": true,
+      "success": true,
+      "checks": {
+        "aisle_closed_when_empty": true
+      },
+      "required_tools_ok": true,
+      "forbidden_called": [],
+      "steps": 2,
+      "within_budget": true,
+      "errors": [],
+      "answer": "Aisle 34 cannot be closed yet: R13 is inside it; R33 still has a pick in it; a worker is in it. It is scheduled and closes by itself as soon as it is clear, so no robot is trapped (SOP-05).",
+      "reference": "Aisle 34 cannot be closed yet: R13 is inside and R33 still needs to pick there. Wait until they have left (or pause them and reassign their orders), then close the aisle (SOP-05).",
+      "tools": [
+        "get_warehouse_state",
+        "close_aisle"
+      ]
+    },
+    {
+      "id": "AGT-overheating-502",
+      "type": "overheating",
+      "replayed_exactly": true,
+      "success": true,
+      "checks": {
+        "no_new_order_for_robot": true
+      },
+      "required_tools_ok": true,
+      "forbidden_called": [],
+      "steps": 2,
+      "within_budget": true,
+      "errors": [],
+      "answer": "R38 is at 62 \u00b0C: above 60 \u00b0C it throttles to half speed. Let it finish its current task; give it no new orders until it is below 55 \u00b0C, and send it to maintenance if it keeps overheating (SOP-04).",
+      "reference": "R38 is at 62 C: above 60 C it throttles to half speed. Let it finish its current order. No new orders until it is below 55 C (SOP-04).",
+      "tools": [
+        "get_robot_status",
+        "search_knowledge"
+      ]
+    },
+    {
+      "id": "AGT-blocked_robot-502",
+      "type": "blocked_robot",
+      "replayed_exactly": true,
+      "success": true,
+      "checks": {
+        "robot_moves_within": true
+      },
+      "required_tools_ok": true,
+      "forbidden_called": [],
+      "steps": 2,
+      "within_budget": true,
+      "errors": [],
+      "answer": "R10 is delivering at (61, 49). Standoffs clear by replanning after 2 blocked ticks or a side-step after 4-7, so leave it to the traffic rules; if it is still blocked after that, reroute it and check traffic flows (SOP-09).",
+      "reference": "R10 has been blocked for 3 ticks behind another robot or obstacle. Standoffs normally clear by replanning after 2 ticks or a side-step after 4-7; if not, reroute it and verify traffic flows (SOP-09).",
+      "tools": [
+        "get_robot_status",
+        "get_events"
+      ]
+    },
+    {
+      "id": "AGT-stopped_robot-502",
+      "type": "stopped_robot",
+      "replayed_exactly": true,
+      "success": true,
+      "checks": {
+        "no_write_actions_except": true
+      },
+      "required_tools_ok": true,
+      "forbidden_called": [],
+      "steps": 2,
+      "within_budget": true,
+      "errors": [],
+      "answer": "R25 is stopped by a stop_event fault, which clears in about 44 ticks. Such faults normally clear within 15-60 ticks, so wait up to 60 ticks before pausing it and reassigning its order (SOP-03). Its order O00013 stays with it meanwhile.",
+      "reference": "R25 has a stop_event fault (normally clears within 15-60 ticks). Its order O00013 (LOW) has 792 ticks left, so wait up to 60 ticks before pausing and reassigning (SOP-03).",
+      "tools": [
+        "get_robot_status",
+        "get_warehouse_state"
+      ]
+    },
+    {
+      "id": "AGT-late_order-502",
+      "type": "late_order",
+      "replayed_exactly": true,
+      "success": true,
+      "checks": {
+        "answer_mentions": true
+      },
+      "required_tools_ok": true,
+      "forbidden_called": [],
+      "steps": 2,
+      "within_budget": true,
+      "errors": [],
+      "answer": "O00041 was late mainly because the robot had a fault on the way (stop_event, overheating) (R19).",
+      "reference": "O00041 (HIGH) was late mainly because the robot had a fault on the way (overheating, stop_event).",
+      "tools": [
+        "get_events",
+        "get_events"
+      ]
+    },
+    {
+      "id": "AGT-unavailable_robot-502",
+      "type": "unavailable_robot",
+      "replayed_exactly": true,
+      "success": true,
+      "checks": {
+        "order_assigned_to_eligible_robot": true
+      },
+      "required_tools_ok": false,
+      "forbidden_called": [],
+      "steps": 3,
+      "within_budget": true,
+      "errors": [],
+      "answer": "Not R27: R27 is busy (charging). O00069 goes to R1 instead, a free robot with enough battery (SOP-08).",
+      "reference": "The assignment is rejected: R27 is busy (charging). Choose a free robot with at least 20 % battery near the order's first rack (SOP-08).",
+      "tools": [
+        "get_robot_status",
+        "get_pending_orders",
+        "assign_order"
+      ]
+    },
+    {
+      "id": "AGT-urgent_queue-502",
+      "type": "urgent_queue",
+      "replayed_exactly": true,
+      "success": true,
+      "checks": {
+        "high_orders_not_delayed_by_agent": true
+      },
+      "required_tools_ok": true,
+      "forbidden_called": [],
+      "steps": 1,
+      "within_budget": true,
+      "errors": [],
+      "answer": "3 HIGH-priority orders are waiting; the dispatcher already serves them first. 0 robots are free (SOP-07).",
+      "reference": "3 HIGH-priority orders are waiting; the dispatcher already serves them first. 0 robots are free (SOP-07).",
+      "tools": [
+        "get_pending_orders"
+      ]
+    },
+    {
+      "id": "AGT-overheating-503",
+      "type": "overheating",
+      "replayed_exactly": true,
+      "success": true,
+      "checks": {
+        "no_new_order_for_robot": true
+      },
+      "required_tools_ok": true,
+      "forbidden_called": [],
+      "steps": 2,
+      "within_budget": true,
+      "errors": [],
+      "answer": "R35 is at 66 \u00b0C: above 60 \u00b0C it throttles to half speed. Let it finish its current task; give it no new orders until it is below 55 \u00b0C, and send it to maintenance if it keeps overheating (SOP-04).",
+      "reference": "R35 is at 66 C: above 60 C it throttles to half speed. Let it finish its current order. No new orders until it is below 55 C (SOP-04).",
+      "tools": [
+        "get_robot_status",
+        "search_knowledge"
+      ]
+    },
+    {
+      "id": "AGT-close_busy_aisle-503",
+      "type": "close_busy_aisle",
+      "replayed_exactly": true,
+      "success": true,
+      "checks": {
+        "aisle_closed_when_empty": true
+      },
+      "required_tools_ok": true,
+      "forbidden_called": [],
+      "steps": 2,
+      "within_budget": true,
+      "errors": [],
+      "answer": "Aisle 47 cannot be closed yet: R27 is inside it; R13 still has a pick in it; R27 still has a pick in it. It is scheduled and closes by itself as soon as it is clear, so no robot is trapped (SOP-05).",
+      "reference": "Aisle 47 cannot be closed yet: R27 is inside and R13, R27 still needs to pick there. Wait until they have left (or pause them and reassign their orders), then close the aisle (SOP-05).",
+      "tools": [
+        "get_warehouse_state",
+        "close_aisle"
+      ]
+    },
+    {
+      "id": "AGT-blocked_robot-503",
+      "type": "blocked_robot",
+      "replayed_exactly": true,
+      "success": true,
+      "checks": {
+        "robot_moves_within": true
+      },
+      "required_tools_ok": true,
+      "forbidden_called": [],
+      "steps": 2,
+      "within_budget": true,
+      "errors": [],
+      "answer": "R24 is moving at (78, 31). Standoffs clear by replanning after 2 blocked ticks or a side-step after 4-7, so leave it to the traffic rules; if it is still blocked after that, reroute it and check traffic flows (SOP-09).",
+      "reference": "R24 has been blocked for 3 ticks behind another robot or obstacle. Standoffs normally clear by replanning after 2 ticks or a side-step after 4-7; if not, reroute it and verify traffic flows (SOP-09).",
+      "tools": [
+        "get_robot_status",
+        "get_events"
+      ]
+    },
+    {
+      "id": "AGT-unavailable_robot-503",
+      "type": "unavailable_robot",
+      "replayed_exactly": true,
+      "success": true,
+      "checks": {
+        "order_assigned_to_eligible_robot": true
+      },
+      "required_tools_ok": false,
+      "forbidden_called": [],
+      "steps": 3,
+      "within_budget": true,
+      "errors": [],
+      "answer": "Not R18: R18 is busy (charging). O00047 goes to R1 instead, a free robot with enough battery (SOP-08).",
+      "reference": "The assignment is rejected: R18 is busy (charging). Choose a free robot with at least 20 % battery near the order's first rack (SOP-08).",
+      "tools": [
+        "get_robot_status",
+        "get_pending_orders",
+        "assign_order"
+      ]
+    },
+    {
+      "id": "AGT-stopped_robot-503",
+      "type": "stopped_robot",
+      "replayed_exactly": true,
+      "success": true,
+      "checks": {
+        "no_write_actions_except": true
+      },
+      "required_tools_ok": true,
+      "forbidden_called": [],
+      "steps": 2,
+      "within_budget": true,
+      "errors": [],
+      "answer": "R4 is stopped by a stop_event fault, which clears in about 55 ticks. Such faults normally clear within 15-60 ticks, so wait up to 60 ticks before pausing it and reassigning its order (SOP-03). Its order O00046 stays with it meanwhile.",
+      "reference": "R4 has a stop_event fault (normally clears within 15-60 ticks). Its order O00046 (MEDIUM) has 443 ticks left, so wait up to 60 ticks before pausing and reassigning (SOP-03).",
+      "tools": [
+        "get_robot_status",
+        "get_warehouse_state"
+      ]
+    },
+    {
+      "id": "AGT-late_order-503",
+      "type": "late_order",
+      "replayed_exactly": true,
+      "success": true,
+      "checks": {
+        "answer_mentions": true
+      },
+      "required_tools_ok": true,
+      "forbidden_called": [],
+      "steps": 2,
+      "within_budget": true,
+      "errors": [],
+      "answer": "O00111 was late mainly because traffic: 0 blocked ticks and 10 reroutes (R35).",
+      "reference": "O00111 (HIGH) was late mainly because traffic: the robot waited 124 ticks behind others.",
+      "tools": [
+        "get_events",
+        "get_events"
+      ]
+    },
+    {
+      "id": "AGT-overheating-504",
+      "type": "overheating",
+      "replayed_exactly": true,
+      "success": true,
+      "checks": {
+        "no_new_order_for_robot": true
+      },
+      "required_tools_ok": true,
+      "forbidden_called": [],
+      "steps": 2,
+      "within_budget": true,
+      "errors": [],
+      "answer": "R17 is at 62 \u00b0C: above 60 \u00b0C it throttles to half speed. Let it finish its current task; give it no new orders until it is below 55 \u00b0C, and send it to maintenance if it keeps overheating (SOP-04).",
+      "reference": "R17 is at 62 C: above 60 C it throttles to half speed. Let it finish its current order. No new orders until it is below 55 C (SOP-04).",
+      "tools": [
+        "get_robot_status",
+        "search_knowledge"
+      ]
+    },
+    {
+      "id": "AGT-close_busy_aisle-504",
+      "type": "close_busy_aisle",
+      "replayed_exactly": true,
+      "success": true,
+      "checks": {
+        "aisle_closed_when_empty": true
+      },
+      "required_tools_ok": true,
+      "forbidden_called": [],
+      "steps": 2,
+      "within_budget": true,
+      "errors": [],
+      "answer": "Aisle 50 cannot be closed yet: R26 is inside it; R26 still has a pick in it. It is scheduled and closes by itself as soon as it is clear, so no robot is trapped (SOP-05).",
+      "reference": "Aisle 50 cannot be closed yet: R26 is inside and R26 still needs to pick there. Wait until they have left (or pause them and reassign their orders), then close the aisle (SOP-05).",
+      "tools": [
+        "get_warehouse_state",
+        "close_aisle"
+      ]
+    },
+    {
+      "id": "AGT-blocked_robot-504",
+      "type": "blocked_robot",
+      "replayed_exactly": true,
+      "success": true,
+      "checks": {
+        "robot_moves_within": true
+      },
+      "required_tools_ok": true,
+      "forbidden_called": [],
+      "steps": 2,
+      "within_budget": true,
+      "errors": [],
+      "answer": "R39 is moving at (1, 38). Standoffs clear by replanning after 2 blocked ticks or a side-step after 4-7, so leave it to the traffic rules; if it is still blocked after that, reroute it and check traffic flows (SOP-09).",
+      "reference": "R39 has been blocked for 3 ticks behind another robot or obstacle. Standoffs normally clear by replanning after 2 ticks or a side-step after 4-7; if not, reroute it and verify traffic flows (SOP-09).",
+      "tools": [
+        "get_robot_status",
+        "get_events"
+      ]
+    },
+    {
+      "id": "AGT-late_order-504",
+      "type": "late_order",
+      "replayed_exactly": true,
+      "success": true,
+      "checks": {
+        "answer_mentions": true
+      },
+      "required_tools_ok": true,
+      "forbidden_called": [],
+      "steps": 2,
+      "within_budget": true,
+      "errors": [],
+      "answer": "O00020 was late mainly because the robot met heavy traffic and waited on the way (R7).",
+      "reference": "O00020 (HIGH) was late mainly because waited in the queue for a robot (busy fleet or a closed aisle).",
+      "tools": [
+        "get_events",
+        "get_events"
+      ]
+    },
+    {
+      "id": "AGT-stopped_robot-504",
+      "type": "stopped_robot",
+      "replayed_exactly": true,
+      "success": true,
+      "checks": {
+        "no_write_actions_except": true
+      },
+      "required_tools_ok": true,
+      "forbidden_called": [],
+      "steps": 2,
+      "within_budget": true,
+      "errors": [],
+      "answer": "R19 is stopped by a stop_event fault, which clears in about 45 ticks. Such faults normally clear within 15-60 ticks, so wait up to 60 ticks before pausing it and reassigning its order (SOP-03). Its order O00038 stays with it meanwhile.",
+      "reference": "R19 has a stop_event fault (normally clears within 15-60 ticks). Its order O00038 (MEDIUM) has 436 ticks left, so wait up to 60 ticks before pausing and reassigning (SOP-03).",
+      "tools": [
+        "get_robot_status",
+        "get_warehouse_state"
+      ]
+    },
+    {
+      "id": "AGT-unavailable_robot-504",
+      "type": "unavailable_robot",
+      "replayed_exactly": true,
+      "success": true,
+      "checks": {
+        "order_assigned_to_eligible_robot": true
+      },
+      "required_tools_ok": false,
+      "forbidden_called": [],
+      "steps": 3,
+      "within_budget": true,
+      "errors": [],
+      "answer": "Not R25: R25 is busy (charging). O00147 goes to R1 instead, a free robot with enough battery (SOP-08).",
+      "reference": "The assignment is rejected: R25 is busy (charging). Choose a free robot with at least 20 % battery near the order's first rack (SOP-08).",
+      "tools": [
+        "get_robot_status",
+        "get_pending_orders",
+        "assign_order"
+      ]
+    },
+    {
+      "id": "AGT-urgent_queue-504",
+      "type": "urgent_queue",
+      "replayed_exactly": true,
+      "success": true,
+      "checks": {
+        "high_orders_not_delayed_by_agent": true
+      },
+      "required_tools_ok": true,
+      "forbidden_called": [],
+      "steps": 1,
+      "within_budget": true,
+      "errors": [],
+      "answer": "3 HIGH-priority orders are waiting; the dispatcher already serves them first. 0 robots are free (SOP-07).",
+      "reference": "3 HIGH-priority orders are waiting; the dispatcher already serves them first. 0 robots are free; 1 wait for a closed aisle - consider reopening it (SOP-07).",
+      "tools": [
+        "get_pending_orders"
+      ]
+    },
+    {
+      "id": "AGT-close_busy_aisle-505",
+      "type": "close_busy_aisle",
+      "replayed_exactly": true,
+      "success": true,
+      "checks": {
+        "aisle_closed_when_empty": true
+      },
+      "required_tools_ok": true,
+      "forbidden_called": [],
+      "steps": 2,
+      "within_budget": true,
+      "errors": [],
+      "answer": "Aisle 27 cannot be closed yet: R39 is inside it; R39 still has a pick in it; a worker is in it. It is scheduled and closes by itself as soon as it is clear, so no robot is trapped (SOP-05).",
+      "reference": "Aisle 27 cannot be closed yet: R39 is inside and R39 still needs to pick there. Wait until they have left (or pause them and reassign their orders), then close the aisle (SOP-05).",
+      "tools": [
+        "get_warehouse_state",
+        "close_aisle"
+      ]
+    },
+    {
+      "id": "AGT-overheating-505",
+      "type": "overheating",
+      "replayed_exactly": true,
+      "success": true,
+      "checks": {
+        "no_new_order_for_robot": true
+      },
+      "required_tools_ok": true,
+      "forbidden_called": [],
+      "steps": 2,
+      "within_budget": true,
+      "errors": [],
+      "answer": "R35 is at 62 \u00b0C: above 60 \u00b0C it throttles to half speed. Let it finish its current task; give it no new orders until it is below 55 \u00b0C, and send it to maintenance if it keeps overheating (SOP-04).",
+      "reference": "R35 is at 62 C: above 60 C it throttles to half speed. Let it finish its current order. No new orders until it is below 55 C (SOP-04).",
+      "tools": [
+        "get_robot_status",
+        "search_knowledge"
+      ]
+    },
+    {
+      "id": "AGT-stopped_robot-505",
+      "type": "stopped_robot",
+      "replayed_exactly": true,
+      "success": true,
+      "checks": {
+        "no_write_actions_except": true
+      },
+      "required_tools_ok": true,
+      "forbidden_called": [],
+      "steps": 2,
+      "within_budget": true,
+      "errors": [],
+      "answer": "R14 is stopped by a stop_event fault, which clears in about 46 ticks. Such faults normally clear within 15-60 ticks, so wait up to 60 ticks before pausing it and reassigning its order (SOP-03). Its order O00035 stays with it meanwhile.",
+      "reference": "R14 has a stop_event fault (normally clears within 15-60 ticks). Its order O00035 (HIGH) has 206 ticks left, so wait up to 60 ticks before pausing and reassigning (SOP-03).",
+      "tools": [
+        "get_robot_status",
+        "get_warehouse_state"
+      ]
+    },
+    {
+      "id": "AGT-blocked_robot-505",
+      "type": "blocked_robot",
+      "replayed_exactly": true,
+      "success": true,
+      "checks": {
+        "robot_moves_within": true
+      },
+      "required_tools_ok": true,
+      "forbidden_called": [],
+      "steps": 2,
+      "within_budget": true,
+      "errors": [],
+      "answer": "R18 is delivering at (50, 27). Standoffs clear by replanning after 2 blocked ticks or a side-step after 4-7, so leave it to the traffic rules; if it is still blocked after that, reroute it and check traffic flows (SOP-09).",
+      "reference": "R18 has been blocked for 3 ticks behind another robot or obstacle. Standoffs normally clear by replanning after 2 ticks or a side-step after 4-7; if not, reroute it and verify traffic flows (SOP-09).",
+      "tools": [
+        "get_robot_status",
+        "get_events"
+      ]
+    },
+    {
+      "id": "AGT-unavailable_robot-505",
+      "type": "unavailable_robot",
+      "replayed_exactly": true,
+      "success": true,
+      "checks": {
+        "order_assigned_to_eligible_robot": true
+      },
+      "required_tools_ok": false,
+      "forbidden_called": [],
+      "steps": 3,
+      "within_budget": true,
+      "errors": [],
+      "answer": "Not R1: R1 is busy (charging). O00092 goes to R2 instead, a free robot with enough battery (SOP-08).",
+      "reference": "The assignment is rejected: R1 is busy (charging). Choose a free robot with at least 20 % battery near the order's first rack (SOP-08).",
+      "tools": [
+        "get_robot_status",
+        "get_pending_orders",
+        "assign_order"
+      ]
+    },
+    {
+      "id": "AGT-late_order-505",
+      "type": "late_order",
+      "replayed_exactly": true,
+      "success": true,
+      "checks": {
+        "answer_mentions": true
+      },
+      "required_tools_ok": true,
+      "forbidden_called": [],
+      "steps": 2,
+      "within_budget": true,
+      "errors": [],
+      "answer": "O00145 was late mainly because the robot had a fault on the way (battery_spike) (R9); also traffic: 1 blocked ticks and 8 reroutes.",
+      "reference": "O00145 (HIGH) was late mainly because the robot had a fault on the way (battery_spike).",
+      "tools": [
+        "get_events",
+        "get_events"
+      ]
+    },
+    {
+      "id": "AGT-urgent_queue-505",
+      "type": "urgent_queue",
+      "replayed_exactly": true,
+      "success": true,
+      "checks": {
+        "high_orders_not_delayed_by_agent": true
+      },
+      "required_tools_ok": true,
+      "forbidden_called": [],
+      "steps": 1,
+      "within_budget": true,
+      "errors": [],
+      "answer": "3 HIGH-priority orders are waiting; the dispatcher already serves them first. 0 robots are free (SOP-07).",
+      "reference": "3 HIGH-priority orders are waiting; the dispatcher already serves them first. 0 robots are free (SOP-07).",
+      "tools": [
+        "get_pending_orders"
+      ]
+    },
+    {
+      "id": "AGT-close_busy_aisle-506",
+      "type": "close_busy_aisle",
+      "replayed_exactly": true,
+      "success": true,
+      "checks": {
+        "aisle_closed_when_empty": true
+      },
+      "required_tools_ok": true,
+      "forbidden_called": [],
+      "steps": 2,
+      "within_budget": true,
+      "errors": [],
+      "answer": "Aisle 25 cannot be closed yet: R35 is inside it; R35 still has a pick in it. It is scheduled and closes by itself as soon as it is clear, so no robot is trapped (SOP-05).",
+      "reference": "Aisle 25 cannot be closed yet: R35 is inside and R35 still needs to pick there. Wait until they have left (or pause them and reassign their orders), then close the aisle (SOP-05).",
+      "tools": [
+        "get_warehouse_state",
+        "close_aisle"
+      ]
+    },
+    {
+      "id": "AGT-blocked_robot-506",
+      "type": "blocked_robot",
+      "replayed_exactly": true,
+      "success": true,
+      "checks": {
+        "robot_moves_within": true
+      },
+      "required_tools_ok": true,
+      "forbidden_called": [],
+      "steps": 2,
+      "within_budget": true,
+      "errors": [],
+      "answer": "R20 is moving at (77, 34). Standoffs clear by replanning after 2 blocked ticks or a side-step after 4-7, so leave it to the traffic rules; if it is still blocked after that, reroute it and check traffic flows (SOP-09).",
+      "reference": "R20 has been blocked for 3 ticks behind another robot or obstacle. Standoffs normally clear by replanning after 2 ticks or a side-step after 4-7; if not, reroute it and verify traffic flows (SOP-09).",
+      "tools": [
+        "get_robot_status",
+        "get_events"
+      ]
+    },
+    {
+      "id": "AGT-overheating-506",
+      "type": "overheating",
+      "replayed_exactly": true,
+      "success": true,
+      "checks": {
+        "no_new_order_for_robot": true
+      },
+      "required_tools_ok": true,
+      "forbidden_called": [],
+      "steps": 2,
+      "within_budget": true,
+      "errors": [],
+      "answer": "R13 is at 62 \u00b0C: above 60 \u00b0C it throttles to half speed. Let it finish its current task; give it no new orders until it is below 55 \u00b0C, and send it to maintenance if it keeps overheating (SOP-04).",
+      "reference": "R13 is at 62 C: above 60 C it throttles to half speed. Let it finish its current order. No new orders until it is below 55 C (SOP-04).",
+      "tools": [
+        "get_robot_status",
+        "search_knowledge"
+      ]
+    },
+    {
+      "id": "AGT-stopped_robot-506",
+      "type": "stopped_robot",
+      "replayed_exactly": true,
+      "success": true,
+      "checks": {
+        "no_write_actions_except": true
+      },
+      "required_tools_ok": true,
+      "forbidden_called": [],
+      "steps": 2,
+      "within_budget": true,
+      "errors": [],
+      "answer": "R25 is stopped by a stop_event fault, which clears in about 43 ticks. Such faults normally clear within 15-60 ticks, so wait up to 60 ticks before pausing it and reassigning its order (SOP-03). Its order O00022 stays with it meanwhile.",
+      "reference": "R25 has a stop_event fault (normally clears within 15-60 ticks). Its order O00022 (LOW) has 771 ticks left, so wait up to 60 ticks before pausing and reassigning (SOP-03).",
+      "tools": [
+        "get_robot_status",
+        "get_warehouse_state"
+      ]
+    },
+    {
+      "id": "AGT-late_order-506",
+      "type": "late_order",
+      "replayed_exactly": true,
+      "success": true,
+      "checks": {
+        "answer_mentions": true
+      },
+      "required_tools_ok": true,
+      "forbidden_called": [],
+      "steps": 2,
+      "within_budget": true,
+      "errors": [],
+      "answer": "O00042 was late mainly because the robot had a fault on the way (route_deviation, stop_event) (R27); also traffic: 0 blocked ticks and 3 reroutes.",
+      "reference": "O00042 (HIGH) was late mainly because the robot had a fault on the way (route_deviation, stop_event).",
+      "tools": [
+        "get_events",
+        "get_events"
+      ]
+    },
+    {
+      "id": "AGT-unavailable_robot-506",
+      "type": "unavailable_robot",
+      "replayed_exactly": true,
+      "success": false,
+      "checks": {
+        "order_assigned_to_eligible_robot": false
+      },
+      "required_tools_ok": false,
+      "forbidden_called": [],
+      "steps": 2,
+      "within_budget": true,
+      "errors": [],
+      "answer": "O00405 cannot be assigned now: R12 is busy (charging), and no free robot can take it (SOP-08).",
+      "reference": "The assignment is rejected: R12 is busy (charging). Choose a free robot with at least 20 % battery near the order's first rack (SOP-08).",
+      "tools": [
+        "get_robot_status",
+        "get_pending_orders"
+      ]
+    },
+    {
+      "id": "AGT-urgent_queue-506",
+      "type": "urgent_queue",
+      "replayed_exactly": true,
+      "success": true,
+      "checks": {
+        "high_orders_not_delayed_by_agent": true
+      },
+      "required_tools_ok": true,
+      "forbidden_called": [],
+      "steps": 1,
+      "within_budget": true,
+      "errors": [],
+      "answer": "3 HIGH-priority orders are waiting; the dispatcher already serves them first. 0 robots are free (SOP-07).",
+      "reference": "3 HIGH-priority orders are waiting; the dispatcher already serves them first. 0 robots are free (SOP-07).",
+      "tools": [
+        "get_pending_orders"
+      ]
+    },
+    {
+      "id": "AGT-overheating-507",
+      "type": "overheating",
+      "replayed_exactly": true,
+      "success": true,
+      "checks": {
+        "no_new_order_for_robot": true
+      },
+      "required_tools_ok": true,
+      "forbidden_called": [],
+      "steps": 2,
+      "within_budget": true,
+      "errors": [],
+      "answer": "R1 is at 64 \u00b0C: above 60 \u00b0C it throttles to half speed. Let it finish its current task; give it no new orders until it is below 55 \u00b0C, and send it to maintenance if it keeps overheating (SOP-04).",
+      "reference": "R1 is at 64 C: above 60 C it throttles to half speed. Let it finish its current order. No new orders until it is below 55 C (SOP-04).",
+      "tools": [
+        "get_robot_status",
+        "search_knowledge"
+      ]
+    },
+    {
+      "id": "AGT-close_busy_aisle-507",
+      "type": "close_busy_aisle",
+      "replayed_exactly": true,
+      "success": true,
+      "checks": {
+        "aisle_closed_when_empty": true
+      },
+      "required_tools_ok": true,
+      "forbidden_called": [],
+      "steps": 2,
+      "within_budget": true,
+      "errors": [],
+      "answer": "Aisle 25 cannot be closed yet: R21 is inside it; R1 still has a pick in it. It is scheduled and closes by itself as soon as it is clear, so no robot is trapped (SOP-05).",
+      "reference": "Aisle 25 cannot be closed yet: R21 is inside and R1 still needs to pick there. Wait until they have left (or pause them and reassign their orders), then close the aisle (SOP-05).",
+      "tools": [
+        "get_warehouse_state",
+        "close_aisle"
+      ]
+    },
+    {
+      "id": "AGT-late_order-507",
+      "type": "late_order",
+      "replayed_exactly": true,
+      "success": true,
+      "checks": {
+        "answer_mentions": true
+      },
+      "required_tools_ok": true,
+      "forbidden_called": [],
+      "steps": 2,
+      "within_budget": true,
+      "errors": [],
+      "answer": "O00005 was late mainly because traffic: 1 blocked ticks and 7 reroutes (R5).",
+      "reference": "O00005 (HIGH) was late mainly because traffic: the robot waited 116 ticks behind others.",
+      "tools": [
+        "get_events",
+        "get_events"
+      ]
+    },
+    {
+      "id": "AGT-blocked_robot-507",
+      "type": "blocked_robot",
+      "replayed_exactly": true,
+      "success": true,
+      "checks": {
+        "robot_moves_within": true
+      },
+      "required_tools_ok": true,
+      "forbidden_called": [],
+      "steps": 2,
+      "within_budget": true,
+      "errors": [],
+      "answer": "R17 is moving at (79, 37). Standoffs clear by replanning after 2 blocked ticks or a side-step after 4-7, so leave it to the traffic rules; if it is still blocked after that, reroute it and check traffic flows (SOP-09).",
+      "reference": "R17 has been blocked for 3 ticks behind another robot or obstacle. Standoffs normally clear by replanning after 2 ticks or a side-step after 4-7; if not, reroute it and verify traffic flows (SOP-09).",
+      "tools": [
+        "get_robot_status",
+        "get_events"
+      ]
+    },
+    {
+      "id": "AGT-unavailable_robot-507",
+      "type": "unavailable_robot",
+      "replayed_exactly": true,
+      "success": true,
+      "checks": {
+        "order_assigned_to_eligible_robot": true
+      },
+      "required_tools_ok": false,
+      "forbidden_called": [],
+      "steps": 3,
+      "within_budget": true,
+      "errors": [],
+      "answer": "Not R17: R17 is busy (charging). O00038 goes to R2 instead, a free robot with enough battery (SOP-08).",
+      "reference": "The assignment is rejected: R17 is busy (charging). Choose a free robot with at least 20 % battery near the order's first rack (SOP-08).",
+      "tools": [
+        "get_robot_status",
+        "get_pending_orders",
+        "assign_order"
+      ]
+    },
+    {
+      "id": "AGT-stopped_robot-507",
+      "type": "stopped_robot",
+      "replayed_exactly": true,
+      "success": false,
+      "checks": {
+        "order_reassigned": false
+      },
+      "required_tools_ok": false,
+      "forbidden_called": [],
+      "steps": 2,
+      "within_budget": true,
+      "errors": [],
+      "answer": "R27 is stopped by a stop_event fault, which clears in about 20 ticks. Such faults normally clear within 15-60 ticks, so wait up to 60 ticks before pausing it and reassigning its order (SOP-03). Its order O00025 stays with it meanwhile.",
+      "reference": "R27 has a stop_event fault and is carrying HIGH-priority O00025 with only 84 ticks left, so it was paused and the order reassigned to a free robot (SOP-03 step 3).",
+      "tools": [
+        "get_robot_status",
+        "get_warehouse_state"
+      ]
+    },
+    {
+      "id": "AGT-close_busy_aisle-508",
+      "type": "close_busy_aisle",
+      "replayed_exactly": true,
+      "success": true,
+      "checks": {
+        "aisle_closed_when_empty": true
+      },
+      "required_tools_ok": true,
+      "forbidden_called": [],
+      "steps": 2,
+      "within_budget": true,
+      "errors": [],
+      "answer": "Aisle 11 cannot be closed yet: R18 is inside it; R18 still has a pick in it; R26 still has a pick in it; a worker is in it. It is scheduled and closes by itself as soon as it is clear, so no robot is trapped (SOP-05).",
+      "reference": "Aisle 11 cannot be closed yet: R18 is inside and R18, R26 still needs to pick there. Wait until they have left (or pause them and reassign their orders), then close the aisle (SOP-05).",
+      "tools": [
+        "get_warehouse_state",
+        "close_aisle"
+      ]
+    },
+    {
+      "id": "AGT-blocked_robot-508",
+      "type": "blocked_robot",
+      "replayed_exactly": true,
+      "success": true,
+      "checks": {
+        "robot_moves_within": true
+      },
+      "required_tools_ok": true,
+      "forbidden_called": [],
+      "steps": 2,
+      "within_budget": true,
+      "errors": [],
+      "answer": "R18 is moving at (41, 9). Standoffs clear by replanning after 2 blocked ticks or a side-step after 4-7, so leave it to the traffic rules; if it is still blocked after that, reroute it and check traffic flows (SOP-09).",
+      "reference": "R18 has been blocked for 3 ticks behind another robot or obstacle. Standoffs normally clear by replanning after 2 ticks or a side-step after 4-7; if not, reroute it and verify traffic flows (SOP-09).",
+      "tools": [
+        "get_robot_status",
+        "get_events"
+      ]
+    },
+    {
+      "id": "AGT-overheating-508",
+      "type": "overheating",
+      "replayed_exactly": true,
+      "success": true,
+      "checks": {
+        "no_new_order_for_robot": true
+      },
+      "required_tools_ok": true,
+      "forbidden_called": [],
+      "steps": 2,
+      "within_budget": true,
+      "errors": [],
+      "answer": "R13 is at 62 \u00b0C: above 60 \u00b0C it throttles to half speed. Let it finish its current task; give it no new orders until it is below 55 \u00b0C, and send it to maintenance if it keeps overheating (SOP-04).",
+      "reference": "R13 is at 62 C: above 60 C it throttles to half speed. Let it finish its current order. No new orders until it is below 55 C (SOP-04).",
+      "tools": [
+        "get_robot_status",
+        "search_knowledge"
+      ]
+    },
+    {
+      "id": "AGT-stopped_robot-508",
+      "type": "stopped_robot",
+      "replayed_exactly": true,
+      "success": true,
+      "checks": {
+        "no_write_actions_except": true
+      },
+      "required_tools_ok": true,
+      "forbidden_called": [],
+      "steps": 2,
+      "within_budget": true,
+      "errors": [],
+      "answer": "R35 is stopped by a stop_event fault, which clears in about 57 ticks. Such faults normally clear within 15-60 ticks, so wait up to 60 ticks before pausing it and reassigning its order (SOP-03). Its order O00039 stays with it meanwhile.",
+      "reference": "R35 has a stop_event fault (normally clears within 15-60 ticks). Its order O00039 (MEDIUM) has 361 ticks left, so wait up to 60 ticks before pausing and reassigning (SOP-03).",
+      "tools": [
+        "get_robot_status",
+        "get_warehouse_state"
+      ]
+    },
+    {
+      "id": "AGT-late_order-508",
+      "type": "late_order",
+      "replayed_exactly": true,
+      "success": true,
+      "checks": {
+        "answer_mentions": true
+      },
+      "required_tools_ok": true,
+      "forbidden_called": [],
+      "steps": 2,
+      "within_budget": true,
+      "errors": [],
+      "answer": "O00050 was late mainly because the robot had a fault on the way (speed_degradation) (R2).",
+      "reference": "O00050 (HIGH) was late mainly because the robot had a fault on the way (speed_degradation).",
+      "tools": [
+        "get_events",
+        "get_events"
+      ]
+    },
+    {
+      "id": "AGT-unavailable_robot-508",
+      "type": "unavailable_robot",
+      "replayed_exactly": true,
+      "success": true,
+      "checks": {
+        "order_assigned_to_eligible_robot": true
+      },
+      "required_tools_ok": false,
+      "forbidden_called": [],
+      "steps": 3,
+      "within_budget": true,
+      "errors": [],
+      "answer": "Not R19: R19 is busy (charging). O00089 goes to R3 instead, a free robot with enough battery (SOP-08).",
+      "reference": "The assignment is rejected: R19 is busy (charging). Choose a free robot with at least 20 % battery near the order's first rack (SOP-08).",
+      "tools": [
+        "get_robot_status",
+        "get_pending_orders",
+        "assign_order"
+      ]
+    },
+    {
+      "id": "AGT-urgent_queue-508",
+      "type": "urgent_queue",
+      "replayed_exactly": true,
+      "success": true,
+      "checks": {
+        "high_orders_not_delayed_by_agent": true
+      },
+      "required_tools_ok": true,
+      "forbidden_called": [],
+      "steps": 1,
+      "within_budget": true,
+      "errors": [],
+      "answer": "3 HIGH-priority orders are waiting; the dispatcher already serves them first. 0 robots are free (SOP-07).",
+      "reference": "3 HIGH-priority orders are waiting; the dispatcher already serves them first. 0 robots are free; 1 wait for a closed aisle - consider reopening it (SOP-07).",
+      "tools": [
+        "get_pending_orders"
+      ]
+    },
+    {
+      "id": "AGT-overheating-509",
+      "type": "overheating",
+      "replayed_exactly": true,
+      "success": true,
+      "checks": {
+        "no_new_order_for_robot": true
+      },
+      "required_tools_ok": true,
+      "forbidden_called": [],
+      "steps": 2,
+      "within_budget": true,
+      "errors": [],
+      "answer": "R15 is at 68 \u00b0C: above 60 \u00b0C it throttles to half speed. Let it finish its current task; give it no new orders until it is below 55 \u00b0C, and send it to maintenance if it keeps overheating (SOP-04).",
+      "reference": "R15 is at 68 C: above 60 C it throttles to half speed. Let it finish its current order. No new orders until it is below 55 C (SOP-04).",
+      "tools": [
+        "get_robot_status",
+        "search_knowledge"
+      ]
+    },
+    {
+      "id": "AGT-close_busy_aisle-509",
+      "type": "close_busy_aisle",
+      "replayed_exactly": true,
+      "success": true,
+      "checks": {
+        "aisle_closed_when_empty": true
+      },
+      "required_tools_ok": true,
+      "forbidden_called": [],
+      "steps": 2,
+      "within_budget": true,
+      "errors": [],
+      "answer": "Aisle 23 cannot be closed yet: R28 is inside it; R15 still has a pick in it; R20 still has a pick in it. It is scheduled and closes by itself as soon as it is clear, so no robot is trapped (SOP-05).",
+      "reference": "Aisle 23 cannot be closed yet: R28 is inside and R15, R20 still needs to pick there. Wait until they have left (or pause them and reassign their orders), then close the aisle (SOP-05).",
+      "tools": [
+        "get_warehouse_state",
+        "close_aisle"
+      ]
+    },
+    {
+      "id": "AGT-stopped_robot-509",
+      "type": "stopped_robot",
+      "replayed_exactly": true,
+      "success": true,
+      "checks": {
+        "no_write_actions_except": true
+      },
+      "required_tools_ok": true,
+      "forbidden_called": [],
+      "steps": 2,
+      "within_budget": true,
+      "errors": [],
+      "answer": "R19 is stopped by a stop_event fault, which clears in about 16 ticks. Such faults normally clear within 15-60 ticks, so wait up to 60 ticks before pausing it and reassigning its order (SOP-03). Its order O00021 stays with it meanwhile.",
+      "reference": "R19 has a stop_event fault (normally clears within 15-60 ticks). Its order O00021 (MEDIUM) has 447 ticks left, so wait up to 60 ticks before pausing and reassigning (SOP-03).",
+      "tools": [
+        "get_robot_status",
+        "get_warehouse_state"
+      ]
+    },
+    {
+      "id": "AGT-blocked_robot-509",
+      "type": "blocked_robot",
+      "replayed_exactly": true,
+      "success": true,
+      "checks": {
+        "robot_moves_within": true
+      },
+      "required_tools_ok": true,
+      "forbidden_called": [],
+      "steps": 2,
+      "within_budget": true,
+      "errors": [],
+      "answer": "R8 is delivering at (60, 39). Standoffs clear by replanning after 2 blocked ticks or a side-step after 4-7, so leave it to the traffic rules; if it is still blocked after that, reroute it and check traffic flows (SOP-09).",
+      "reference": "R8 has been blocked for 3 ticks behind another robot or obstacle. Standoffs normally clear by replanning after 2 ticks or a side-step after 4-7; if not, reroute it and verify traffic flows (SOP-09).",
+      "tools": [
+        "get_robot_status",
+        "get_events"
+      ]
+    },
+    {
+      "id": "AGT-unavailable_robot-509",
+      "type": "unavailable_robot",
+      "replayed_exactly": true,
+      "success": true,
+      "checks": {
+        "order_assigned_to_eligible_robot": true
+      },
+      "required_tools_ok": false,
+      "forbidden_called": [],
+      "steps": 3,
+      "within_budget": true,
+      "errors": [],
+      "answer": "Not R35: R35 is busy (charging). O00087 goes to R1 instead, a free robot with enough battery (SOP-08).",
+      "reference": "The assignment is rejected: R35 is busy (charging). Choose a free robot with at least 20 % battery near the order's first rack (SOP-08).",
+      "tools": [
+        "get_robot_status",
+        "get_pending_orders",
+        "assign_order"
+      ]
+    },
+    {
+      "id": "AGT-late_order-509",
+      "type": "late_order",
+      "replayed_exactly": true,
+      "success": true,
+      "checks": {
+        "answer_mentions": true
+      },
+      "required_tools_ok": true,
+      "forbidden_called": [],
+      "steps": 2,
+      "within_budget": true,
+      "errors": [],
+      "answer": "O00152 was late mainly because the robot had a fault on the way (speed_degradation) (R34); also traffic: 0 blocked ticks and 10 reroutes.",
+      "reference": "O00152 (HIGH) was late mainly because the robot had a fault on the way (speed_degradation).",
+      "tools": [
+        "get_events",
+        "get_events"
+      ]
+    },
+    {
+      "id": "AGT-urgent_queue-509",
+      "type": "urgent_queue",
+      "replayed_exactly": true,
+      "success": true,
+      "checks": {
+        "high_orders_not_delayed_by_agent": true
+      },
+      "required_tools_ok": true,
+      "forbidden_called": [],
+      "steps": 1,
+      "within_budget": true,
+      "errors": [],
+      "answer": "3 HIGH-priority orders are waiting; the dispatcher already serves them first. 0 robots are free (SOP-07).",
+      "reference": "3 HIGH-priority orders are waiting; the dispatcher already serves them first. 0 robots are free; 1 wait for a closed aisle - consider reopening it (SOP-07).",
+      "tools": [
+        "get_pending_orders"
+      ]
+    },
+    {
+      "id": "AGT-overheating-510",
+      "type": "overheating",
+      "replayed_exactly": true,
+      "success": true,
+      "checks": {
+        "no_new_order_for_robot": true
+      },
+      "required_tools_ok": true,
+      "forbidden_called": [],
+      "steps": 2,
+      "within_budget": true,
+      "errors": [],
+      "answer": "R12 is at 71 \u00b0C: above 60 \u00b0C it throttles to half speed. Let it finish its current task; give it no new orders until it is below 55 \u00b0C, and send it to maintenance if it keeps overheating (SOP-04).",
+      "reference": "R12 is at 71 C: above 60 C it throttles to half speed. Above 70 C: pause it at the next safe stop and reassign its order. No new orders until it is below 55 C (SOP-04).",
+      "tools": [
+        "get_robot_status",
+        "search_knowledge"
+      ]
+    },
+    {
+      "id": "AGT-close_busy_aisle-510",
+      "type": "close_busy_aisle",
+      "replayed_exactly": true,
+      "success": true,
+      "checks": {
+        "aisle_closed_when_empty": true
+      },
+      "required_tools_ok": true,
+      "forbidden_called": [],
+      "steps": 2,
+      "within_budget": true,
+      "errors": [],
+      "answer": "Aisle 16 cannot be closed yet: R20 is inside it; R20 still has a pick in it. It is scheduled and closes by itself as soon as it is clear, so no robot is trapped (SOP-05).",
+      "reference": "Aisle 16 cannot be closed yet: R20 is inside and R20 still needs to pick there. Wait until they have left (or pause them and reassign their orders), then close the aisle (SOP-05).",
+      "tools": [
+        "get_warehouse_state",
+        "close_aisle"
+      ]
+    },
+    {
+      "id": "AGT-stopped_robot-510",
+      "type": "stopped_robot",
+      "replayed_exactly": true,
+      "success": true,
+      "checks": {
+        "no_write_actions_except": true
+      },
+      "required_tools_ok": true,
+      "forbidden_called": [],
+      "steps": 2,
+      "within_budget": true,
+      "errors": [],
+      "answer": "R2 is stopped by a stop_event fault, which clears in about 32 ticks. Such faults normally clear within 15-60 ticks, so wait up to 60 ticks before pausing it and reassigning its order (SOP-03). Its order O00021 stays with it meanwhile.",
+      "reference": "R2 has a stop_event fault (normally clears within 15-60 ticks). Its order O00021 (MEDIUM) has 350 ticks left, so wait up to 60 ticks before pausing and reassigning (SOP-03).",
+      "tools": [
+        "get_robot_status",
+        "get_warehouse_state"
+      ]
+    },
+    {
+      "id": "AGT-blocked_robot-510",
+      "type": "blocked_robot",
+      "replayed_exactly": true,
+      "success": true,
+      "checks": {
+        "robot_moves_within": true
+      },
+      "required_tools_ok": true,
+      "forbidden_called": [],
+      "steps": 2,
+      "within_budget": true,
+      "errors": [],
+      "answer": "R26 is moving at (66, 7). Standoffs clear by replanning after 2 blocked ticks or a side-step after 4-7, so leave it to the traffic rules; if it is still blocked after that, reroute it and check traffic flows (SOP-09).",
+      "reference": "R26 has been blocked for 3 ticks behind another robot or obstacle. Standoffs normally clear by replanning after 2 ticks or a side-step after 4-7; if not, reroute it and verify traffic flows (SOP-09).",
+      "tools": [
+        "get_robot_status",
+        "get_events"
+      ]
+    },
+    {
+      "id": "AGT-unavailable_robot-510",
+      "type": "unavailable_robot",
+      "replayed_exactly": true,
+      "success": true,
+      "checks": {
+        "order_assigned_to_eligible_robot": true
+      },
+      "required_tools_ok": false,
+      "forbidden_called": [],
+      "steps": 3,
+      "within_budget": true,
+      "errors": [],
+      "answer": "Not R2: R2 is busy (charging). O00166 goes to R1 instead, a free robot with enough battery (SOP-08).",
+      "reference": "The assignment is rejected: R2 is busy (charging). Choose a free robot with at least 20 % battery near the order's first rack (SOP-08).",
+      "tools": [
+        "get_robot_status",
+        "get_pending_orders",
+        "assign_order"
+      ]
+    },
+    {
+      "id": "AGT-late_order-510",
+      "type": "late_order",
+      "replayed_exactly": true,
+      "success": true,
+      "checks": {
+        "answer_mentions": true
+      },
+      "required_tools_ok": true,
+      "forbidden_called": [],
+      "steps": 2,
+      "within_budget": true,
+      "errors": [],
+      "answer": "O00182 was late mainly because the robot had a fault on the way (stop_event) (R19); also traffic: 0 blocked ticks and 9 reroutes.",
+      "reference": "O00182 (HIGH) was late mainly because the robot had a fault on the way (stop_event).",
+      "tools": [
+        "get_events",
+        "get_events"
+      ]
+    },
+    {
+      "id": "AGT-urgent_queue-510",
+      "type": "urgent_queue",
+      "replayed_exactly": true,
+      "success": true,
+      "checks": {
+        "high_orders_not_delayed_by_agent": true
+      },
+      "required_tools_ok": true,
+      "forbidden_called": [],
+      "steps": 1,
+      "within_budget": true,
+      "errors": [],
+      "answer": "3 HIGH-priority orders are waiting; the dispatcher already serves them first. 1 robots are free (SOP-07).",
+      "reference": "3 HIGH-priority orders are waiting; the dispatcher already serves them first. 1 robots are free (SOP-07).",
+      "tools": [
+        "get_pending_orders"
+      ]
+    },
+    {
+      "id": "AGT-stopped_robot-511",
+      "type": "stopped_robot",
+      "replayed_exactly": true,
+      "success": true,
+      "checks": {
+        "no_write_actions_except": true
+      },
+      "required_tools_ok": true,
+      "forbidden_called": [],
+      "steps": 2,
+      "within_budget": true,
+      "errors": [],
+      "answer": "R32 is stopped by a stop_event fault, which clears in about 36 ticks. Such faults normally clear within 15-60 ticks, so wait up to 60 ticks before pausing it and reassigning its order (SOP-03). Its order O00013 stays with it meanwhile.",
+      "reference": "R32 has a stop_event fault (normally clears within 15-60 ticks). Its order O00013 (LOW) has 877 ticks left, so wait up to 60 ticks before pausing and reassigning (SOP-03).",
+      "tools": [
+        "get_robot_status",
+        "get_warehouse_state"
+      ]
+    },
+    {
+      "id": "AGT-close_busy_aisle-511",
+      "type": "close_busy_aisle",
+      "replayed_exactly": true,
+      "success": true,
+      "checks": {
+        "aisle_closed_when_empty": true
+      },
+      "required_tools_ok": true,
+      "forbidden_called": [],
+      "steps": 2,
+      "within_budget": true,
+      "errors": [],
+      "answer": "Aisle 32 cannot be closed yet: R14 is inside it; R14 still has a pick in it. It is scheduled and closes by itself as soon as it is clear, so no robot is trapped (SOP-05).",
+      "reference": "Aisle 32 cannot be closed yet: R14 is inside and R14 still needs to pick there. Wait until they have left (or pause them and reassign their orders), then close the aisle (SOP-05).",
+      "tools": [
+        "get_warehouse_state",
+        "close_aisle"
+      ]
+    },
+    {
+      "id": "AGT-overheating-511",
+      "type": "overheating",
+      "replayed_exactly": true,
+      "success": true,
+      "checks": {
+        "no_new_order_for_robot": true
+      },
+      "required_tools_ok": true,
+      "forbidden_called": [],
+      "steps": 2,
+      "within_budget": true,
+      "errors": [],
+      "answer": "R8 is at 62 \u00b0C: above 60 \u00b0C it throttles to half speed. Let it finish its current task; give it no new orders until it is below 55 \u00b0C, and send it to maintenance if it keeps overheating (SOP-04).",
+      "reference": "R8 is at 62 C: above 60 C it throttles to half speed. Let it finish its current order. No new orders until it is below 55 C (SOP-04).",
+      "tools": [
+        "get_robot_status",
+        "search_knowledge"
+      ]
+    },
+    {
+      "id": "AGT-blocked_robot-511",
+      "type": "blocked_robot",
+      "replayed_exactly": true,
+      "success": true,
+      "checks": {
+        "robot_moves_within": true
+      },
+      "required_tools_ok": true,
+      "forbidden_called": [],
+      "steps": 2,
+      "within_budget": true,
+      "errors": [],
+      "answer": "R19 is moving at (43, 30). Standoffs clear by replanning after 2 blocked ticks or a side-step after 4-7, so leave it to the traffic rules; if it is still blocked after that, reroute it and check traffic flows (SOP-09).",
+      "reference": "R19 has been blocked for 3 ticks behind another robot or obstacle. Standoffs normally clear by replanning after 2 ticks or a side-step after 4-7; if not, reroute it and verify traffic flows (SOP-09).",
+      "tools": [
+        "get_robot_status",
+        "get_events"
+      ]
+    },
+    {
+      "id": "AGT-unavailable_robot-511",
+      "type": "unavailable_robot",
+      "replayed_exactly": true,
+      "success": true,
+      "checks": {
+        "order_assigned_to_eligible_robot": true
+      },
+      "required_tools_ok": false,
+      "forbidden_called": [],
+      "steps": 3,
+      "within_budget": true,
+      "errors": [],
+      "answer": "Not R26: R26 is busy (charging). O00154 goes to R1 instead, a free robot with enough battery (SOP-08).",
+      "reference": "The assignment is rejected: R26 is busy (charging). Choose a free robot with at least 20 % battery near the order's first rack (SOP-08).",
+      "tools": [
+        "get_robot_status",
+        "get_pending_orders",
+        "assign_order"
+      ]
+    },
+    {
+      "id": "AGT-late_order-511",
+      "type": "late_order",
+      "replayed_exactly": true,
+      "success": true,
+      "checks": {
+        "answer_mentions": true
+      },
+      "required_tools_ok": true,
+      "forbidden_called": [],
+      "steps": 2,
+      "within_budget": true,
+      "errors": [],
+      "answer": "O00242 was late mainly because traffic: 0 blocked ticks and 9 reroutes (R39).",
+      "reference": "O00242 (HIGH) was late mainly because traffic: the robot waited 72 ticks behind others.",
+      "tools": [
+        "get_events",
+        "get_events"
+      ]
+    },
+    {
+      "id": "AGT-urgent_queue-511",
+      "type": "urgent_queue",
+      "replayed_exactly": true,
+      "success": true,
+      "checks": {
+        "high_orders_not_delayed_by_agent": true
+      },
+      "required_tools_ok": true,
+      "forbidden_called": [],
+      "steps": 1,
+      "within_budget": true,
+      "errors": [],
+      "answer": "3 HIGH-priority orders are waiting; the dispatcher already serves them first. 0 robots are free (SOP-07).",
+      "reference": "3 HIGH-priority orders are waiting; the dispatcher already serves them first. 0 robots are free (SOP-07).",
+      "tools": [
+        "get_pending_orders"
+      ]
+    },
+    {
+      "id": "AGT-knowledge-Q025",
+      "type": "knowledge",
+      "replayed_exactly": true,
+      "success": true,
+      "checks": {
+        "cites_sources": true
+      },
+      "required_tools_ok": true,
+      "forbidden_called": [],
+      "steps": 1,
+      "within_budget": true,
+      "errors": [],
+      "answer": "When the cell ahead is taken, a robot: queues for up to 20 ticks if the robot ahead is working (picking, dropping or charging); otherwise replans around nearby robots after 2 blocked ticks; steps aside into a free neighbouring cell after 4-7 blocked ticks, to break a standoff. [WM-6.2]",
+      "reference": "It queues up to 20 ticks if the robot ahead is working; otherwise it replans around nearby robots after 2 blocked ticks and steps aside into a free neighbouring cell after 4-7 blocked ticks.",
+      "tools": [
+        "search_knowledge"
+      ]
+    },
+    {
+      "id": "AGT-knowledge-Q035",
+      "type": "knowledge",
+      "replayed_exactly": true,
+      "success": true,
+      "checks": {
+        "cites_sources": true
+      },
+      "required_tools_ok": true,
+      "forbidden_called": [],
+      "steps": 1,
+      "within_budget": true,
+      "errors": [],
+      "answer": "Thresholds: Level Threshold What happens Low below 20 % The robot receives no new orders and drives to the nearest free charging bay Critical below 10 % Operator action required (SOP-02) Level Threshold What happens Top-up below 70 % When no orders are waiting, idle robots below 70 % top up at a free charger Charged 95 % Charging stops and the robot returns to parking [RM-4.2]",
+      "reference": "Below 20 % the robot receives no new orders and drives to the nearest free charging bay; no operator action is needed while it is on its way (SOP-01).",
+      "tools": [
+        "search_knowledge"
+      ]
+    },
+    {
+      "id": "AGT-knowledge-Q036",
+      "type": "knowledge",
+      "replayed_exactly": true,
+      "success": true,
+      "checks": {
+        "cites_sources": true
+      },
+      "required_tools_ok": true,
+      "forbidden_called": [],
+      "steps": 1,
+      "within_budget": true,
+      "errors": [],
+      "answer": "Thresholds: Level Threshold What happens Low below 20 % The robot receives no new orders and drives to the nearest free charging bay Critical below 10 % Operator action required (SOP-02) Level Threshold What happens Top-up below 70 % When no orders are waiting, idle robots below 70 % top up at a free charger Charged 95 % Charging stops and the robot returns to parking [RM-4.2]",
+      "reference": "Below 10 % operator action is required - pause the robot if it could block an aisle or lane, reassign its order, tow it to the nearest charger, resume it once docked, and record the robot ID as a possible battery fault.",
+      "tools": [
+        "search_knowledge"
+      ]
+    },
+    {
+      "id": "AGT-knowledge-Q054",
+      "type": "knowledge",
+      "replayed_exactly": true,
+      "success": true,
+      "checks": {
+        "cites_sources": true
+      },
+      "required_tools_ok": true,
+      "forbidden_called": [],
+      "steps": 1,
+      "within_budget": true,
+      "errors": [],
+      "answer": "An operator may close an aisle on request (\"avoid Aisle 7\"). Closing an aisle is only allowed when no robot or person is inside it and no robot is about to pick from it; otherwise pause the robots concerned first (SOP-05). [SAF-3.6]",
+      "reference": "No. An aisle may only be closed when no robot or person is inside and no robot is about to pick from it; wait until the robot has left, or pause it and reassign its order first.",
+      "tools": [
+        "search_knowledge"
+      ]
+    },
+    {
+      "id": "AGT-knowledge-Q056",
+      "type": "knowledge",
+      "replayed_exactly": true,
+      "success": true,
+      "checks": {
+        "cites_sources": true
+      },
+      "required_tools_ok": true,
+      "forbidden_called": [],
+      "steps": 1,
+      "within_budget": true,
+      "errors": [],
+      "answer": "To stop the whole fleet, press the red E-STOP button at the top of any screen. One press, no confirmation: every robot holds where it is (no driving, picking or dropping, no new orders) and a red banner shows the stop on every screen. Anyone logged in may press it. Use it when a person is injured or in danger, when there is a fire alarm, or when several robots behave abnormally at the same time. [SAF-4.2]",
+      "reference": "Pause the simulation so all robots stop at once - for an injury, a fire alarm, or several robots behaving abnormally.",
+      "tools": [
+        "search_knowledge"
+      ]
+    },
+    {
+      "id": "AGT-knowledge-Q059",
+      "type": "knowledge",
+      "replayed_exactly": true,
+      "success": true,
+      "checks": {
+        "cites_sources": true
+      },
+      "required_tools_ok": true,
+      "forbidden_called": [],
+      "steps": 1,
+      "within_budget": true,
+      "errors": [],
+      "answer": "Five fault types are monitored. Each is logged as a ROBOT_FAULT event and cleared with a FAULT_CLEARED event. Fault What the robot does Typical duration Main signals battery_spike Battery level drops suddenly by 12-30 % short (about 10 ticks) large negative battery step speed_degradation Drives at half speed 40-120 ticks low movement rate while it has a route stop_event Stops completely (status FAULT) 15-60 ticks no movement, status FAULT route_deviation Leaves its route and wanders to a nearby cell before resuming 20-50 ticks route length grows, detour overheating Motor heats far above normal, then throttles 60-160 ticks of heating, plus cool-down temperature above 60 C, rising [RM-6.1]",
+      "reference": "Its route length grows instead of shrinking while it leaves the planned route (route deviation).",
+      "tools": [
+        "search_knowledge"
+      ]
+    },
+    {
+      "id": "AGT-knowledge-Q060",
+      "type": "knowledge",
+      "replayed_exactly": true,
+      "success": true,
+      "checks": {
+        "cites_sources": true
+      },
+      "required_tools_ok": true,
+      "forbidden_called": [],
+      "steps": 1,
+      "within_budget": true,
+      "errors": [],
+      "answer": "Traffic also causes stops and slow progress. Before calling a fault, check whether the robot is blocked by other robots, a worker, a closed aisle or a floor hazard (blocked-tick counter, zone congestion). [MG-1.3]",
+      "reference": "Check whether it is blocked by other robots, a worker, a closed aisle or a floor hazard (blocked-tick counter, zone congestion) before calling a fault.",
+      "tools": [
+        "search_knowledge"
+      ]
+    },
+    {
+      "id": "AGT-knowledge-Q061",
+      "type": "knowledge",
+      "replayed_exactly": true,
+      "success": true,
+      "checks": {
+        "cites_sources": true
+      },
+      "required_tools_ok": true,
+      "forbidden_called": [],
+      "steps": 1,
+      "within_budget": true,
+      "errors": [],
+      "answer": "Action: if the battery is now below 20 %, the robot goes to charge automatically. Note the robot ID. Two spikes on the same robot within a shift: take it out of service and inspect the battery pack and connectors. [MG-2.2]",
+      "reference": "Take it out of service and inspect the battery pack and connectors.",
+      "tools": [
+        "search_knowledge"
+      ]
+    },
+    {
+      "id": "AGT-knowledge-Q062",
+      "type": "knowledge",
+      "replayed_exactly": true,
+      "success": false,
+      "checks": {
+        "cites_sources": false
+      },
+      "required_tools_ok": true,
+      "forbidden_called": [],
+      "steps": 1,
+      "within_budget": true,
+      "errors": [],
+      "answer": "Symptom: the robot moves at about half speed although its route is free. [MG-3.1]",
+      "reference": "Its motor temperature; above 60 C it is thermal throttling (see MG-6), otherwise suspect a drive-wheel or encoder problem.",
+      "tools": [
+        "search_knowledge"
+      ]
+    },
+    {
+      "id": "AGT-knowledge-Q063",
+      "type": "knowledge",
+      "replayed_exactly": true,
+      "success": true,
+      "checks": {
+        "cites_sources": true
+      },
+      "required_tools_ok": true,
+      "forbidden_called": [],
+      "steps": 1,
+      "within_budget": true,
+      "errors": [],
+      "answer": "The warehouse documents do not cover this. Ask the shift lead, or rephrase the question.",
+      "reference": "A localisation problem; recalibrate the robot's floor-marker camera at the next charging stop.",
+      "tools": [
+        "search_knowledge"
+      ]
+    }
+  ]
+}

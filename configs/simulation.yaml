@@ -46,6 +46,10 @@ thermal:                        # drive-motor temperature (simulation/robots/the
   ambient: 24.0                 # deg C
   cooling: 0.01                 # share of the gap to ambient lost per tick
   throttle_at: 60.0             # above this the robot drives at half speed
+  # SOP-04: no new orders from this temperature until below resume_below. null = off (how the
+  # datasets and experiments ran); the backend switches it on (THERMAL_DISPATCH_LIMIT).
+  no_new_orders_above: null
+  resume_below: 55.0
 
 safety:                         # simulation/environment/safety.py (e-stop is always available)
   slow_zones: false             # half speed within slow_radius of a person; off here so datasets

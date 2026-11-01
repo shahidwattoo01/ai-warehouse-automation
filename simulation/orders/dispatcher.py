@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING
 
 from simulation.events.events import Event, EventType
 from simulation.robots.controller import manhattan
-from simulation.warehouse.entities import OrderStatus, Priority
+from simulation.warehouse.entities import OrderStatus, Priority, RobotStatus
 
 if TYPE_CHECKING:
     from simulation.environment.engine import SimulationEngine
@@ -49,7 +49,7 @@ class Dispatcher:
             self._assign_with_strategy(waiting, low)
             waiting = []
         for order in waiting if self.auto else []:
-            free = [r for r in eng.robots.values() if ctl.available(r) and r.battery >= low]
+            free = [r for r in eng.robots.values() if ctl.can_take_order(r) and r.battery >= low]
             if not free:
                 break
             if closed and self.needs_closed_cell(order):
@@ -75,7 +75,7 @@ class Dispatcher:
         """Let a Phase 4 strategy pair waiting orders with free robots."""
         eng = self.engine
         ctl = eng.controller
-        free = [r for r in eng.robots.values() if ctl.available(r) and r.battery >= low]
+        free = [r for r in eng.robots.values() if ctl.can_take_order(r) and r.battery >= low]
         if not free:
             return
         closed = eng.layout.grid.closed
@@ -88,6 +88,24 @@ class Dispatcher:
         face = self.engine.inventory.face
         return any(face[i.product_id] in closed for i in order.items)
 
+    def _release_from_stopped(self, order) -> str | None:
+        """Take an order off a paused or faulted robot so another robot can carry it (SOP-03
+        step 3: an urgent order cannot wait for the fault to clear). Only before any item is in
+        that robot's tote: picked items are physically on it. None = released."""
+        eng = self.engine
+        holder = eng.robots.get(order.assigned_robot)
+        task = eng.controller.tasks.get(order.assigned_robot)
+        if holder is None or task is None or task.order_id != order.order_id:
+            return f"{order.order_id} is already {order.status.value.lower()}"
+        if holder.status not in (RobotStatus.PAUSED, RobotStatus.FAULT):
+            return f"{order.order_id} is being carried by {holder.robot_id}"
+        if len(task.stops) < len(order.items):
+            return f"{holder.robot_id} already picked items of {order.order_id}"
+        eng.controller.tasks.pop(holder.robot_id)
+        holder.current_task, holder.route = None, []
+        order.status, order.assigned_robot, order.destination = OrderStatus.PENDING, None, None
+        return None
+
     def assign_manual(self, order_id: str, robot_id: str) -> None:
         """Operator assignment; rejected (with an event saying why) if it is no longer valid."""
         eng = self.engine
@@ -95,6 +113,9 @@ class Dispatcher:
         robot = eng.robots.get(robot_id)
         if order is None or robot is None:
             reason = f"unknown order or robot ({order_id}, {robot_id})"
+        elif order.status == OrderStatus.ASSIGNED and order.assigned_robot != robot_id:
+            # SOP-03 step 3; the new robot is checked first, so a refusal releases nothing
+            reason = eng.controller.unavailable_reason(robot) or self._release_from_stopped(order)
         elif order.status != OrderStatus.PENDING:
             reason = f"{order_id} is already {order.status.value.lower()}"
         elif self.needs_closed_cell(order):

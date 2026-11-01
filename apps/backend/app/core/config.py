@@ -29,6 +29,9 @@ class Settings(BaseSettings):
     # (one stock number per bay, the model behind dataset v3 and the Phase 4 experiments).
     inventory_model: str = "wms"
     safety_slow_zones: bool = True  # robots at half speed near people (configs: safety)
+    # SOP-04 in the dispatcher: no new orders for a robot at or above this temperature (deg C)
+    # until it is below 55; empty = off (as the datasets were recorded). docs/phase8_agents.md
+    thermal_dispatch_limit: float | None = 60.0
 
     # Recovery (docs/recovery.md): the live warehouse is saved to STATE_DIR every SNAPSHOT_SECONDS
     # and on shutdown, and restored (paused) at start-up. Needs a fixed JWT_SECRET (signing key).

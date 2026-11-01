@@ -359,6 +359,45 @@ def layer6_section() -> list:
     return out
 
 
+def layer8_section() -> list:
+    """Section 14: Phase 8 operations agent, from scripts/evaluate_agents.py."""
+    path = ROOT / "reports" / "agents_eval_offline.json"
+    if not path.exists():
+        return []
+    data = json.loads(path.read_text(encoding="utf-8"))
+    summ = data["summary"]
+    out = [PageBreak(), p("14. Layer 8 — Operations agent: tools and agents (Phase 8)", H2)]
+    out += [p("The agent acts only through 15 typed tools (JSON schemas, read/write flags, approval for every "
+              "write), looks before it acts and follows the SOPs. It was evaluated on the 92 situations taken from "
+              "the simulator (a stopped, overheating or blocked robot, a late order, an assignment to a robot that "
+              "cannot take it, urgent orders, closing a busy aisle, document questions): each one is replayed to the "
+              "exact state, the agent runs with every write approved (so approval does not hide its mistakes), the "
+              "warehouse keeps running 200 ticks and the scenario's checks are applied to what really happened.",
+              NOTE)]  # fmt: skip
+    rows = [
+        [
+            "Situation",
+            "Scenarios",
+            "Task success",
+            "Required tools",
+            "Forbidden calls",
+            "Within budget",
+            "Avg steps",
+        ]
+    ]
+    for name, v in [*summ["by_type"].items(), ("all", summ["overall"])]:
+        rows.append([name.replace("_", " "), str(v["scenarios"]), f"{v['task_success']:.0%}",
+                     f"{v['required_tools']:.0%}", str(v["forbidden_calls"]), f"{v['within_budget']:.0%}",
+                     f"{v['avg_steps']}"])  # fmt: skip
+    out += [table(rows, [44, 22, 26, 28, 28, 26, 22], highlight={len(rows) - 1: "#E3F4EA"}),
+            p(f"Planner: {summ['planner']}. {summ['overall']['replayed_exactly']} of {summ['overall']['scenarios']} "
+              "scenarios replayed to the exact recorded state. Claude can plan with the same tools when an API key "
+              "is configured (free wording); the offline planner needs no key. Found on the way: the dispatcher did "
+              "not enforce SOP-04 (no new orders for an overheated robot until it is below 55 °C), and nothing the "
+              "agent may do could; it is now a dispatcher rule, on in the live platform.", NOTE)]  # fmt: skip
+    return out
+
+
 def layer7_section() -> list:
     """Section 13: Phase 7 knowledge assistant (RAG), from notebooks/12_rag.ipynb."""
     out = [PageBreak(), p("13. Layer 7 — Knowledge assistant: RAG (Phase 7)", H2)]
@@ -826,6 +865,7 @@ def main() -> None:
     story += layer5_section()
     story += layer6_section()
     story += layer7_section()
+    story += layer8_section()
     story += [PageBreak(), p("14. Interpretation", H2)]
     for text in (
         f"<b>Why {BEST} wins.</b> At peak hours the fleet is overloaded: in the baseline more than half of an order's "

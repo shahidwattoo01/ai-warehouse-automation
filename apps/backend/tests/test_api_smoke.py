@@ -22,7 +22,7 @@ def test_pause_unknown_robot_404():
 
 def test_future_phase_endpoint_returns_501():
     with TestClient(app) as client:
-        assert client.post("/api/v1/agents/run").status_code == 501
+        assert client.post("/api/v1/navigation/route").status_code == 501
 
 
 def test_pause_and_start_are_sent_to_every_client_at_once():

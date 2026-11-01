@@ -3,6 +3,7 @@
 import { Can } from "@/components/layout/Can";
 import { Check, Send, X } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { AgentPanel } from "@/components/copilot/AgentPanel";
 import { Screen } from "@/components/layout/Screen";
 import { api } from "@/lib/api";
 import type { CopilotHistoryItem, CopilotReply, CopilotStatus, ToolCall } from "@/lib/types";
@@ -282,6 +283,9 @@ export default function CopilotPage() {
             )}
           </div>
         </aside>
+      </div>
+      <div className="mt-4">
+        <AgentPanel />
       </div>
     </Screen>
   );
