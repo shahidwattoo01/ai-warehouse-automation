@@ -138,14 +138,18 @@ phases:
       Gymnasium-style env wrapper (single- and multi-agent), 4 experiment configs (E9a–E9d),
       RL Training and Slotting pages in the frontend, /rl and /slotting backend API routes.
     measured: >-
-      Unit tests for physics tick math and space-time reservation; experiment configs
-      E9a–E9d validated (seeds 101-105, 24 h, independent streams); pytest suite clean.
+      5 experiments × 5 seeds × 24 h simulated; identical orders, faults and hazards (independent
+      streams); paired comparison with E4d baseline on the same seeds.
+      Full results: evaluation/reports/phase9/ (runs.csv, summary.csv, vs_baseline.csv, report.md).
     result: >-
-      E9a adds batch picking and space-time traffic; E9b tightens physics (turn_speed_ms 0.4);
-      E9c adds demand-driven slotting; E9d adds MARL navigator replacing A* route planner.
-      Comparison reference: E4d (Phase 4 best — global Hungarian + BFS).
+      Best = E9a (batch picking + space-time A*): avg completion 509 vs 558 ticks (−8.8 %), p90
+      1631 vs 1902 ticks (−14.3 %), late 23.6 % vs 25.6 % (−7.7 %), 5/5 seeds improved.
+      E9b (+ tighter MiR-100 physics) and E9c (+ slotting) match E9a within rounding — slotting
+      triggers once per 24 h so its first swap lands at the end of the run window.
+      E9d (MARL navigator) ran as A* fallback because weights were absent; +16.2 % completion
+      vs E4d — training the shared-policy DQN is the next step to unlock the MARL gain.
     docs: docs/phase9_multiagent_rl.md
-    experiment: E9d
+    experiment: E9a
     kpi_effect: decisions
   - id: 10
     name: Integration
