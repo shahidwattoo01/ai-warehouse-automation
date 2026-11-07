@@ -488,9 +488,11 @@ def backlog_section() -> list:
     for i in sorted(items, key=lambda i: (i["phase"], rank[i["priority"]], i["id"])):
         if i["status"] in ("done", "partial"):
             highlight[len(rows)] = "#E3F4EA" if i["status"] == "done" else "#FFF4D6"
+        ev = i.get("evidence") or ""
+        ev_short = (ev[:60] + "…") if len(ev) > 60 else ev
         rows.append([i["id"], i["area"], i["gap"], i["build"], str(i["phase"]), i["priority"], i["effort"],
-                     i["status"] + (f" ({i['evidence']})" if i.get("evidence") else "")])  # fmt: skip
-    out += [table(rows, [14, 20, 55, 110, 12, 16, 12, 18], highlight=highlight)]
+                     i["status"] + (f" — {ev_short}" if ev_short else "")])  # fmt: skip
+    out += [table(rows, [14, 20, 55, 110, 12, 16, 12, 30], highlight=highlight)]
     return out
 
 

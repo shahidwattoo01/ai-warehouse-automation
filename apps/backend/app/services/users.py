@@ -68,6 +68,7 @@ class User:
     locked_until: dt.datetime | None = None
     created_at: dt.datetime | None = None
     last_login: dt.datetime | None = None
+    site_id: str | None = None
 
     def public(self) -> dict:
         return {
@@ -80,6 +81,7 @@ class User:
             "locked": bool(self.locked_until and self.locked_until > now()),
             "last_login": self.last_login.isoformat() if self.last_login else None,
             "created_at": self.created_at.isoformat() if self.created_at else None,
+            "site_id": self.site_id,
         }
 
 
@@ -105,12 +107,12 @@ class MemoryUserStore:
     def list(self) -> list[User]:
         return sorted((replace(u) for u in self.users.values()), key=lambda u: u.username.lower())
 
-    def create(self, username: str, full_name: str, role: str, password_hash: str) -> User:
+    def create(self, username: str, full_name: str, role: str, password_hash: str, site_id: str | None = None) -> User:
         with self._lock:
             if self.get_by_username(username):
                 raise ValueError(f"username {username} is taken")
             user = User(
-                str(uuid.uuid4()), username, full_name, role, password_hash, created_at=now()
+                str(uuid.uuid4()), username, full_name, role, password_hash, created_at=now(), site_id=site_id
             )
             self.users[user.user_id] = user
             _changed()
@@ -171,7 +173,7 @@ class SqlUserStore:
 
     COLUMNS = (
         "user_id, username, full_name, role, password_hash, active, failed_logins, locked_until, "
-        "created_at, last_login"
+        "created_at, last_login, site_id"
     )
 
     def __init__(self, database_url: str) -> None:
@@ -211,17 +213,17 @@ class SqlUserStore:
             ).all()
         return [self._user(r) for r in rows]
 
-    def create(self, username: str, full_name: str, role: str, password_hash: str) -> User:
+    def create(self, username: str, full_name: str, role: str, password_hash: str, site_id: str | None = None) -> User:
         if self.get_by_username(username):
             raise ValueError(f"username {username} is taken")
         with self.db.begin() as c:
             row = c.execute(
                 text(
-                    "INSERT INTO users (username, full_name, role, password_hash) "
-                    f"VALUES (:u, :f, :r, :p) "
+                    "INSERT INTO users (username, full_name, role, password_hash, site_id) "
+                    f"VALUES (:u, :f, :r, :p, :s) "
                     f"RETURNING {self.COLUMNS}"
                 ),
-                {"u": username, "f": full_name, "r": role, "p": password_hash},
+                {"u": username, "f": full_name, "r": role, "p": password_hash, "s": site_id},
             ).first()
         _changed()
         return self._user(row)
@@ -235,6 +237,7 @@ class SqlUserStore:
             "failed_logins",
             "locked_until",
             "last_login",
+            "site_id",
         }
         sets = {k: v for k, v in fields.items() if k in allowed}
         if "password_hash" in sets:

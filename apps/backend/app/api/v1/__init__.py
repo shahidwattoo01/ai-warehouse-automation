@@ -20,6 +20,7 @@ from app.api.v1 import (
     robots,
     safety,
     simulation,
+    sites,
     slotting,
     tools,
     vda5050,
@@ -51,3 +52,4 @@ api_router.include_router(events.router)
 api_router.include_router(mlops.router)
 api_router.include_router(rl.router)
 api_router.include_router(slotting.router)
+api_router.include_router(sites.router)

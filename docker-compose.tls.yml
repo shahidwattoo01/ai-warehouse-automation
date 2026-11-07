@@ -1,0 +1,27 @@
+# TLS overlay for the Warehouse AI Platform.
+# Extends docker-compose.yml with an nginx reverse proxy that terminates HTTPS.
+#
+# Start:   docker compose -f docker-compose.yml -f docker-compose.tls.yml up -d
+# Certs:   place warehouse.crt and warehouse.key in ./certs/
+#          (Let's Encrypt: certbot certonly → copy fullchain.pem + privkey.pem)
+#
+# The backend port (8000) is removed from the host in this overlay so all traffic
+# goes through nginx.  Set NEXT_PUBLIC_API_URL=https://<your-host>/api/v1 in the
+# frontend .env to match.
+
+services:
+  nginx:
+    image: nginx:1.27-alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./docker/nginx-tls.conf:/etc/nginx/nginx.conf:ro
+      - ./certs:/etc/nginx/certs:ro
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+  # Remove the direct backend port so it is only reachable through nginx.
+  backend:
+    ports: !reset []

@@ -13,9 +13,12 @@ import type {
   Priority,
   RLHistoryEntry,
   RLStatus,
+  SiteClient,
+  SitesReport,
   SlottingHeatmap,
   StrategyPresets,
   VisionStatus,
+  WarehouseSite,
 } from "./types";
 
 import { API_URL, authFetch } from "./auth";
@@ -99,5 +102,25 @@ export const api = {
   slotting: {
     heatmap: () => request<SlottingHeatmap>("/slotting/heatmap"),
     reslot: () => request<{ swaps: number }>("/slotting/reslot", { method: "POST" }),
+  },
+  sites: {
+    clients: () => request<SiteClient[]>("/sites/clients"),
+    createClient: (name: string, description: string) =>
+      request<SiteClient>("/sites/clients", { method: "POST", body: JSON.stringify({ name, description }) }),
+    updateClient: (id: string, fields: Partial<SiteClient>) =>
+      request<SiteClient>(`/sites/clients/${id}`, { method: "PUT", body: JSON.stringify(fields) }),
+    deleteClient: (id: string) =>
+      request<{ deleted: string }>(`/sites/clients/${id}`, { method: "DELETE" }),
+    list: (clientId?: string) =>
+      request<WarehouseSite[]>(`/sites${clientId ? `?client_id=${clientId}` : ""}`),
+    create: (body: { client_id: string; name: string; description?: string; timezone?: string }) =>
+      request<WarehouseSite>("/sites", { method: "POST", body: JSON.stringify(body) }),
+    update: (id: string, fields: Partial<WarehouseSite>) =>
+      request<WarehouseSite>(`/sites/${id}`, { method: "PUT", body: JSON.stringify(fields) }),
+    delete: (id: string) =>
+      request<{ deleted: string }>(`/sites/${id}`, { method: "DELETE" }),
+    reports: () => request<SitesReport>("/sites/reports"),
+    assignUser: (siteId: string, userId: string) =>
+      request<{ user_id: string; site_id: string }>(`/sites/${siteId}/assign-user`, { method: "POST", body: JSON.stringify({ user_id: userId }) }),
   },
 };

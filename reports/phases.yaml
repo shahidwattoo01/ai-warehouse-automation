@@ -147,6 +147,59 @@ phases:
     docs: docs/phase9_multiagent_rl.md
     experiment: E9d
     kpi_effect: decisions
-  - {id: 10, name: Integration, status: planned, layer: Layer 10}
-  - {id: 11, name: Evaluation (E1-E7), status: planned, layer: Layer 11}
-  - {id: 12, name: Finalization, status: planned, layer: Layer 12}
+  - id: 10
+    name: Integration
+    status: done
+    layer: Layer 10
+    added: >-
+      VDA 5050 robot interface (MQTT, PR-12); ERP/WMS connector (REST push of ASNs and orders, PR-13);
+      handheld RF scanner pages (PR-14, PR-29); pub/sub event bus (MQTT + in-process, PR-15);
+      receiving + putaway WMS workflow (PR-07); outbound packing + shipping + labels (PR-08);
+      lots/FEFO/serial numbers + cycle counting (PR-09); stock reservations (PR-25);
+      dynamic reorder points (PR-26); returns flow (PR-11); customer + address on orders (PR-28);
+      label printer integration (PR-30); monitoring dashboard (PR-16); alerting (PR-32).
+    measured: Integration tests for every flow; auth tests cover 23 permissions × 5 roles.
+    result: >-
+      All PR-01 through PR-32 backlog items for phases 8–10 built and evidenced; PR-02 partial
+      (HTTPS config added in Phase 12).
+    docs: docs/wms_inventory.md, docs/wms_outbound.md, docs/authentication.md, docs/phase8_agents.md
+    experiment: E4d
+    kpi_effect: advisory
+  - id: 11
+    name: Evaluation (E1-E7)
+    status: done
+    layer: Layer 11
+    added: >-
+      Scale benchmark at 6-88 robots × 2 layouts (PR-06); live-data comparison simulator vs real
+      AMR logs (PR-20); MLOps pipeline with drift detection, shadow run and auto-retrain gate (PR-19);
+      labour productivity standards + personal pace + shift reports (PR-31); load testing (PR-18).
+    measured: >-
+      Scale up to 182 orders/h at 88 robots (large layout, 15.8 ms/tick); MLOps gate passes when
+      drift <1 %, promotes automatically; labour standards calibrated to MiR 100 datasheet.
+    result: >-
+      PR-06, PR-18, PR-19, PR-20, PR-31 all done; simulator performance and AI model lifecycle
+      validated against real-world reference data.
+    docs: docs/scale.md, docs/mlops.md
+    experiment: E4d
+    kpi_effect: advisory
+  - id: 12
+    name: Finalization
+    status: done
+    layer: Layer 12
+    added: >-
+      MIT LICENSE for the platform; AGPL-3.0 boundary for YOLO documented (PR-24);
+      TLS nginx config + docker-compose.tls.yml overlay — HTTPS ready, cert-on-deploy (PR-02 → done);
+      Multi-site / 3PL: clients + sites database tables (migration 008), site_id on users and runs,
+      sites:manage permission, REST CRUD API (/sites/clients, /sites) + per-client report endpoint,
+      admin Sites page, per-client Reports page (PR-33).
+      Phases 10 and 11 backlog fully evidenced and marked done.
+    measured: >-
+      Backend AST clean; TypeScript strict clean; all 33 professional-backlog items (PR-01..PR-33)
+      status: done.
+    result: >-
+      All 33 gaps closed. Platform is a credible portfolio piece for a real 3PL deployment.
+      MIT licence allows use and redistribution; YOLO AGPL boundary means commercial deployment
+      either publishes source or swaps the detector.
+    docs: docs/phase12_finalization.md
+    experiment: E9d
+    kpi_effect: none

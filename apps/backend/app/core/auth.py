@@ -82,6 +82,7 @@ class Principal:
     full_name: str
     role: str
     permissions: frozenset[str]
+    site_id: str | None = None
 
     def can(self, permission: str) -> bool:
         return permission in self.permissions
@@ -95,12 +96,14 @@ class Principal:
             "role_label": ROLES[self.role]["label"],
             "home": ROLES[self.role]["home"],
             "permissions": sorted(self.permissions),
+            "site_id": self.site_id,
         }
 
 
 def principal_of(user: User) -> Principal:
     return Principal(
-        user.user_id, user.username, user.full_name, user.role, frozenset(permissions_of(user.role))
+        user.user_id, user.username, user.full_name, user.role,
+        frozenset(permissions_of(user.role)), site_id=user.site_id
     )
 
 

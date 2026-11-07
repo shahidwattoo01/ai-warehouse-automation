@@ -416,3 +416,40 @@ export interface SlottingHeatmap {
   cells: SlottingCell[];
   total_swaps: number;
 }
+
+// ---- Phase 12: Multi-site / 3PL ------------------------------------------------
+
+export interface SiteClient {
+  client_id: string;
+  name: string;
+  description: string;
+  active: boolean;
+  created_at: string;
+}
+
+export interface WarehouseSite {
+  site_id: string;
+  client_id: string;
+  name: string;
+  description: string;
+  timezone: string;
+  active: boolean;
+  created_at: string;
+}
+
+export interface SiteReportRow {
+  site_id: string;
+  site_name: string;
+  client_name: string;
+  runs: number;
+  last_run_id: string;
+  throughput_per_hour: number | null;
+  late_percent: number | null;
+  avg_completion_ticks: number | null;
+}
+
+export interface SitesReport {
+  clients: SiteClient[];
+  sites: WarehouseSite[];
+  report: SiteReportRow[];
+}

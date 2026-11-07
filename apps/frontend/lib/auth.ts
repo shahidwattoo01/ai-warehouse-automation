@@ -170,6 +170,8 @@ export const PAGE_PERMISSION: [string, string][] = [
   ["/models", "analytics:view"],
   ["/rl", "analytics:view"],
   ["/slotting", "analytics:view"],
+  ["/reports", "analytics:view"],
+  ["/admin/sites", "sites:manage"],
 ];
 
 export function pagePermission(path: string): string | null {

@@ -35,6 +35,7 @@ PERMISSIONS: dict[str, str] = {
     "wms:settings": "Choose which work the associates do automatically; order release mode",
     "models:manage": "Retrain, promote and roll back the AI models",
     "users:manage": "Create users, change roles, disable accounts, reset passwords",
+    "sites:manage": "Create and edit warehouse sites and 3PL clients; assign users to sites",
 }
 
 _READ = {"dashboard:view", "analytics:view", "wms:view"}
@@ -48,7 +49,7 @@ ROLES: dict[str, dict] = {
     "supervisor": {
         "label": "Shift supervisor",
         "home": "/dashboard",
-        "permissions": set(PERMISSIONS) - {"users:manage"},
+        "permissions": set(PERMISSIONS) - {"users:manage", "sites:manage"},
     },
     "operator": {
         "label": "Control-room operator",
