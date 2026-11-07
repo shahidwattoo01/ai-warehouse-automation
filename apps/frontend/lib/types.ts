@@ -385,3 +385,34 @@ export interface KnowledgeDocument {
   doc_type: DocType;
   sections: { section_id: string; heading: string }[];
 }
+
+// ---- Phase 9: RL / MARL -------------------------------------------------------
+
+export interface RLHistoryEntry {
+  episode: number;
+  mean_reward: number;
+  mean_deliveries: number;
+  eps: number;
+}
+
+export interface RLStatus {
+  enabled: boolean;
+  episodes_completed: number;
+  config: Record<string, number | string | boolean>;
+  history: RLHistoryEntry[];
+}
+
+// ---- Phase 9: Slotting ---------------------------------------------------------
+
+export interface SlottingCell {
+  product_id: string;
+  row: number;
+  col: number;
+  velocity: number;
+}
+
+export interface SlottingHeatmap {
+  enabled: boolean;
+  cells: SlottingCell[];
+  total_swaps: number;
+}

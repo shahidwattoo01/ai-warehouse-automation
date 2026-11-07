@@ -20,6 +20,7 @@ from typing import TYPE_CHECKING
 
 from simulation.environment.congestion import zone_of
 from simulation.events.events import Event, EventType
+from simulation.robots.physics import PhysicsConfig, pace_ticks, travel_ticks
 from simulation.warehouse.entities import Order, OrderStatus, Robot, RobotStatus
 
 if TYPE_CHECKING:
@@ -53,10 +54,12 @@ class Task:
     kind: str  # order | charge | park
     stage: str
     dwell: int = 0  # ticks left at the current stop (picking, dropping)
-    # order
-    order_id: str | None = None
+    # order (single or batch — PR-03)
+    order_id: str | None = None          # primary / first order (kept for backward compat)
+    order_ids: list[str] = field(default_factory=list)  # all orders in this trip (batch)
     stops: list[Cell] = field(default_factory=list)  # pick faces still to visit
     stop_names: list[str] = field(default_factory=list)  # rack locations of all picks
+    stop_order_map: list[str] = field(default_factory=list)  # parallel to stops: which order_id
     drop: Cell | None = None  # packing bay
     # charge
     bay: Cell | None = None
@@ -70,6 +73,10 @@ class Task:
     def working(self) -> bool:
         return self.stage in WORKING_STAGES
 
+    @property
+    def is_batch(self) -> bool:
+        return len(self.order_ids) > 1
+
 
 class RobotController:
     def __init__(self, engine: SimulationEngine) -> None:
@@ -79,6 +86,9 @@ class RobotController:
         self.blocked: dict[str, int] = {}  # consecutive ticks a robot could not move
         self.goal: dict[str, Cell] = {}  # where each robot's current route ends
         self.recent_moves: dict[str, deque] = {}  # last 4 ticks: 1 if moved (live speed)
+        self._phys_pace: dict[str, int] = {}  # extra ticks to wait before next cell (PR-05)
+        self._phys_cfg = PhysicsConfig.from_config(engine.config)
+        self._ticks_per_hour: int = engine.config.get("ticks_per_hour", 600)
 
         layout = engine.layout
         self.parking: list[Cell] = list(layout.parking)  # every bay of every parking area
@@ -159,56 +169,100 @@ class RobotController:
 
     # ----- starting tasks --------------------------------------------------------------
     def start_order(self, order: Order, robot: Robot) -> None:
-        """Give an order to a robot and send it to the first rack."""
+        """Give a single order to a robot (backward-compatible wrapper for start_batch)."""
+        self.start_batch([order], robot)
+
+    def start_batch(self, orders: list[Order], robot: Robot) -> None:
+        """Assign one or more orders to a robot as a single trip (PR-03 batch picking).
+
+        Stops are sorted by proximity (nearest-neighbour from the robot's position) across
+        all orders so the robot picks the most efficient combined route.
+        """
         eng = self.engine
-        stops = [eng.inventory.face[i.product_id] for i in order.items]
         packers = [s for s in eng.layout.stations if s.type == "PACKING"]
-        station = min(packers, key=lambda s: manhattan((s.x, s.y), stops[-1]))
-        legs = list(zip([robot.position, *stops], [*stops, (station.x, station.y)], strict=True))
-        order.status = OrderStatus.ASSIGNED
-        order.assigned_robot = robot.robot_id
-        order.destination = station.station_id
-        robot.current_task = order.order_id
-        path = [robot.position, *stops, (station.x, station.y)]
+
+        # Collect all stops across all orders with their order mapping
+        all_stops: list[tuple[Cell, str, str]] = []  # (face, order_id, location_name)
+        for order in orders:
+            for item in order.items:
+                face = eng.inventory.face[item.product_id]
+                name = eng.inventory.location(item.product_id)
+                all_stops.append((face, order.order_id, name))
+
+        # Nearest-neighbour sort for multi-order batches
+        if len(orders) > 1 and all_stops:
+            sorted_stops: list[tuple[Cell, str, str]] = []
+            remaining = list(all_stops)
+            pos = robot.position
+            while remaining:
+                nearest = min(remaining, key=lambda s: manhattan(s[0], pos))
+                sorted_stops.append(nearest)
+                remaining.remove(nearest)
+                pos = nearest[0]
+            all_stops = sorted_stops
+
+        stops = [s[0] for s in all_stops]
+        stop_order_map = [s[1] for s in all_stops]
+        stop_names = [s[2] for s in all_stops]
+
+        # Choose packing station nearest the last stop
+        station = min(packers, key=lambda s: manhattan((s.x, s.y), stops[-1] if stops else robot.position))
+        drop = (station.x, station.y)
+
+        path = [robot.position, *stops, drop]
+        legs = list(zip(path, path[1:], strict=False))
+
+        for order in orders:
+            order.status = OrderStatus.ASSIGNED
+            order.assigned_robot = robot.robot_id
+            order.destination = station.station_id
+
+        primary = orders[0]
+        robot.current_task = primary.order_id
+
         self.tasks[robot.robot_id] = Task(
             kind="order",
             stage="TO_PICK",
-            order_id=order.order_id,
+            order_id=primary.order_id,
+            order_ids=[o.order_id for o in orders],
             stops=stops,
-            stop_names=[eng.inventory.location(i.product_id) for i in order.items],
-            drop=(station.x, station.y),
+            stop_names=stop_names,
+            stop_order_map=stop_order_map,
+            drop=drop,
             metrics={
                 "assigned_at": eng.time,
                 "assigned_hour": eng.sim_hour,
                 "start": robot.position,
                 "battery_start": round(robot.battery, 2),
                 "est_distance": sum(manhattan(a, b) for a, b in zip(path, path[1:], strict=False)),
-                # Shortest legal route (one-way aisles, closures), ignoring other robots.
                 "path_distance": sum(self._path_length(a, b) for a, b in legs),
+                "path_distance_ticks": self._physics_eta(path),
                 "robot_speed": eng.faults.speed_factor(robot.robot_id),
                 "temperature_start": round(robot.temperature, 1),
                 "closures_active": len(eng.hazards.closures),
                 "floor_hazards_active": len(eng.hazards.floor),
                 "zone_congestion": eng.congestion.get(
                     zone_of(eng.layout.zones, stops[0]) or "", 0.0
-                ),
+                ) if stops else 0.0,
                 "fleet_busy": sum(not self.available(r) for r in eng.robots.values()),
                 "pending_orders": sum(o.status == OrderStatus.PENDING for o in eng.orders.values())
-                + 1,
+                + len(orders),
+                "batch_size": len(orders),
                 "moves": 0,
                 "waits": 0,
                 "reroutes": 0,
             },
         )
-        self._route(robot, stops[0])
-        eng.events.emit(
-            Event(
-                eng.time,
-                EventType.ORDER_ASSIGNED,
-                order.order_id,
-                {"robot_id": robot.robot_id, "manual": order.manual_assignment},
+        self._route(robot, stops[0] if stops else drop)
+        for order in orders:
+            eng.events.emit(
+                Event(
+                    eng.time,
+                    EventType.ORDER_ASSIGNED,
+                    order.order_id,
+                    {"robot_id": robot.robot_id, "manual": order.manual_assignment, "batch_size": len(orders)},
+                )
             )
-        )
 
     def send_to_charger(self, robot: Robot, low: bool = True) -> bool:
         """Send a robot to the nearest free charger bay; `low` = battery-low (else a top-up)."""
@@ -303,6 +357,14 @@ class RobotController:
                 self._wait_in_traffic(robot, task, nxt, robot_at, obstacle_cells)
                 continue
 
+            # Physics: drain accel/turn delay before stepping (PR-05)
+            pace = self._phys_pace.get(rid, 0)
+            if pace > 0:
+                self._phys_pace[rid] = pace - 1
+                if task and task.kind == "order":
+                    task.metrics["waits"] += 1
+                continue
+
             self.blocked[rid] = 0
             if task and task.kind == "order":
                 task.metrics["moves"] += 1
@@ -313,6 +375,13 @@ class RobotController:
             robot.position = nxt
             robot.battery = max(0.0, robot.battery - drain)
             eng.events.emit(Event(eng.time, EventType.ROBOT_MOVED, rid, {"to": list(nxt)}))
+            # Advance physics pace to next cell in schedule (PR-05)
+            if self._phys_cfg.enabled and task is not None:
+                schedule = task.metrics.get("_pace_schedule")
+                if schedule:
+                    self._phys_pace[rid] = schedule.pop(0)
+                else:
+                    self._phys_pace.pop(rid, None)
             if not robot.route and task:
                 self._arrive(robot, task)
 
@@ -393,7 +462,11 @@ class RobotController:
     # ----- task stages ---------------------------------------------------------------
     def _arrive(self, robot: Robot, task: Task) -> None:
         """End of route reached: advance the task to its next stage."""
-        cfg = self.engine.config["orders"]
+        # Release space-time reservation when route is done (PR-04)
+        eng = self.engine
+        if getattr(eng, "_st_enabled", False):
+            eng.space_time.release(robot.robot_id)
+        cfg = eng.config["orders"]
         if task.stage == "TO_PICK":
             task.stage, task.dwell = "PICKING", cfg.get("pick_ticks", 4)
             self.engine.orders[task.order_id].status = OrderStatus.IN_PROGRESS
@@ -421,31 +494,53 @@ class RobotController:
             self._finish_pick(robot, task, order)
         else:
             self._finish_drop(robot, task, order)
+            return
 
     def _finish_pick(self, robot: Robot, task: Task, order: Order) -> None:
         eng = self.engine
-        line = len(order.items) - len(task.stops)
-        item = order.items[line]
-        eng.inventory.picked(order, line, robot.robot_id)
+        # For batch tasks, find which order this stop belongs to (PR-03)
+        if task.stop_order_map:
+            current_order_id = task.stop_order_map[0]
+            current_order = eng.orders.get(current_order_id, order)
+        else:
+            current_order = order
+        line = len(current_order.items) - sum(
+            1 for oid in task.stop_order_map if oid == current_order.order_id
+        )
+        # Clamp to valid range
+        line = max(0, min(line, len(current_order.items) - 1))
+        item = current_order.items[line]
+        eng.inventory.picked(current_order, line, robot.robot_id)
         robot.load += 1
         robot.battery = max(0.0, robot.battery - eng.config["battery"]["drain_per_item"])
         eng.events.emit(
             Event(eng.time, EventType.ITEM_PICKED, robot.robot_id, {"product_id": item.product_id})
         )
         task.stops.pop(0)
+        if task.stop_order_map:
+            task.stop_order_map.pop(0)
         if task.stops:
             task.stage = "TO_PICK"
             self._route(robot, task.stops[0])
         else:
             task.stage = "TO_PACK"
-            order.destination, task.drop = self._least_busy_drop_bay(robot)
+            if not task.is_batch:
+                current_order.destination, task.drop = self._least_busy_drop_bay(robot)
+            else:
+                _, task.drop = self._least_busy_drop_bay(robot)
             self._route(robot, task.drop)
 
     def _finish_drop(self, robot: Robot, task: Task, order: Order) -> None:
         eng = self.engine
-        order.status = OrderStatus.DELIVERED if eng.time <= order.deadline else OrderStatus.LATE
-        order.delivered_at = eng.time
-        eng.inventory.shipped(order, robot.robot_id, order.destination)
+        # Deliver all orders in the batch (PR-03)
+        all_order_ids = task.order_ids if task.order_ids else [task.order_id]
+        for oid in all_order_ids:
+            o = eng.orders.get(oid, order if oid == order.order_id else None)
+            if o is None:
+                continue
+            o.status = OrderStatus.DELIVERED if eng.time <= o.deadline else OrderStatus.LATE
+            o.delivered_at = eng.time
+            eng.inventory.shipped(o, robot.robot_id, o.destination or (task.drop and "PACKING") or "PACKING")
         robot.load = 0
         robot.current_task = None
         m = task.metrics
@@ -477,6 +572,7 @@ class RobotController:
             "moves": m["moves"],
             "waits": m["waits"],
             "reroutes": m["reroutes"],
+            "path_distance_ticks": m.get("path_distance_ticks", m["path_distance"]),
         }
         eng.events.emit(Event(eng.time, EventType.ORDER_DELIVERED, order.order_id, payload))
         self.park(robot)
@@ -521,6 +617,25 @@ class RobotController:
         d = self.engine.distances.distance(a, b)
         return d if d > 0 else manhattan(a, b)
 
+    def _physics_eta(self, waypoints: list[Cell]) -> int:
+        """Physics-adjusted tick estimate for a full multi-stop path (PR-05)."""
+        if not self._phys_cfg.enabled or len(waypoints) < 2:
+            return sum(manhattan(waypoints[i], waypoints[i + 1]) for i in range(len(waypoints) - 1))
+        total = 0
+        for i in range(len(waypoints) - 1):
+            leg = self.engine.planner.plan(
+                self.engine.layout.grid, waypoints[i], waypoints[i + 1]
+            )
+            if leg:
+                full = [waypoints[i], *leg]
+                from simulation.robots.physics import count_turns
+                cells = len(leg)
+                turns = count_turns(full)
+                total += travel_ticks(cells, turns, self._phys_cfg, self._ticks_per_hour)
+            else:
+                total += manhattan(waypoints[i], waypoints[i + 1])
+        return total
+
     def _route(self, robot: Robot, goal: Cell, avoid: set[Cell] | None = None) -> None:
         eng = self.engine
         grid = eng.layout.grid
@@ -531,6 +646,23 @@ class RobotController:
             robot.route = eng.planner.plan(
                 grid, robot.position, goal, avoid, rng=eng.rng
             ) or eng.planner.plan(grid, robot.position, goal, rng=eng.rng)
+        # Space-time: register new path in the reservation table (PR-04)
+        eng = self.engine
+        if getattr(eng, "_st_enabled", False) and robot.route:
+            full = [robot.position, *robot.route]
+            eng.space_time.reserve(robot.robot_id, full, eng.time)
+        # Physics: build per-cell pace schedule for the new route (PR-05)
+        if robot.route and self._phys_cfg.enabled:
+            full_path = [robot.position, *robot.route]
+            waits = pace_ticks(full_path, self._phys_cfg, self._ticks_per_hour)
+            self._phys_pace[robot.robot_id] = waits[0]  # wait for first step (accel from rest)
+            robot.route = list(robot.route)  # ensure mutable
+            # Store remaining pace schedule on the route steps as a sidecar list in the task
+            task = self.tasks.get(robot.robot_id)
+            if task is not None:
+                task.metrics.setdefault("_pace_schedule", waits[1:])
+        else:
+            self._phys_pace.pop(robot.robot_id, None)
         robot.status = self.status_for(robot)
 
     @staticmethod

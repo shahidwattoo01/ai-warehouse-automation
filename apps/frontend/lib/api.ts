@@ -11,6 +11,9 @@ import type {
   KnowledgeSource,
   KnowledgeStatus,
   Priority,
+  RLHistoryEntry,
+  RLStatus,
+  SlottingHeatmap,
   StrategyPresets,
   VisionStatus,
 } from "./types";
@@ -87,5 +90,14 @@ export const api = {
   robots: {
     pause: (id: string) => request(`/robots/${id}/pause`, { method: "POST" }),
     resume: (id: string) => request(`/robots/${id}/resume`, { method: "POST" }),
+  },
+  rl: {
+    status: () => request<RLStatus>("/rl/status"),
+    train: () => request<{ version: string; metrics: Record<string, number> }>("/rl/train", { method: "POST" }),
+    history: () => request<RLHistoryEntry[]>("/rl/history"),
+  },
+  slotting: {
+    heatmap: () => request<SlottingHeatmap>("/slotting/heatmap"),
+    reslot: () => request<{ swaps: number }>("/slotting/reslot", { method: "POST" }),
   },
 };

@@ -16,9 +16,11 @@ from app.api.v1 import (
     orders,
     prediction,
     rag,
+    rl,
     robots,
     safety,
     simulation,
+    slotting,
     tools,
     vda5050,
     vision,
@@ -47,3 +49,5 @@ api_router.include_router(vda5050.router)
 api_router.include_router(erp.router)
 api_router.include_router(events.router)
 api_router.include_router(mlops.router)
+api_router.include_router(rl.router)
+api_router.include_router(slotting.router)

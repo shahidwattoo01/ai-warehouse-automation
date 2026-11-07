@@ -21,6 +21,8 @@ import {
   ShieldAlert,
   ShieldCheck,
   Smartphone,
+  Sparkles,
+  Tag,
   Warehouse,
 } from "lucide-react";
 
@@ -34,6 +36,8 @@ const NAV = [
   { href: "/vision", label: "Vision", icon: Cctv },
   { href: "/analytics", label: "Analytics", icon: LineChart },
   { href: "/models", label: "AI models", icon: BrainCircuit },
+  { href: "/rl", label: "RL Training", icon: Sparkles },
+  { href: "/slotting", label: "Slotting", icon: Tag },
   { href: "/copilot", label: "Copilot", icon: MessageSquare },
   { href: "/knowledge", label: "Knowledge", icon: BookOpen },
   { href: "/integration", label: "Integration", icon: Plug },

@@ -125,7 +125,28 @@ phases:
     docs: docs/phase8_agents.md
     experiment: agents_eval
     kpi_effect: advisory
-  - {id: 9, name: Multi-agent + RL, status: planned, layer: Layer 9}
+  - id: 9
+    name: Multi-agent + RL
+    status: done
+    layer: Layer 9
+    added: >-
+      Batch picking (PR-03: tote capacity 3, cluster-radius nearest-neighbour sort),
+      space-time A* traffic control (PR-04: (cell,tick) reservation, deadlock detection + backoff),
+      MiR-100 physics model (PR-05: accel/turn ticks, pace schedule),
+      slotting optimisation (PR-10: pick-velocity ranking, face-to-packing-station re-slot),
+      shared-policy MARL (DQN, 58-dim obs, parameter sharing across fleet),
+      Gymnasium-style env wrapper (single- and multi-agent), 4 experiment configs (E9a–E9d),
+      RL Training and Slotting pages in the frontend, /rl and /slotting backend API routes.
+    measured: >-
+      Unit tests for physics tick math and space-time reservation; experiment configs
+      E9a–E9d validated (seeds 101-105, 24 h, independent streams); pytest suite clean.
+    result: >-
+      E9a adds batch picking and space-time traffic; E9b tightens physics (turn_speed_ms 0.4);
+      E9c adds demand-driven slotting; E9d adds MARL navigator replacing A* route planner.
+      Comparison reference: E4d (Phase 4 best — global Hungarian + BFS).
+    docs: docs/phase9_multiagent_rl.md
+    experiment: E9d
+    kpi_effect: decisions
   - {id: 10, name: Integration, status: planned, layer: Layer 10}
   - {id: 11, name: Evaluation (E1-E7), status: planned, layer: Layer 11}
   - {id: 12, name: Finalization, status: planned, layer: Layer 12}

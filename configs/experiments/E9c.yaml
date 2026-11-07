@@ -1,0 +1,20 @@
+# E9c — E9b + slotting optimisation (Phase 9, PR-10)
+experiment_id: E9c
+name: "Batch + space-time + physics + slotting"
+phase: 9
+description: >-
+  Adds PR-10 (demand-driven slotting) on top of E9b.  Fast-moving SKUs are re-slotted to
+  rack faces nearest the packing stations every 24 simulated hours using a 7-day rolling
+  pick-velocity window.  Expected benefit: shorter average travel distance per pick.
+layout: large
+seeds: [101, 102, 103, 104, 105]
+hours: 24
+independent_streams: true
+metrics: [avg_completion_ticks, p90_completion_ticks, late_percent, throughput_per_hour,
+          avg_queue_ticks, distance_m, blocked_events, avg_pending, utilisation_percent,
+          batch_fill_rate, collision_events, physics_overhead_ticks, slotting_swaps]
+strategies: {assignment: global, planner: bfs, traffic_aware: false, positioning: balanced, charging: threshold, replanning: false}
+batch_picking: {enabled: true, tote_capacity: 3, cluster_radius: 8}
+space_time: {enabled: true, horizon_ticks: 60, deadlock_check_every: 10}
+physics: {enabled: true, max_speed_ms: 1.5, accel_ms2: 0.5, turn_speed_ms: 0.4}
+slotting: {enabled: true, reoptimise_every_hours: 24, velocity_window_hours: 168}

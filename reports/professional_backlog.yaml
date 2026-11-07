@@ -36,7 +36,8 @@ items:
     phase: 9
     priority: high
     effort: M
-    status: planned
+    status: done
+    evidence: "Batch picking dispatcher: nearest-neighbour cluster sort, tote_capacity=3, cluster_radius=8 m, same-priority constraint; stop_order_map tracks which pick belongs to which order; start_batch() replaces start_order(); E9a-E9d all enable batch_picking; simulation/orders/dispatcher.py, simulation/robots/controller.py"
   - id: PR-04
     area: Fleet
     gap: No time-based traffic control
@@ -44,7 +45,8 @@ items:
     phase: 9
     priority: high
     effort: M
-    status: planned
+    status: done
+    evidence: "Space-time A*: (cell,tick) reservation table, 60-tick horizon, waiting-for graph deadlock detection, backoff resolution for lowest-priority robot; SpaceTimePlanner falls back to BFS if no path; engine integrates sweep + deadlock check per tick; simulation/navigation/space_time.py, simulation/environment/engine.py"
   - id: PR-05
     area: Fleet
     gap: Robots move cell by cell without physics
@@ -52,7 +54,8 @@ items:
     phase: 9
     priority: medium
     effort: M
-    status: planned
+    status: done
+    evidence: "MiR 100 datasheet: 1.5 m/s max, 0.5 m/s² accel, 0.5 m/s turn speed; accel_ticks=1, turn_ticks=1 at 600 ticks/hour; travel_ticks(5 cells, 1 turn)=7; pace_ticks schedule drains energy per tick; simulation/robots/physics.py, simulation/robots/controller.py"
   - id: PR-06
     area: Fleet
     gap: One layout and fleet size
@@ -98,7 +101,8 @@ items:
     phase: 9
     priority: medium
     effort: M
-    status: planned
+    status: done
+    evidence: "SlottingOptimiser: pick-velocity rolling window (7-day), ranks SKUs by velocity, ranks rack faces by distance to nearest packing station, swaps fast movers inward; periodic trigger every 24 simulated hours; heatmap API + Slotting page in frontend; simulation/warehouse/slotting.py, apps/backend/app/api/v1/slotting.py, apps/frontend/app/slotting/page.tsx"
   - id: PR-11
     area: WMS
     gap: No returns

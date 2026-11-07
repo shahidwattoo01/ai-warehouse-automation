@@ -32,6 +32,8 @@ from simulation.events.events import Event, EventBus, EventType
 from simulation.inventory.inventory import Inventory
 from simulation.navigation.distance import DistanceFields
 from simulation.navigation.planner import Planner, get_planner
+from simulation.navigation.space_time import SpaceTimeTable, detect_deadlock, resolve_deadlock
+from simulation.warehouse.slotting import SlottingOptimiser
 from simulation.orders.dispatcher import Dispatcher
 from simulation.orders.generator import OrderGenerator
 from simulation.robots.controller import RobotController
@@ -122,6 +124,15 @@ class SimulationEngine:
         self.safety = Safety(self)  # e-stop, slow zones, safety log (no randomness)
         self.dispatcher = Dispatcher(self)
         self.kpis = Kpis(self)
+        # Phase 9 — PR-04: space-time reservation table (created always, active when configured)
+        st_cfg = self.config.get("space_time", {})
+        self.space_time = SpaceTimeTable(horizon=st_cfg.get("horizon_ticks", 60))
+        self._st_enabled: bool = st_cfg.get("enabled", False)
+        self._st_deadlock_every: int = st_cfg.get("deadlock_check_every", 10)
+        # Phase 9 — PR-10: slotting optimiser (subscribe to ITEM_PICKED for velocity tracking)
+        self.slotting = SlottingOptimiser.from_config(self.config)
+        if self.slotting.enabled:
+            self.events.subscribe(self._slotting_pick_handler)
 
     def stream(self, name: str) -> random.Random:
         """Random numbers for an environment process (orders, faults, hazards, inventory).
@@ -186,6 +197,13 @@ class SimulationEngine:
         self.faults.step()
         self.safety.step()
         self.controller.advance()
+        # Phase 9 — PR-04: space-time bookkeeping
+        if self._st_enabled:
+            self.space_time.sweep(self.time)
+            if self.time % self._st_deadlock_every == 0:
+                cycle = detect_deadlock(self, self.space_time)
+                if cycle:
+                    resolve_deadlock(self, self.space_time, cycle)
         update_temperatures(self)
         self.workers.step()
         self._update_resources()
@@ -275,6 +293,16 @@ class SimulationEngine:
         ]
         for k in finished[:-KEEP_FINISHED_ORDERS]:
             del self.orders[k]
+        # Phase 9 — PR-10: trigger periodic slotting re-optimisation
+        self.slotting.maybe_reslot(self)
+
+    def _slotting_pick_handler(self, event) -> None:
+        """Record each ITEM_PICKED for SKU velocity tracking (PR-10)."""
+        from simulation.events.events import EventType as ET
+        if event.type == ET.ITEM_PICKED:
+            pid = event.payload.get("product_id")
+            if pid:
+                self.slotting.record_pick(pid, event.tick)
 
     # ----- state -----------------------------------------------------------------
     def state(self, include_inventory: bool = True) -> dict:

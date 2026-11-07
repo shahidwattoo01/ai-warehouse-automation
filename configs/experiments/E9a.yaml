@@ -1,0 +1,20 @@
+# E9a — Batch picking + space-time traffic control (Phase 9, PR-03 + PR-04)
+experiment_id: E9a
+name: "Batch picking + space-time traffic"
+phase: 9
+description: >-
+  Enables PR-03 (batch picking, tote capacity 3, cluster radius 8 m) and PR-04 (space-time
+  path reservation, 60-tick horizon, deadlock detection every 10 ticks).  Robot physics
+  (PR-05) is always on from Phase 9.  Baseline for comparison: E4d (global assignment, BFS).
+layout: large
+seeds: [101, 102, 103, 104, 105]
+hours: 24
+independent_streams: true
+metrics: [avg_completion_ticks, p90_completion_ticks, late_percent, throughput_per_hour,
+          avg_queue_ticks, distance_m, blocked_events, avg_pending, utilisation_percent,
+          batch_fill_rate, collision_events]
+strategies: {assignment: global, planner: bfs, traffic_aware: false, positioning: balanced, charging: threshold, replanning: false}
+batch_picking: {enabled: true, tote_capacity: 3, cluster_radius: 8}
+space_time: {enabled: true, horizon_ticks: 60, deadlock_check_every: 10}
+physics: {enabled: true}
+slotting: {enabled: false}

@@ -79,3 +79,30 @@ camera:
   enabled: true
   frame_size: [224, 224]
   every_n_ticks: 10
+
+# Phase 9 — PR-05: AMR physics (acceleration, braking, turning)
+# Calibrated to MiR 100 datasheet. Set enabled: false to restore pre-Phase-9 behaviour.
+physics:
+  enabled: true
+  max_speed_ms: 1.5     # m/s straight (MiR 100 max)
+  accel_ms2: 0.5        # m/s² acceleration and deceleration
+  turn_speed_ms: 0.5    # m/s through a 90° corner
+  cell_m: 1.0           # grid cell = 1 metre
+
+# Phase 9 — PR-03: batch picking (tote carries multiple orders per trip)
+batch_picking:
+  enabled: false        # switched on in experiments E9a+
+  tote_capacity: 3      # max concurrent orders per robot
+  cluster_radius: 8     # cells — only group orders whose first picks are within this radius
+
+# Phase 9 — PR-04: space-time path reservation
+space_time:
+  enabled: false        # switched on in experiments E9a+
+  horizon_ticks: 60     # how far ahead reservations are held
+  deadlock_check_every: 10  # ticks between waiting-graph cycle checks
+
+# Phase 9 — PR-10: slotting optimisation
+slotting:
+  enabled: false        # switched on in experiments E9c+
+  reoptimise_every_hours: 24   # re-rank and reslot once per simulated day
+  velocity_window_hours: 168   # rolling window of pick counts used to rank SKUs (7 days)
