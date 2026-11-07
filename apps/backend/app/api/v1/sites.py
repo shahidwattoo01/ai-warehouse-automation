@@ -27,7 +27,7 @@ from pydantic import BaseModel, Field
 
 from app.core.auth import Principal, need, require
 from app.services.sites import get_site_store
-from app.services.users import get_store as get_user_store
+from app.core.auth import get_store as get_user_store
 from app.services.simulator import simulator
 
 router = APIRouter(prefix="/sites", tags=["sites"])

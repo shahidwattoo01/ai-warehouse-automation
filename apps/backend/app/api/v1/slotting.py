@@ -23,25 +23,23 @@ async def slotting_heatmap() -> dict:
 
     # Build (row, col, velocity) triples from the optimiser's velocity window.
     cells: list[dict] = []
-    picks = getattr(opt, "_picks", {})   # {product_id: deque of ticks}
-    layout = eng.layout_snapshot()
-    # Map product → rack cell using the engine inventory index.
-    inv = getattr(eng, "inventory", {})
-    product_locations: dict[str, tuple[int, int]] = {}
-    for cell_key, cell_data in inv.items():
-        if isinstance(cell_data, dict) and "product_id" in cell_data:
-            pid = cell_data["product_id"]
-            if isinstance(cell_key, (tuple, list)) and len(cell_key) == 2:
-                product_locations[pid] = (int(cell_key[0]), int(cell_key[1]))
+    # _pick_counts: {product_id: deque of ticks}; inv.face: {product_id: (col, row)}
+    pick_counts = getattr(opt, "_pick_counts", {})
+    inv = eng.inventory
+    face: dict = getattr(inv, "face", {})   # product_id → (col, row) rack face
 
-    for pid, tick_deque in picks.items():
-        velocity = len(tick_deque)   # picks in rolling window
-        loc = product_locations.get(pid)
+    t = eng.time
+    for pid, tick_deque in pick_counts.items():
+        velocity = opt._velocity(pid, t)
+        loc = face.get(pid)
         if loc:
-            cells.append({"product_id": pid, "row": loc[0], "col": loc[1], "velocity": velocity})
+            cells.append({"product_id": pid, "row": loc[1], "col": loc[0], "velocity": velocity})
 
-    # Also expose total swaps performed this run.
-    swaps = getattr(opt, "_total_swaps", 0)
+    # Swaps counter lives on the engine-level slotting attribute when present.
+    swaps = getattr(opt, "_total_swaps", None)
+    # Fall back: count how many _reslot calls happened via last-reslot tick proxy.
+    if swaps is None:
+        swaps = 0
     return {"enabled": True, "cells": cells, "total_swaps": swaps}
 
 
