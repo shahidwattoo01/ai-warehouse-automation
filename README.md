@@ -48,7 +48,7 @@ The Python simulator owns the logic (grid, tick loop, robots, orders, events). T
 | `apps/frontend/` | Next.js + Tailwind Control Center; `components/three/` holds the 3D warehouse scene |
 | `simulation/` | Simulator engine: warehouse grid, robots, orders, inventory, navigation, events, camera |
 | `ai/` | One package per AI layer, all implementing `ai.common.base.AIModule` |
-| `configs/` | Warehouse layouts, simulation settings, experiments E1–E7, model registry config |
+| `configs/` | Warehouse layouts, simulation settings, experiments E1–E7 + E9a–E9d, model registry config |
 | `data/` | `raw/`, `processed/`, `synthetic/` (simulator output) and `documents/` (RAG knowledge base) |
 | `models/` | Trained models and their test reports (not in Git; see `models/README.md`) |
 | `evaluation/` | Experiment harness and metric reports (ML, RAG, agents, simulation) |
@@ -107,16 +107,61 @@ Trained models are not in Git (see [`models/README.md`](models/README.md)): copy
 | 5 | Deep learning + vision | ✅ | LSTM faults F1 0.835 (14/14 days) · demand networks MAE 7.42 · YOLO11s mAP@0.5 0.908 · Vision page |
 | 6 | NLP + Transformers | ✅ | Copilot commands: DistilBERT exact tool call 0.807 vs 0.725 TF-IDF · approval-gated actions · Copilot page |
 | 7 | RAG | ✅ | Knowledge assistant: right section in top 3 for 96 % of test questions, first citation right 87 % · Knowledge page |
-| 8 | Tools + agents | ⏳ | Copilot that plans and executes approved actions |
-| 9 | Multi-agent + RL | ⏳ | RL navigation compared with A\* |
-| 10 | Integration | ⏳ | All layers connected end to end |
-| 11 | Evaluation (E1–E7) | ⏳ | Progressive experiments on identical seeds |
-| 12 | Finalization | ⏳ | Deployment, final report, presentation |
+| 8 | Tools + agents | ✅ | Operations agent: 15 typed tools, approval gate; task success 97 % (89/92 scenarios) |
+| 9 | Multi-agent + RL | ✅ | Batch picking (PR-03), space-time A\* traffic (PR-04), MiR-100 physics (PR-05), slotting (PR-10), shared-policy MARL DQN; experiments E9a–E9d vs E4d |
+| 10 | Integration | ✅ | VDA 5050 robot interface, ERP/WMS connector, RF scanner, event bus, full WMS (receiving, putaway, outbound, shipping, lot/FEFO/serial), cycle counting, returns, alerting |
+| 11 | Evaluation | ✅ | Scale benchmark up to 182 orders/h (88 robots); MLOps pipeline with drift detection; labour standards calibrated to MiR 100 datasheet |
+| 12 | Finalization | ✅ | MIT licence; nginx TLS overlay (Let's Encrypt-ready); multi-site / 3PL hierarchy (clients → sites → users); all 33 professional backlog items closed |
 
 Details: [`docs/phase4_optimization.md`](docs/phase4_optimization.md),
-[`docs/phase5_deep_learning_vision.md`](docs/phase5_deep_learning_vision.md), [`docs/phase6_nlp.md`](docs/phase6_nlp.md), [`docs/phase7_rag.md`](docs/phase7_rag.md), inventory management [`docs/wms_inventory.md`](docs/wms_inventory.md), outbound and shipping [`docs/wms_outbound.md`](docs/wms_outbound.md), fleet safety [`docs/safety.md`](docs/safety.md), the beginner's
-guide [`docs/phase4_phase5_explained.md`](docs/phase4_phase5_explained.md), and the main report
-[`reports/Project_Progress_Report.pdf`](reports/Project_Progress_Report.pdf) (see `reports/README.md`).
+[`docs/phase5_deep_learning_vision.md`](docs/phase5_deep_learning_vision.md),
+[`docs/phase6_nlp.md`](docs/phase6_nlp.md),
+[`docs/phase7_rag.md`](docs/phase7_rag.md),
+[`docs/phase8_agents.md`](docs/phase8_agents.md),
+[`docs/phase9_multiagent_rl.md`](docs/phase9_multiagent_rl.md),
+[`docs/phase12_finalization.md`](docs/phase12_finalization.md),
+inventory management [`docs/wms_inventory.md`](docs/wms_inventory.md),
+outbound and shipping [`docs/wms_outbound.md`](docs/wms_outbound.md),
+fleet safety [`docs/safety.md`](docs/safety.md),
+the beginner's guide [`docs/phase4_phase5_explained.md`](docs/phase4_phase5_explained.md),
+and the main report [`reports/Project_Progress_Report.pdf`](reports/Project_Progress_Report.pdf)
+(see `reports/README.md`).
+
+## Deployment (production / HTTPS)
+
+```bash
+mkdir -p certs
+# Copy Let's Encrypt or self-signed cert + key:
+cp /etc/letsencrypt/live/<host>/fullchain.pem certs/warehouse.crt
+cp /etc/letsencrypt/live/<host>/privkey.pem   certs/warehouse.key
+# Start with nginx TLS overlay:
+docker compose -f docker-compose.yml -f docker-compose.tls.yml up -d
+```
+
+The TLS overlay ([`docker-compose.tls.yml`](docker-compose.tls.yml)) adds nginx 1.27 with:
+- HTTP → HTTPS permanent redirect on port 80
+- TLS 1.2 / 1.3, strong ECDHE + ChaCha20 cipher list, OCSP stapling
+- WebSocket and SSE pass-through (the 3D live stream works unchanged)
+- HSTS with 1-year max-age
+
+For multi-site / 3PL deployments, see the **Sites admin** page (`/admin/sites`)
+and the [phase 12 notes](docs/phase12_finalization.md) on the AGPL-3.0 boundary
+for the YOLO detector.
+
+## Experiments and evaluation
+
+```bash
+# Reproduce the Phase 4 optimisation results (10 experiments × 5 seeds × 24 h):
+python scripts/run_experiments.py
+
+# Reproduce the Phase 9 multi-agent + RL results (E4d + E9a–E9d × 5 seeds × 24 h):
+python scripts/run_experiments_phase9.py
+
+# Quick smoke test (1 seed × 2 h):
+python scripts/run_experiments_phase9.py --seeds 1 --hours 2
+```
+
+Reports land in `evaluation/reports/phase4/` and `evaluation/reports/phase9/`.
 
 ## Users and login
 
