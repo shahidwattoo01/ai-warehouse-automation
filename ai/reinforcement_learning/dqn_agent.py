@@ -63,7 +63,10 @@ else:
 @dataclass
 class _ReplayBuffer:
     capacity: int = 50_000
-    _buf: deque = field(default_factory=lambda: deque(maxlen=50_000))
+    _buf: deque = field(init=False)
+
+    def __post_init__(self) -> None:
+        self._buf = deque(maxlen=self.capacity)
 
     def push(self, obs, action, reward, next_obs, done) -> None:
         self._buf.append((obs, action, reward, next_obs, done))
@@ -150,7 +153,8 @@ class DQNNavigator(AIModule):
                 action = self._select_action(obs)
                 next_obs, reward, terminated, truncated, _ = env.step(action)
                 done = terminated or truncated
-                self._buf.push(obs, action, reward, next_obs, float(done))
+                # Truncation is not a terminal state; only terminated ends the value chain.
+                self._buf.push(obs, action, reward, next_obs, float(terminated))
                 obs = next_obs
                 ep_reward += reward
                 if len(self._buf) >= self.batch_size:

@@ -109,10 +109,12 @@ class SharedPolicyMARL(AIModule):
 
                 results = env.step_multi(action_dict)
 
-                # Collect transitions from all robots into the shared buffer
+                # Collect transitions from all robots into the shared buffer.
+                # Truncation (time-limit) is NOT a terminal state; pass done=0.0 so the
+                # TD target still bootstraps from the next observation.
                 for rid, (next_obs, reward, truncated) in results.items():
                     obs = obs_dict[rid]
-                    self._agent._buf.push(obs, action_dict[rid], reward, next_obs, float(truncated))
+                    self._agent._buf.push(obs, action_dict[rid], reward, next_obs, 0.0)
                     ep_reward += reward
                     if reward >= 10.0:
                         ep_del += 1

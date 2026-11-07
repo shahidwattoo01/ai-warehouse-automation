@@ -138,7 +138,10 @@ async def delete_site(site_id: str, _: Admin) -> dict:
     store = get_site_store()
     if not store.get_site(site_id):
         raise HTTPException(404, {"code": "not_found", "message": f"site {site_id} not found"})
-    store.delete_site(site_id)
+    try:
+        store.delete_site(site_id)
+    except ValueError as e:
+        raise HTTPException(409, {"code": "conflict", "message": str(e)}) from e
     return {"deleted": site_id}
 
 
@@ -196,7 +199,7 @@ async def site_reports() -> dict:
 
 @router.post("/{site_id}/assign-user")
 async def assign_user(site_id: str, body: AssignUserIn, _: Admin) -> dict:
-    """Scope a user to a specific site (or pass site_id=null to remove the scope)."""
+    """Scope a user to a specific site."""
     site_store = get_site_store()
     if not site_store.get_site(site_id):
         raise HTTPException(404, {"code": "not_found", "message": f"site {site_id} not found"})
@@ -206,3 +209,16 @@ async def assign_user(site_id: str, body: AssignUserIn, _: Admin) -> dict:
         raise HTTPException(404, {"code": "not_found", "message": f"user {body.user_id} not found"})
     user_store.update(body.user_id, site_id=site_id)
     return {"user_id": body.user_id, "site_id": site_id}
+
+
+@router.delete("/{site_id}/users/{user_id}")
+async def unassign_user(site_id: str, user_id: str, _: Admin) -> dict:
+    """Remove a user's site scope (makes them a global user)."""
+    user_store = get_user_store()
+    user = user_store.get(user_id)
+    if not user:
+        raise HTTPException(404, {"code": "not_found", "message": f"user {user_id} not found"})
+    if user.site_id != site_id:
+        raise HTTPException(409, {"code": "conflict", "message": f"user {user_id} is not assigned to site {site_id}"})
+    user_store.update(user_id, site_id=None)
+    return {"user_id": user_id, "site_id": None}

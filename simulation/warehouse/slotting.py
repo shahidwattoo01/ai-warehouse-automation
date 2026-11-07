@@ -15,7 +15,7 @@ is true in the simulation config.
 
 from __future__ import annotations
 
-from collections import defaultdict
+from collections import defaultdict, deque
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
@@ -32,7 +32,7 @@ class SlottingOptimiser:
     enabled: bool = True
     reoptimise_every_ticks: int = 600 * 24   # once per simulated day
     velocity_window_ticks: int = 600 * 168   # 7-day rolling window
-    _pick_counts: dict[str, list[int]] = field(default_factory=lambda: defaultdict(list))
+    _pick_counts: dict[str, deque] = field(default_factory=lambda: defaultdict(deque))
     _last_reslot_tick: int = -1
 
     @classmethod
@@ -53,9 +53,8 @@ class SlottingOptimiser:
         """Pick count for `product_id` in the recent velocity window."""
         cutoff = current_tick - self.velocity_window_ticks
         counts = self._pick_counts[product_id]
-        # Trim stale entries
         while counts and counts[0] < cutoff:
-            counts.pop(0)
+            counts.popleft()
         return len(counts)
 
     def maybe_reslot(self, engine: "SimulationEngine") -> int:

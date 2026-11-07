@@ -172,17 +172,14 @@ class WarehouseEnv:
                 robot.route = [(nx, ny)] + robot.route[1:]
 
         events = eng.tick()
+        from simulation.events.events import EventType
+        task_after = eng.controller.tasks.get(rid)
+        active_order_ids = getattr(task_after, "order_ids", [])
         for ev in events:
-            if ev.entity_id == rid:
-                from simulation.events.events import EventType
-                if ev.type == EventType.ITEM_PICKED:
-                    reward += R_PICK
-                elif ev.type == EventType.ORDER_DELIVERED:
-                    reward += R_DELIVER
-            elif ev.entity_id in (eng.controller.tasks.get(rid) or type("", (), {"order_ids": []})()).order_ids:
-                from simulation.events.events import EventType
-                if ev.type == EventType.ORDER_DELIVERED:
-                    reward += R_DELIVER
+            if ev.type == EventType.ITEM_PICKED and ev.entity_id == rid:
+                reward += R_PICK
+            elif ev.type == EventType.ORDER_DELIVERED and ev.entity_id in active_order_ids:
+                reward += R_DELIVER
 
         # Progress shaping
         new_dist = self._dist_to_goal(rid)
@@ -216,6 +213,7 @@ class WarehouseEnv:
         truncated = eng.time - self._start_tick >= episode_ticks
 
         # Apply RL actions (override route head for non-WAIT actions)
+        occupied = {r.position for r in eng.robots.values()}
         for rid, action in action_dict.items():
             if action == 4:
                 continue
@@ -224,12 +222,14 @@ class WarehouseEnv:
                 continue  # let the existing route run; RL only acts when robot is free
             dx, dy = ACTION_DELTA[action]
             nx, ny = robot.position[0] + dx, robot.position[1] + dy
-            if eng.layout.grid.is_walkable(nx, ny):
+            if not eng.layout.grid.is_walkable(nx, ny) or (nx, ny) in occupied:
+                per_robot_rewards[rid] = per_robot_rewards.get(rid, R_TICK) + R_COLLISION
+            else:
                 robot.route = [(nx, ny)]
 
-        events = eng.tick()
-
         per_robot_rewards: dict[str, float] = {rid: R_TICK for rid in eng.robots}
+
+        events = eng.tick()
         for ev in events:
             from simulation.events.events import EventType
             if ev.entity_id and ev.type == EventType.ITEM_PICKED:
