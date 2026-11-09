@@ -176,7 +176,7 @@ def login(username: str, password: str, client: str | None) -> User:
             if failures >= settings.login_max_failures
             else None
         )
-        store.update(user.user_id, failed_logins=0 if locked else failures, locked_until=locked)
+        store.update(user.user_id, failed_logins=failures, locked_until=locked)
         store.log(username, user.user_id, "locked_now" if locked else "wrong_password", client)
         raise AuthError("Wrong username or password")
     store.update(user.user_id, failed_logins=0, locked_until=None, last_login=now())
